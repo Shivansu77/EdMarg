@@ -2,25 +2,25 @@ import React from 'react';
 
 const TransformSection = () => {
   return (
-    <section className="py-20 px-8 w-full max-w-7xl mx-auto flex flex-col items-center">
+    <section className="py-12 md:py-20 px-4 md:px-8 w-full max-w-7xl mx-auto flex flex-col items-center">
       {/* Header */}
-      <div className="text-center max-w-3xl mb-16">
-        <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-6">
+      <div className="text-center max-w-3xl mb-8 md:mb-16">
+        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 md:mb-6">
           Transforming your potential
         </h2>
-        <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
+        <p className="text-base md:text-xl text-gray-600 leading-relaxed">
           Become the best version of yourself by accessing to the perspectives and life 
           experiences of others who&apos;ve been there, done that.
         </p>
       </div>
 
       {/* Mockup UI Window */}
-      <div className="w-full relative bg-gray-900 rounded-3xl overflow-hidden shadow-2xl mb-20 border-[12px] border-gray-900">
-        <div className="bg-white w-full rounded-2xl overflow-hidden shadow-inner flex flex-col h-[500px] md:h-[600px]">
+      <div className="w-full relative bg-gray-900 rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl mb-10 md:mb-20 border-[6px] md:border-[12px] border-gray-900">
+        <div className="bg-white w-full rounded-xl md:rounded-2xl overflow-hidden shadow-inner flex flex-col">
           
           {/* Mockup Header/Tabs */}
-          <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between">
-            <div className="flex gap-8 text-sm font-semibold text-gray-400">
+          <div className="px-4 md:px-8 py-3 md:py-6 border-b border-gray-100 flex items-center justify-between">
+            <div className="flex gap-4 md:gap-8 text-xs md:text-sm font-semibold text-gray-400">
               <span className="text-black border-b-2 border-black pb-1">Mentors</span>
               <span className="hover:text-black cursor-pointer">Group Sessions</span>
               <span className="hover:text-black cursor-pointer">Topics</span>
@@ -28,7 +28,7 @@ const TransformSection = () => {
           </div>
 
           {/* Mockup Controls */}
-          <div className="px-8 py-4 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-gray-50">
+          <div className="px-4 md:px-8 py-3 md:py-4 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4 border-b border-gray-50 hidden sm:flex">
             {/* Search Bar Placeholder */}
             <div className="bg-gray-50 rounded-full px-4 py-2 flex items-center w-full md:w-80 border border-gray-200">
               <span className="text-gray-400 mr-2 opacity-50">🔍</span>
@@ -47,22 +47,21 @@ const TransformSection = () => {
           </div>
 
           {/* Mockup Grid Area */}
-          <div className="flex-1 bg-gray-50 p-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 overflow-hidden">
+          <div className="flex-1 bg-gray-50 p-3 md:p-8 grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 overflow-hidden">
             
             {/* Mentor Card 1 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 hover:shadow-md transition cursor-pointer transform hover:-translate-y-1">
-              <div className="h-40 bg-gray-200 w-full relative">
+              <div className="h-24 md:h-40 w-full relative overflow-hidden">
+                <img src="/mentors/samantha.png" alt="Samantha Aquino" className="w-full h-full object-cover" />
                 <div className="absolute top-2 left-2 bg-white text-xs px-2 py-1 rounded-md font-bold text-gray-700 shadow-sm">Top rated</div>
-                {/* Fallback pattern for image array */}
-                <div className="w-full h-full bg-gradient-to-br from-purple-200 to-indigo-300"></div>
                 <div className="absolute bottom-2 left-2 text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded shadow-sm">⚡ Advance</div>
               </div>
-              <div className="p-4 flex flex-col gap-1">
-                <div className="font-bold text-sm">Samantha Aquino 🇸🇪</div>
-                <div className="text-xs text-gray-500">Senior Product Designer at Epidemic Sound</div>
-                <div className="text-xs text-gray-400 mt-2">📊 49 sessions (15 reviews)</div>
+              <div className="p-2 md:p-4 flex flex-col gap-0.5 md:gap-1">
+                <div className="font-bold text-[11px] md:text-sm">Samantha Aquino 🇸🇪</div>
+                <div className="text-[10px] md:text-xs text-gray-500 line-clamp-1">Senior Product Designer at Epidemic Sound</div>
+                <div className="text-[10px] md:text-xs text-gray-400 mt-1 md:mt-2 hidden sm:block">📊 49 sessions (15 reviews)</div>
               </div>
-              <div className="mt-auto border-t border-gray-50 p-3 flex justify-between text-[10px] text-gray-400 font-medium">
+              <div className="mt-auto border-t border-gray-50 p-2 md:p-3 flex justify-between text-[8px] md:text-[10px] text-gray-400 font-medium">
                 <div>Experience<br/><span className="text-black font-bold">10 years</span></div>
                 <div>Avg. Attendance<br/><span className="text-green-600 font-bold">98%</span></div>
               </div>
@@ -70,61 +69,53 @@ const TransformSection = () => {
 
             {/* Mentor Card 2 */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 hover:shadow-md transition cursor-pointer transform hover:-translate-y-1">
-              <div className="h-40 bg-gray-200 w-full relative">
+              <div className="h-24 md:h-40 w-full relative overflow-hidden">
+                <img src="/mentors/natasha.png" alt="Paula Faina" className="w-full h-full object-cover" />
                 <div className="absolute top-2 left-2 bg-white text-xs px-2 py-1 rounded-md font-bold text-gray-700 shadow-sm">Top rated</div>
-                <div className="w-full h-full bg-gradient-to-br from-green-200 to-emerald-300"></div>
                 <div className="absolute bottom-2 left-2 text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded shadow-sm">⚡ Advance</div>
               </div>
-              <div className="p-4 flex flex-col gap-1">
-                <div className="font-bold text-sm">Paula Faina 🇬🇧</div>
-                <div className="text-xs text-gray-500">CEO at Faina UK Consulting</div>
-                <div className="text-xs text-gray-400 mt-2">📊 77 sessions (19 reviews)</div>
+              <div className="p-2 md:p-4 flex flex-col gap-0.5 md:gap-1">
+                <div className="font-bold text-[11px] md:text-sm">Paula Faina 🇬🇧</div>
+                <div className="text-[10px] md:text-xs text-gray-500 line-clamp-1">CEO at Faina UK Consulting</div>
+                <div className="text-[10px] md:text-xs text-gray-400 mt-1 md:mt-2 hidden sm:block">📊 77 sessions (19 reviews)</div>
               </div>
-              <div className="mt-auto border-t border-gray-50 p-3 flex justify-between text-[10px] text-gray-400 font-medium">
+              <div className="mt-auto border-t border-gray-50 p-2 md:p-3 flex justify-between text-[8px] md:text-[10px] text-gray-400 font-medium">
                 <div>Experience<br/><span className="text-black font-bold">22 years</span></div>
                 <div>Avg. Attendance<br/><span className="text-green-600 font-bold">100%</span></div>
               </div>
             </div>
 
-            {/* Mentor Card 3 */}
-            <div className="bg-white rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.1)] border-2 border-gray-800 overflow-hidden flex flex-col z-10 relative transform scale-105">
-              {/* Play button overlay to mimic image focus */}
-              <div className="absolute inset-0 m-auto w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg pointer-events-none z-20 top-10">
-                <div className="w-0 h-0 border-t-8 border-b-8 border-l-[14px] border-t-transparent border-b-transparent border-l-black ml-1"></div>
-              </div>
-              <div className="h-40 bg-gray-200 w-full relative">
+            {/* Mentor Card 3 - Featured */}
+            <div className="bg-white rounded-xl shadow-[0_0_15px_rgba(0,0,0,0.1)] border-2 border-gray-800 overflow-hidden flex flex-col z-10 relative transform md:scale-105">
+              <div className="h-24 md:h-40 w-full relative overflow-hidden">
+                <img src="/mentors/annette.png" alt="Maura MacDonald" className="w-full h-full object-cover" />
                 <div className="absolute top-2 left-2 bg-white text-xs px-2 py-1 rounded-md font-bold text-gray-700 shadow-sm">Top rated</div>
-                <div className="w-full h-full bg-gradient-to-br from-orange-200 to-red-300"></div>
                 <div className="absolute bottom-2 left-2 text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded shadow-sm">⚡ Advance</div>
               </div>
-              <div className="p-4 flex flex-col gap-1 relative">
-                <div className="font-bold text-sm">Maura MacDonald 🇨🇦</div>
-                <div className="text-xs text-gray-500">Senior Visual Designer at IBM</div>
-                <div className="text-xs text-gray-400 mt-2">📊 151 sessions (37 reviews)</div>
-                {/* Custom Cursor SVG */}
-                <svg className="absolute bottom-0 right-4 w-10 h-10 transform translate-x-4 translate-y-4" viewBox="0 0 100 100" fill="white" stroke="black" strokeWidth="4">
-                  <path d="M20 20 L40 80 L50 60 L70 90 L80 80 L60 50 L80 40 Z" />
-                </svg>
+              <div className="p-2 md:p-4 flex flex-col gap-0.5 md:gap-1">
+                <div className="font-bold text-[11px] md:text-sm">Maura MacDonald 🇨🇦</div>
+                <div className="text-[10px] md:text-xs text-gray-500 line-clamp-1">Senior Visual Designer at IBM</div>
+                <div className="text-[10px] md:text-xs text-gray-400 mt-1 md:mt-2 hidden sm:block">📊 151 sessions (37 reviews)</div>
               </div>
-              <div className="mt-auto border-t border-gray-50 p-3 flex justify-between text-[10px] text-gray-400 font-medium">
+              <div className="mt-auto border-t border-gray-50 p-2 md:p-3 flex justify-between text-[8px] md:text-[10px] text-gray-400 font-medium">
                 <div>Experience<br/><span className="text-black font-bold">20 years</span></div>
                 <div>Avg. Attendance<br/><span className="text-green-600 font-bold">99%</span></div>
               </div>
             </div>
 
             {/* Mentor Card 4 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 hover:shadow-md transition cursor-pointer transform hover:-translate-y-1 sm:hidden lg:flex">
-              <div className="h-40 bg-gray-200 w-full relative">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 hover:shadow-md transition cursor-pointer transform hover:-translate-y-1">
+              <div className="h-24 md:h-40 w-full relative overflow-hidden">
+                <img src="/mentors/omar.png" alt="Olga Sales" className="w-full h-full object-cover" />
                 <div className="absolute top-2 left-2 bg-white text-xs px-2 py-1 rounded-md font-bold text-gray-700 shadow-sm">Top rated</div>
-                <div className="w-full h-full bg-gradient-to-br from-cyan-200 to-blue-300"></div>
                 <div className="absolute bottom-2 left-2 text-[10px] bg-yellow-400 text-yellow-900 font-bold px-2 py-0.5 rounded shadow-sm">⚡ Advance</div>
               </div>
-              <div className="p-4 flex flex-col gap-1">
-                <div className="font-bold text-sm">Olga Sales 🇺🇦</div>
-                <div className="text-xs text-gray-500">Partner at Improve Ventures</div>
-                <div className="text-xs text-gray-400 mt-2">📊 11 sessions (29 reviews)</div>
+              <div className="p-2 md:p-4 flex flex-col gap-0.5 md:gap-1">
+                <div className="font-bold text-[11px] md:text-sm">Olga Sales 🇺🇦</div>
+                <div className="text-[10px] md:text-xs text-gray-500 line-clamp-1">Partner at Improve Ventures</div>
+                <div className="text-[10px] md:text-xs text-gray-400 mt-1 md:mt-2 hidden sm:block">📊 11 sessions (29 reviews)</div>
               </div>
-              <div className="mt-auto border-t border-gray-50 p-3 flex justify-between text-[10px] text-gray-400 font-medium">
+              <div className="mt-auto border-t border-gray-50 p-2 md:p-3 flex justify-between text-[8px] md:text-[10px] text-gray-400 font-medium">
                 <div>Experience<br/><span className="text-black font-bold">23 years</span></div>
                 <div>Avg. Attendance<br/><span className="text-green-600 font-bold">100%</span></div>
               </div>
@@ -135,7 +126,7 @@ const TransformSection = () => {
       </div>
 
       {/* Feature Bullet Points */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 text-left mt-4 md:mt-8">
         
         {/* Point 1 */}
         <div className="flex gap-4">

@@ -2,6 +2,11 @@ import Link from 'next/link';
 import TransformSection from '@/components/TransformSection';
 import TopMentorsSection from '@/components/TopMentorsSection';
 import JoinSection from '@/components/JoinSection';
+import ResultsSection from '@/components/ResultsSection';
+import CareerDomainsSection from '@/components/CareerDomainsSection';
+import BlogSection from '@/components/BlogSection';
+import CommunityReviewsSection from '@/components/CommunityReviewsSection';
+import GetStartedSection from '@/components/GetStartedSection';
 
 export default function Home() {
   return (
@@ -93,16 +98,16 @@ export default function Home() {
           </p>
 
           {/* Email Signup Form */}
-          <form className="relative w-full max-w-md flex items-center mb-12 shadow-[0px_8px_24px_rgba(0,0,0,0.06)] rounded-full border-2 border-gray-200 focus-within:border-purple-600 transition-colors">
+          <form className="w-full max-w-md flex flex-col sm:flex-row items-stretch sm:items-center mb-12 gap-3 sm:gap-0 sm:relative sm:shadow-[0px_8px_24px_rgba(0,0,0,0.06)] sm:rounded-full sm:border-2 sm:border-gray-200 sm:focus-within:border-purple-600 sm:transition-colors">
             <input
               type="email"
               placeholder="Enter your email"
-              className="flex-1 bg-transparent border-none outline-none py-4 px-6 text-gray-800 placeholder-gray-400 rounded-l-full"
+              className="flex-1 bg-transparent border-2 sm:border-none border-gray-200 outline-none py-4 px-6 text-gray-800 placeholder-gray-400 rounded-full focus:border-purple-600 transition-colors shadow-[0px_8px_24px_rgba(0,0,0,0.06)] sm:shadow-none"
               required
             />
             <button
               type="submit"
-              className="absolute right-1 top-1 bottom-1 bg-[#6B46FF] hover:bg-[#5835ea] text-white px-6 font-semibold rounded-full transition-colors whitespace-nowrap"
+              className="sm:absolute sm:right-1 sm:top-1 sm:bottom-1 bg-[#6B46FF] hover:bg-[#5835ea] text-white px-6 py-4 sm:py-0 font-semibold rounded-full transition-colors whitespace-nowrap"
             >
               Take Career Assessment
             </button>
@@ -127,6 +132,11 @@ export default function Home() {
       <TransformSection />
       <JoinSection />
       <TopMentorsSection />
+      <ResultsSection />
+      <CareerDomainsSection />
+      <BlogSection />
+      <CommunityReviewsSection />
+      <GetStartedSection />
     </div>
   );
 }
