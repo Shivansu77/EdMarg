@@ -3,26 +3,67 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please provide a name'],
-    trim: true,
+    required: true,
+    trim: true
   },
+
   email: {
     type: String,
-    required: [true, 'Please provide an email'],
+    required: true,
     unique: true,
     lowercase: true,
+    trim: true
   },
+
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
-    minlength: 6,
+    required: true,
+    select: false
   },
+
+  phoneNumber: {
+    type: String,
+    trim: true
+  },
+
   role: {
     type: String,
-    enum: ['admin', 'student', 'mentor'],
+    enum: ["student", "mentor", "admin"],
+    default: "student"
+  },
 
-  }
+  profileImage: {
+    type: String,
+    default: ""
+  },
+
+  isVerified: {
+    type: Boolean,
+    default: false
+  },
+
+  studentProfile: {
+    classLevel: String,
+    interests: [String],
+    careerRecommendation: String
+  },
+
+  mentorProfile: {
+    expertise: [String],
+    bio: String,
+    experienceYears: Number,
+    pricePerSession: Number,
+    rating: {
+      type: Number,
+      default: 0
+    }
+  },
+
+  razorpayCustomerId: String
+
 }, { timestamps: true });
+
+userSchema.index({ email: 1 });
 
 const User = mongoose.model('User', userSchema);
 module.exports = User;
