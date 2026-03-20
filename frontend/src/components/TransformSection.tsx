@@ -4,14 +4,34 @@ const TransformSection = () => {
   return (
     <section className="py-12 md:py-20 px-4 md:px-8 w-full max-w-7xl mx-auto flex flex-col items-center">
       {/* Header */}
-      <div className="text-center max-w-3xl mb-8 md:mb-16">
-        <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight mb-4 md:mb-6">
-          Transforming your potential
+      <div className="text-center max-w-3xl mb-8 md:mb-16 flex flex-col items-center">
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-extrabold tracking-tight mb-4 md:mb-6 text-gray-900 leading-tight">
+          Transforming your potential starts here
         </h2>
-        <p className="text-base md:text-xl text-gray-600 leading-relaxed">
-          Become the best version of yourself by accessing to the perspectives and life 
-          experiences of others who&apos;ve been there, done that.
+        <p className="text-base md:text-xl text-gray-600 leading-relaxed mb-8 max-w-2xl mx-auto">
+          Become the best version of yourself by accessing the perspectives and life 
+          experiences of others who've been there, done that.
         </p>
+        
+        {/* Social Proof Facepile */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 py-2 px-6 rounded-full bg-emerald-50/50 border border-emerald-100">
+          <div className="flex -space-x-4">
+            <img className="w-12 h-12 rounded-full border-[3px] border-[#0A3622] object-cover relative z-10" src="/mentors/natasha.png" alt="Mentor" />
+            <img className="w-12 h-12 rounded-full border-[3px] border-[#0A3622] object-cover relative z-20" src="/mentors/samantha.png" alt="Mentor" />
+            <img className="w-12 h-12 rounded-full border-[3px] border-[#0A3622] object-cover relative z-30" src="/mentors/annette.png" alt="Mentor" />
+            <div className="w-12 h-12 rounded-full border-[3px] border-[#0A3622] bg-pink-400 relative z-40 flex justify-end items-end p-2">
+              <div className="w-2 h-2 bg-black rounded-full shadow-sm"></div>
+            </div>
+            <div className="w-12 h-12 rounded-full border-[3px] border-[#0A3622] bg-yellow-400 relative z-50 flex justify-end items-end p-2 translate-y-0.5">
+              <div className="w-2 h-2 bg-black rounded-full shadow-sm"></div>
+            </div>
+            <img className="w-12 h-12 rounded-full border-[3px] border-[#0A3622] object-cover relative z-60" src="/mentors/omar.png" alt="Mentor" />
+          </div>
+          <div className="text-left hidden sm:block">
+            <div className="text-sm font-extrabold text-gray-900">10,000+ Mentions</div>
+            <div className="text-xs font-medium text-gray-600">Loved by professionals worldwide</div>
+          </div>
+        </div>
       </div>
 
       {/* Mockup UI Window */}

@@ -7,6 +7,7 @@ import CareerDomainsSection from '@/components/CareerDomainsSection';
 import BlogSection from '@/components/BlogSection';
 import CommunityReviewsSection from '@/components/CommunityReviewsSection';
 import GetStartedSection from '@/components/GetStartedSection';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   return (
@@ -137,6 +138,7 @@ export default function Home() {
       <BlogSection />
       <CommunityReviewsSection />
       <GetStartedSection />
+      <Footer />
     </div>
   );
 }

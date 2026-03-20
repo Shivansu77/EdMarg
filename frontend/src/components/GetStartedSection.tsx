@@ -1,15 +1,15 @@
 import React from 'react';
 
 const AVATARS = [
-  { src: "https://i.pravatar.cc/150?u=1", size: 48, top: "8%", left: "15%" },
-  { src: "/mentors/samantha.png", size: 56, top: "25%", left: "10%" },
-  { src: "/mentors/natasha.png", size: 64, top: "60%", left: "8%" },
-  { src: "/mentors/omar.png", size: 48, top: "30%", left: "28%" },
-  { src: "https://i.pravatar.cc/150?u=2", size: 48, top: "15%", left: "70%" },
-  { src: "/mentors/annette.png", size: 72, top: "35%", left: "82%" },
-  { src: "https://i.pravatar.cc/150?u=3", size: 56, top: "65%", left: "88%" },
-  { src: "https://i.pravatar.cc/150?u=4", size: 48, top: "75%", left: "75%" },
-  { src: "https://i.pravatar.cc/150?u=5", size: 40, top: "12%", left: "88%" },
+  { src: "https://i.pravatar.cc/150?u=1", size: 48, top: "5%", left: "5%", classes: "flex" },
+  { src: "/mentors/samantha.png", size: 56, top: "25%", left: "2%", classes: "hidden sm:flex" },
+  { src: "/mentors/natasha.png", size: 64, top: "65%", left: "2%", classes: "flex" },
+  { src: "/mentors/omar.png", size: 48, top: "25%", left: "22%", classes: "hidden lg:flex" },
+  { src: "https://i.pravatar.cc/150?u=2", size: 48, top: "15%", left: "75%", classes: "hidden lg:flex" },
+  { src: "/mentors/annette.png", size: 72, top: "35%", left: "85%", classes: "hidden sm:flex" },
+  { src: "https://i.pravatar.cc/150?u=3", size: 56, top: "70%", left: "85%", classes: "flex" },
+  { src: "https://i.pravatar.cc/150?u=4", size: 48, top: "80%", left: "65%", classes: "hidden md:flex" },
+  { src: "https://i.pravatar.cc/150?u=5", size: 40, top: "8%", left: "85%", classes: "flex" },
 ];
 
 const SHAPES = [
@@ -40,7 +40,7 @@ const GetStartedSection = () => {
         {AVATARS.map((avatar, idx) => (
           <div
             key={`avatar-${idx}`}
-            className="absolute rounded-full ring-4 ring-white shadow-sm bg-gray-50 overflow-hidden hover:scale-105 transition-transform duration-300 pointer-events-auto cursor-pointer flex items-center justify-center opacity-80 hover:opacity-100"
+            className={`absolute rounded-full ring-4 ring-white shadow-sm bg-gray-50 overflow-hidden hover:scale-105 transition-transform duration-300 pointer-events-auto cursor-pointer items-center justify-center opacity-80 hover:opacity-100 ${avatar.classes}`}
             style={{ 
               top: avatar.top, 
               left: avatar.left, 
@@ -69,26 +69,27 @@ const GetStartedSection = () => {
           From junior to leadership, we are here to grow with you.
         </p>
 
-        {/* Clean Email Form */}
-        <form className="w-full max-w-lg flex flex-col sm:flex-row items-stretch p-2 bg-white rounded-2xl border border-gray-200 shadow-xl shadow-gray-100/50 relative transform hover:-translate-y-0.5 transition-transform duration-300">
-          <div className="flex-1 flex items-center px-4 w-full py-2">
-            <svg className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {/* Clean Email Form - Always inline (never collapse on mobile) */}
+        <form className="w-full max-w-lg flex flex-row items-stretch p-1.5 bg-white rounded-full border border-gray-200 shadow-xl shadow-gray-100/50 relative transform hover:-translate-y-0.5 transition-transform duration-300">
+          <div className="flex-1 flex items-center px-3 sm:px-4 py-2 min-w-0">
+            <svg className="w-5 h-5 text-gray-400 mr-2 sm:mr-3 flex-shrink-0 hidden xs:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2" ry="2"/>
               <path d="m2 4 10 8 10-8"/>
             </svg>
             <input
               type="email"
-              placeholder="Enter your email address"
-              className="w-full bg-transparent border-none outline-none text-gray-800 placeholder-gray-400 text-base"
+              placeholder="Enter your email"
+              className="w-full bg-transparent border-none outline-none text-gray-800 placeholder-gray-400 text-sm sm:text-base min-w-0 truncate"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full sm:w-auto mt-3 sm:mt-0 font-semibold text-white px-8 py-3.5 sm:py-0 rounded-xl bg-gray-900 hover:bg-black transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+            className="w-auto font-semibold text-white px-5 sm:px-8 py-3 rounded-full bg-gray-900 hover:bg-black transition-colors flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap text-sm sm:text-base flex-shrink-0"
           >
-            Join free now
-            <svg className="w-4 h-4 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <span className="hidden xs:inline">Join free now</span>
+            <span className="inline xs:hidden">Join</span>
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
           </button>
         </form>
         
