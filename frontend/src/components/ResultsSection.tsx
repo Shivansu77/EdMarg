@@ -36,12 +36,12 @@ const ResultsSection = () => {
           {STATS.map((stat, idx) => (
             <div
               key={idx}
-              className="bg-surface-container-lowest shadow-ambient px-6 py-8 lg:px-10 lg:py-10 rounded-[2.5rem] lg:rounded-[3rem] flex flex-col items-center justify-center"
+              className="bg-surface border border-border shadow-sm px-6 py-8 lg:px-10 lg:py-10 rounded-xl flex flex-col items-center justify-center transition-all hover:shadow-md"
             >
               <div className="text-[2rem] lg:text-[2.5rem] font-bold text-primary font-plus-jakarta tracking-tight leading-none mb-2 text-center">
                 {stat.value}
               </div>
-              <div className="text-[10px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-widest text-center">
+              <div className="text-[10px] lg:text-xs font-semibold text-on-surface-variant uppercase tracking-widest text-center">
                 {stat.label}
               </div>
             </div>
@@ -63,9 +63,9 @@ const ResultsSection = () => {
           {STEPS.map((step, idx) => (
             <div
               key={idx}
-              className="bg-surface-container-lowest shadow-ambient rounded-[2rem] lg:rounded-[2.5rem] p-8 lg:p-10 flex flex-col items-start relative z-10"
+              className="bg-surface border border-border shadow-sm rounded-xl p-8 lg:p-10 flex flex-col items-start relative z-10 transition-all hover:shadow-md"
             >
-              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl lg:rounded-3xl bg-primary-container text-primary flex items-center justify-center mb-8">
+              <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-6">
                 {step.icon}
               </div>
               <h3 className="font-bold text-on-surface text-lg lg:text-xl mb-3 tracking-tight font-plus-jakarta">

@@ -18,8 +18,8 @@ const Navbar = () => {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 px-6 py-4 ${
-        scrolled ? 'bg-surface/80 backdrop-blur-md shadow-sm' : 'bg-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-surface/80 backdrop-blur-md border-b border-border/40 py-4' : 'bg-transparent py-5'
       }`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -28,25 +28,25 @@ const Navbar = () => {
           Edmarg<span className="text-primary">.</span>
         </Link>
 
-        {/* Desktop Nav Links */}
-        <nav className="hidden lg:flex items-center gap-8 text-[13px] font-bold text-on-surface-variant font-manrope uppercase tracking-wider">
+        {/* Desktop Nav Links - Centered */}
+        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-10 text-[13px] font-medium text-on-surface-variant font-manrope">
           <Link href="#how-it-works" className="hover:text-primary transition-colors">How it Works</Link>
           <Link href="#mentors" className="hover:text-primary transition-colors">Mentors</Link>
           <Link href="#success-stories" className="hover:text-primary transition-colors">Success Stories</Link>
           <Link href="#about" className="hover:text-primary transition-colors">About</Link>
         </nav>
 
-        {/* Desktop Auth Buttons */}
+        {/* Desktop Auth Buttons - Right Aligned */}
         <div className="hidden lg:flex items-center gap-6">
           <Link
             href="/connect"
-            className="text-sm font-bold text-primary hover:text-primary-dim transition-colors font-manrope"
+            className="text-[13px] font-medium text-on-surface hover:text-primary transition-colors font-manrope whitespace-nowrap"
           >
             Connect with Mentor
           </Link>
           <Link
             href="/assessment"
-            className="px-8 py-3.5 text-sm font-bold bg-primary text-on-primary rounded-[3rem] hover:shadow-ambient transition-all transform hover:-translate-y-1 font-manrope"
+            className="px-5 py-2.5 text-[13px] font-medium bg-primary text-on-primary rounded-md shadow-sm hover:bg-primary/90 transition-colors font-manrope whitespace-nowrap"
           >
             Take Assessment
           </Link>
@@ -54,10 +54,10 @@ const Navbar = () => {
 
         {/* Mobile Menu Toggle */}
         <button 
-          className="lg:hidden z-50 p-2 text-on-surface"
+          className="lg:hidden z-50 p-2 text-on-surface hover:bg-surface-dim rounded-md transition-colors"
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
+          {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
         {/* Mobile Menu Overlay */}
@@ -78,14 +78,14 @@ const Navbar = () => {
               <Link
                 href="/connect"
                 onClick={() => setIsOpen(false)}
-                className="w-full py-4 text-center text-lg font-bold text-primary border-2 border-primary rounded-[3rem] font-manrope"
+                className="w-full py-3.5 text-center text-base font-medium text-on-surface border border-border rounded-md font-manrope hover:bg-surface-dim transition-colors"
               >
                 Connect with Mentor
               </Link>
               <Link
                 href="/assessment"
                 onClick={() => setIsOpen(false)}
-                className="w-full py-4 text-center text-lg font-bold bg-primary text-on-primary rounded-[3rem] font-manrope"
+                className="w-full py-3.5 text-center text-base font-medium bg-primary text-on-primary rounded-md shadow-sm font-manrope hover:bg-primary/90 transition-colors"
               >
                 Take Assessment
               </Link>

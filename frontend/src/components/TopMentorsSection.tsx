@@ -56,18 +56,18 @@ const TopMentorsSection = () => {
           </div>
 
           {/* Nav Controls */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <button 
               onClick={prev}
-              className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-surface-container-lowest shadow-ambient flex items-center justify-center text-on-surface hover:bg-primary-container hover:text-primary transition-all"
+              className="w-10 h-10 rounded-md bg-surface border border-border shadow-sm flex items-center justify-center text-on-surface hover:bg-surface-dim transition-colors"
             >
-              <ChevronLeft size={24} />
+              <ChevronLeft size={20} />
             </button>
             <button 
               onClick={next}
-              className="w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-surface-container-lowest shadow-ambient flex items-center justify-center text-on-surface hover:bg-primary-container hover:text-primary transition-all"
+              className="w-10 h-10 rounded-md bg-surface border border-border shadow-sm flex items-center justify-center text-on-surface hover:bg-surface-dim transition-colors"
             >
-              <ChevronRight size={24} />
+              <ChevronRight size={20} />
             </button>
           </div>
         </div>
@@ -77,20 +77,20 @@ const TopMentorsSection = () => {
           {MENTORS.map((mentor, idx) => (
             <div 
               key={idx}
-              className={`bg-surface-container-lowest rounded-[2.5rem] p-6 lg:p-8 shadow-ambient group transition-all duration-500 hover:-translate-y-2 ${
+              className={`bg-surface border border-border rounded-xl p-6 shadow-sm group transition-all duration-500 hover:shadow-md ${
                 idx === activeIdx ? 'block' : 'hidden lg:block lg:opacity-60 lg:grayscale-[0.5] lg:scale-95'
               } lg:opacity-100 lg:grayscale-0 lg:scale-100`}
             >
               {/* Image & Tags */}
-              <div className="relative aspect-square rounded-[2rem] overflow-hidden mb-8 shadow-sm">
+              <div className="relative aspect-square rounded-lg overflow-hidden mb-6 border border-border shadow-sm">
                 <img 
                   src={mentor.image} 
                   alt={mentor.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
-                <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+                <div className="absolute top-3 left-3 flex flex-wrap gap-2">
                   {mentor.tags.map(tag => (
-                    <span key={tag} className="px-3 py-1 bg-white/20 backdrop-blur-md text-[10px] font-bold text-white uppercase tracking-widest rounded-full">
+                    <span key={tag} className="px-2.5 py-1 bg-surface-dim/90 backdrop-blur-sm border border-border text-[10px] font-semibold text-on-surface uppercase tracking-widest rounded-md">
                       {tag}
                     </span>
                   ))}
@@ -122,7 +122,7 @@ const TopMentorsSection = () => {
 
               <Link 
                 href="/connect"
-                className="mt-8 w-full py-4 bg-surface-container-low text-primary font-bold rounded-2xl flex items-center justify-center gap-2 hover:bg-primary hover:text-on-primary transition-all duration-300 font-manrope"
+                className="mt-6 w-full py-3.5 bg-surface-dim border border-border text-on-surface font-medium rounded-md flex items-center justify-center gap-2 hover:bg-surface-container transition-colors duration-300 font-manrope shadow-sm"
               >
                 Book a Session
               </Link>

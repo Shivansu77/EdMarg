@@ -29,13 +29,13 @@ const TransformSection = () => {
         </div>
 
         {/* Comparison Container */}
-        <div className="flex flex-col lg:flex-row items-stretch gap-6 lg:gap-0 rounded-[2.5rem] lg:rounded-[4rem] overflow-hidden shadow-ambient">
+        <div className="flex flex-col lg:flex-row items-stretch gap-6 lg:gap-0 rounded-xl overflow-hidden shadow-sm border border-border">
           
           {/* Before Edmarg */}
-          <div className="flex-1 bg-surface-container-low p-8 lg:p-16 flex flex-col justify-between">
+          <div className="flex-1 bg-surface-dim p-8 lg:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-border">
             <div>
-              <div className="inline-block px-4 py-2 bg-on-surface/5 rounded-full mb-8">
-                <span className="text-[11px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-widest font-manrope">Before Edmarg</span>
+              <div className="inline-block px-3 py-1.5 border border-border bg-surface rounded-md mb-8 shadow-sm">
+                <span className="text-[10px] lg:text-xs font-semibold text-on-surface-variant uppercase tracking-widest font-manrope">Before Edmarg</span>
               </div>
               <h3 className="text-2xl lg:text-3xl font-bold text-on-surface mb-10 font-plus-jakarta">The "Grey Fog" of Indecision</h3>
               <ul className="space-y-6">
@@ -58,13 +58,10 @@ const TransformSection = () => {
           </div>
 
           {/* After Edmarg (The Radiant Path) */}
-          <div className="flex-1 bg-surface-container-lowest p-8 lg:p-16 flex flex-col justify-between relative">
-            {/* Luminous Glow */}
-            <div className="absolute top-0 right-0 w-full h-full bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-            
+          <div className="flex-1 bg-surface p-8 lg:p-12 flex flex-col justify-between relative">
             <div className="relative z-10">
-              <div className="inline-block px-4 py-2 bg-primary/10 rounded-full mb-8">
-                <span className="text-[11px] lg:text-xs font-bold text-primary uppercase tracking-widest font-manrope">After Edmarg</span>
+              <div className="inline-block px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-md mb-8 shadow-sm">
+                <span className="text-[10px] lg:text-xs font-semibold text-primary uppercase tracking-widest font-manrope">After Edmarg</span>
               </div>
               <h3 className="text-2xl lg:text-3xl font-bold text-on-surface mb-10 font-plus-jakarta">The Radiant Future</h3>
               <ul className="space-y-6">
