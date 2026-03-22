@@ -59,7 +59,7 @@ const HeroSection = () => {
             {/* Main Visual Container */}
             <div className="relative aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-xl overflow-hidden shadow-sm border border-border bg-surface group">
               <img 
-                src="https://images.unsplash.com/photo-1510519133417-2407bcaf4afd?auto=format&fit=crop&q=80&w=1200" 
+                src="/student_in_uncertainty.png" 
                 alt="Student in uncertainty"
                 className="w-full h-full object-cover grayscale opacity-90 transition-transform duration-700 group-hover:scale-105"
               />
