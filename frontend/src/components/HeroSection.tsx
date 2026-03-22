@@ -1,142 +1,110 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
+import Link from 'next/link';
+import { CheckCircle2, User2 } from 'lucide-react';
 
-export default function HeroSection() {
-  const [view, setView] = useState<'mentee' | 'mentor'>('mentee');
-
-  // Realistic portrait placeholders from Unsplash
-  const portraits = [
-    { src: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80', className: 'hidden lg:block top-10 left-0 w-24 object-cover h-32 rounded-xl opacity-30 shadow-sm transition-transform hover:-translate-y-1' },
-    { src: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80', className: 'hidden md:block top-16 left-[10%] lg:left-[8%] w-28 object-cover h-36 rounded-xl shadow-lg transition-transform hover:-translate-y-1' },
-    { src: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?auto=format&fit=crop&w=200&q=80', className: 'hidden sm:block top-8 left-[20%] lg:left-[17%] w-32 object-cover h-40 rounded-xl shadow-md transition-transform hover:-translate-y-1' },
-    
-    { src: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80', className: 'hidden sm:block bottom-10 left-[5%] lg:left-[2%] w-32 object-cover h-40 rounded-xl shadow-md transition-transform hover:-translate-y-1' },
-    { src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80', className: 'hidden md:block bottom-4 left-[18%] lg:left-[12%] w-28 object-cover h-36 rounded-xl shadow-lg transition-transform hover:-translate-y-1' },
-
-    { src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80', className: 'hidden sm:block top-8 right-[20%] lg:right-[17%] w-32 object-cover h-40 rounded-xl shadow-md transition-transform hover:-translate-y-1' },
-    { src: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80', className: 'hidden md:block top-16 right-[10%] lg:right-[8%] w-28 object-cover h-36 rounded-xl shadow-lg transition-transform hover:-translate-y-1' },
-    { src: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&w=200&q=80', className: 'hidden lg:block top-10 right-0 w-24 object-cover h-32 rounded-xl opacity-30 shadow-sm transition-transform hover:-translate-y-1' },
-    
-    { src: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80', className: 'hidden sm:block bottom-10 right-[5%] lg:right-[2%] w-32 object-cover h-40 rounded-xl shadow-md transition-transform hover:-translate-y-1' },
-    { src: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80', className: 'hidden md:block bottom-4 right-[18%] lg:right-[12%] w-28 object-cover h-36 rounded-xl shadow-lg transition-transform hover:-translate-y-1' },
-  ];
-
+const HeroSection = () => {
   return (
-    <section className="relative w-full overflow-hidden bg-[#FDFBF7] py-16 md:py-24 pt-4">
-      {/* Container */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative min-h-[500px] flex flex-col items-center justify-center">
-        
-        {/* Toggle */}
-        <div className="flex items-center gap-8 mb-16 relative z-10 font-semibold text-lg">
-          <button
-            onClick={() => setView('mentee')}
-            className={`pb-2 outline-none transition-colors border-b-[3px] ${
-              view === 'mentee' ? 'text-teal-700 border-teal-600' : 'text-gray-400 border-transparent hover:text-gray-600'
-            }`}
-          >
-            Mentee
-          </button>
-          <button
-            onClick={() => setView('mentor')}
-            className={`pb-2 outline-none transition-colors border-b-[3px] ${
-              view === 'mentor' ? 'text-teal-700 border-teal-600' : 'text-gray-400 border-transparent hover:text-gray-600'
-            }`}
-          >
-            Mentor
-          </button>
-        </div>
+    <section className="relative w-full min-h-[90vh] flex items-center pt-20 lg:pt-0 overflow-hidden bg-surface">
+      {/* Background Luminous Depth (Subtle Glows) */}
+      <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]" />
+      <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[30%] bg-secondary/5 rounded-full blur-[100px]" />
 
-        {/* Portraits Background Layer */}
-        <div className="absolute inset-0 pointer-events-none">
-          {portraits.map((img, idx) => (
-            <img 
-              key={idx} 
-              src={img.src} 
-              alt="Mentor portrait" 
-              className={`absolute ${img.className} z-0`}
-              loading="lazy"
-            />
-          ))}
-          {/* Gradient Edges to softly fade outer portraits */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#FDFBF7] via-transparent to-[#FDFBF7] pointer-events-none md:via-transparent lg:w-[20%] lg:left-0"></div>
-          <div className="absolute inset-0 bg-gradient-to-l from-[#FDFBF7] via-transparent to-[#FDFBF7] pointer-events-none md:via-transparent lg:w-[20%] lg:right-0 ml-auto"></div>
-        </div>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 w-full relative z-10">
+        <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+          
+          {/* Left Column: Clarity Content */}
+          <div className="w-full lg:w-1/2 flex flex-col items-start gap-8 lg:gap-10">
+            {/* Status Pill */}
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-container/50 backdrop-blur-sm rounded-full">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <span className="text-[11px] lg:text-xs font-bold text-primary uppercase tracking-widest font-manrope">
+                10,000+ students already guided
+              </span>
+            </div>
 
-        {/* Main Content */}
-        <div className="relative z-10 flex flex-col items-center text-center max-w-2xl bg-[#FDFBF7]/80 backdrop-blur-[2px] p-6 rounded-3xl">
-          {view === 'mentee' ? (
-            <>
-              <h1 className="text-4xl md:text-5xl lg:text-[64px] font-extrabold text-[#0B2545] tracking-tight leading-[1.1] mb-6">
-                Reach your goals faster with expert mentors
-              </h1>
-              <p className="text-lg md:text-xl text-[#3A506B] mb-10 max-w-xl">
-                Accelerate your professional growth with 1:1 expert guidance of <span className="font-bold text-[#0B2545]">37,238+</span> mentors in our community.
-              </p>
-              
-              {/* Search Bar */}
-              <div className="w-full max-w-lg relative bg-white rounded-full shadow-[0px_8px_24px_rgba(0,0,0,0.08)] flex items-center p-2 border border-gray-100 transition-all focus-within:ring-2 focus-within:ring-teal-500 overflow-hidden">
-                <div className="pl-4 pr-2 text-teal-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                  </svg>
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="What do you want to get better at?" 
-                  className="w-full py-3 px-2 bg-transparent outline-none text-gray-700 placeholder-gray-400 font-medium text-base"
-                />
+            {/* Headline */}
+            <h1 className="text-[2.5rem] leading-[1.1] sm:text-[3.5rem] lg:text-[4.5rem] font-extrabold text-on-surface tracking-tight font-plus-jakarta">
+              Your Path to the <br />
+              <span className="bg-gradient-to-r from-primary to-primary-dim bg-clip-text text-transparent">
+                Right Career
+              </span>
+            </h1>
+
+            {/* Subtext */}
+            <p className="text-base lg:text-lg text-on-surface-variant max-w-lg leading-relaxed font-manrope">
+              Find clarity and confidence through guided assessments and expert mentorship. We turn your confusion into a structured roadmap for success.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 lg:gap-8 w-full sm:w-auto">
+              <Link 
+                href="/assessment"
+                className="w-full sm:w-auto px-8 lg:px-10 py-4 lg:py-5 bg-primary text-on-primary rounded-[3rem] font-bold text-base lg:text-lg shadow-ambient hover:shadow-xl transition-all transform hover:-translate-y-1 text-center font-manrope"
+              >
+                Take Assessment
+              </Link>
+              <Link 
+                href="/connect"
+                className="text-base lg:text-lg font-bold text-primary hover:text-primary-dim transition-colors font-manrope"
+              >
+                Connect with Mentor
+              </Link>
+            </div>
+          </div>
+
+          {/* Right Column: Luminous Card / Visual */}
+          <div className="w-full lg:w-1/2 relative mt-12 lg:mt-0">
+            {/* Main Visual Container */}
+            <div className="relative aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-[2.5rem] lg:rounded-[3rem] overflow-hidden shadow-ambient bg-surface-container-low group">
+              <img 
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1200" 
+                alt="Student finding clarity"
+                className="w-full h-full object-cover grayscale-[0.2] transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-on-surface/40 to-transparent opacity-60" />
+            </div>
+
+            {/* Floating Glass Badges - Responsive Positioning */}
+            
+            {/* Path Badge */}
+            <div className="absolute -top-6 -right-4 sm:-right-8 bg-surface-container-highest/60 backdrop-blur-xl border border-white/20 p-4 lg:p-6 rounded-3xl shadow-ambient flex items-center gap-4 animate-float">
+              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <CheckCircle2 className="text-primary w-5 h-5 lg:w-6 lg:h-6" />
               </div>
-            </>
-          ) : (
-            <>
-              <h1 className="text-4xl md:text-5xl lg:text-[64px] font-extrabold text-[#0B2545] tracking-tight leading-[1.1] mb-6">
-                Your next chapter, made possible by mentoring
-              </h1>
-              <p className="text-lg md:text-xl text-[#3A506B] mb-10 max-w-xl">
-                Build confidence as a leader, grow your network, and define your legacy.
-              </p>
-              <button className="bg-[#FF4A6B] hover:bg-[#E8395B] text-white px-8 py-4 rounded-xl font-bold text-lg shadow-[0px_8px_16px_rgba(255,74,107,0.3)] transition-transform hover:-translate-y-1">
-                Become a Mentor
-              </button>
-            </>
-          )}
-        </div>
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-on-surface font-plus-jakarta">Path Found</p>
+                <p className="text-[10px] lg:text-xs text-on-surface-variant font-manrope">Product Design at Google</p>
+              </div>
+            </div>
 
-      </div>
+            {/* Mentor Badge */}
+            <div className="absolute top-1/2 -left-4 sm:-left-12 bg-white/40 backdrop-blur-xl border border-white/20 p-4 lg:p-6 rounded-3xl shadow-ambient flex items-center gap-4 animate-float-delayed">
+              <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-secondary/10 flex items-center justify-center overflow-hidden">
+                <User2 className="text-secondary w-5 h-5 lg:w-6 lg:h-6" />
+              </div>
+              <div>
+                <p className="text-xs lg:text-sm font-bold text-on-surface font-plus-jakarta">Top Mentor</p>
+                <div className="flex gap-1 mt-1">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="w-1.5 h-1.5 lg:w-2 lg:h-2 rounded-full bg-primary" />
+                  ))}
+                </div>
+              </div>
+            </div>
 
-      {/* Trusted Logos Section */}
-      <div className="mt-16 sm:mt-24 text-center px-4 max-w-6xl mx-auto relative z-10">
-        <p className="text-sm md:text-base text-[#3A506B] font-semibold mb-8">
-          Proven success with 20,000+ top organizations
-        </p>
-        
-        <div className="flex flex-wrap justify-center items-center gap-x-8 gap-y-6 md:gap-x-12 lg:gap-x-16 grayscale opacity-80">
-          {/* Logo placeholders with text stylized identically */}
-          <div className="flex items-center gap-2 text-2xl font-bold tracking-tighter text-[#FD5C63]">
-            <svg viewBox="0 0 32 32" className="w-8 h-8 fill-current"><path d="M16 2.667C16 2.667 4.14 12.062 4.14 19.467c0 5.6 5.485 10.133 11.86 10.133 6.375 0 11.86-4.533 11.86-10.133C27.86 12.062 16 2.667 16 2.667zM16 26.667a7.2 7.2 0 110-14.4 7.2 7.2 0 010 14.4z"/></svg>
-            airbnb
+            {/* Result Badge */}
+            <div className="absolute -bottom-6 right-10 bg-surface-container-low p-4 lg:p-6 rounded-3xl shadow-ambient border border-white/10 font-plus-jakarta">
+              <p className="text-[1.5rem] lg:text-[2rem] font-bold text-primary leading-none">98%</p>
+              <p className="text-[10px] lg:text-xs font-bold text-on-surface-variant uppercase tracking-widest mt-1">Confidence Score</p>
+            </div>
           </div>
-          <div className="flex items-center gap-1 text-2xl font-bold tracking-tight text-[#FD297B]">
-            tinder
-          </div>
-          <div className="flex items-center text-2xl font-bold tracking-tighter">
-            <span className="text-[#4285F4]">G</span><span className="text-[#EA4335]">o</span><span className="text-[#FBBC05]">o</span><span className="text-[#4285F4]">g</span><span className="text-[#34A853]">l</span><span className="text-[#EA4335]">e</span>
-          </div>
-          <div className="flex items-center text-2xl font-bold tracking-tighter text-black">
-            amazon
-          </div>
-          <div className="flex items-center gap-1 text-2xl font-bold tracking-tight text-[#9146FF]">
-            twitch
-          </div>
-          <div className="flex items-center text-2xl font-bold tracking-tighter text-[#635BFF]">
-            stripe
-          </div>
-          <div className="flex items-center text-2xl font-bold tracking-tighter text-[#0052FF]">
-            coinbase
-          </div>
+
         </div>
       </div>
     </section>
   );
-}
+};
+
+export default HeroSection;

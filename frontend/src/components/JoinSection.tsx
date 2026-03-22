@@ -3,57 +3,45 @@ import Link from 'next/link';
 
 const JoinSection = () => {
   return (
-    <section className="py-20 px-8 w-full max-w-7xl mx-auto">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <section className="py-20 lg:py-32 bg-surface">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8">
         
-        {/* Student/Mentee CTA Card */}
-        <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-100 rounded-3xl p-10 md:p-14 flex flex-col items-start shadow-sm transition-shadow hover:shadow-md relative overflow-hidden group">
-          {/* Decorative background circle */}
-          <div className="absolute -right-20 -top-20 w-64 h-64 bg-purple-200 rounded-full mix-blend-multiply opacity-50 blur-3xl group-hover:bg-purple-300 transition-colors duration-500"></div>
+        {/* Main CTA Card */}
+        <div className="relative w-full bg-gradient-to-br from-primary to-primary-dim rounded-[2.5rem] lg:rounded-[4rem] p-10 lg:p-24 overflow-hidden shadow-ambient text-center">
           
-          <div className="relative z-10 w-full">
-            <h3 className="text-3xl font-extrabold text-gray-900 mb-4 tracking-tight">
-              Ready to accelerate your career?
-            </h3>
-            <p className="text-gray-600 mb-8 text-lg leading-relaxed max-w-md">
-              Book a 1-on-1 session with a world-class mentor. Get personalized guidance, resume reviews, 
-              and mock interviews to land your dream job faster.
-            </p>
-            <div className="mt-auto pt-4">
-              <Link
-                href="/mentors"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-[#6B46FF] text-white font-semibold rounded-full hover:bg-[#5835ea] transition-all transform hover:-translate-y-1 shadow-[0_8px_16px_rgba(107,70,255,0.25)]"
-              >
-                Find a Mentor
-                <span className="text-xl leading-none">&rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </div>
+          {/* Subtle Luminous Background Glows */}
+          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-white/10 rounded-full blur-[100px]" />
+          <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] bg-secondary/10 rounded-full blur-[80px]" />
 
-        {/* Expert/Mentor CTA Card */}
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-3xl p-10 md:p-14 flex flex-col items-start shadow-sm transition-shadow hover:shadow-md relative overflow-hidden group">
-          {/* Decorative background circle */}
-          <div className="absolute -right-20 -bottom-20 w-64 h-64 bg-emerald-200 rounded-full mix-blend-multiply opacity-50 blur-3xl group-hover:bg-emerald-300 transition-colors duration-500"></div>
-          
-          <div className="relative z-10 w-full">
-            <h3 className="text-3xl font-extrabold text-gray-900 mb-4 tracking-tight">
-              Share your expertise.
-            </h3>
-            <p className="text-gray-600 mb-8 text-lg leading-relaxed max-w-md">
-              Become a mentor and help the next generation of talent succeed. Build your personal brand,
-              give back to the community, and gain fresh perspectives.
+          <div className="relative z-10 max-w-3xl mx-auto">
+            <h2 className="text-[2rem] leading-tight sm:text-[2.5rem] lg:text-[3.5rem] font-extrabold text-on-primary tracking-tight mb-8 font-plus-jakarta">
+              Still confused about <br className="hidden sm:block" /> your career?
+            </h2>
+            
+            <p className="text-base lg:text-xl text-on-primary/80 font-manrope mb-12 max-w-2xl mx-auto font-medium">
+              Don't navigate the complex world of professional choices alone. Get the clarity you deserve today.
             </p>
-            <div className="mt-auto pt-4">
-              <Link
-                href="/apply-mentor"
-                className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white font-semibold rounded-full hover:bg-black transition-all transform hover:-translate-y-1 shadow-[0_8px_16px_rgba(0,0,0,0.15)]"
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-8 w-full sm:w-auto">
+              <Link 
+                href="/assessment"
+                className="w-full sm:w-auto px-8 lg:px-12 py-4 lg:py-5 bg-white text-primary rounded-[3rem] font-bold text-base lg:text-lg shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-1 font-manrope"
               >
-                Become a Mentor
-                <span className="text-xl leading-none">&rarr;</span>
+                Take Career Assessment
+              </Link>
+              <Link 
+                href="/connect"
+                className="w-full sm:w-auto px-8 lg:px-12 py-4 lg:py-5 bg-white/10 backdrop-blur-md border border-white/20 text-on-primary rounded-[3rem] font-bold text-base lg:text-lg hover:bg-white/20 transition-all font-manrope"
+              >
+                Talk to a Mentor
               </Link>
             </div>
           </div>
+
+          {/* Bottom Trust Text */}
+          <p className="relative z-10 mt-12 text-[11px] lg:text-xs font-bold text-on-primary/60 uppercase tracking-[0.2em] font-plus-jakarta">
+            Free Career Roadmap with every mentor session
+          </p>
         </div>
 
       </div>
