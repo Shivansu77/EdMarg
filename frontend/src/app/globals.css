@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #09090b;
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #09090b;
+
+  --color-surface: #fafafa;
+  --color-surface-dim: #f4f4f5;
+  --color-surface-container-low: #ffffff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container: #f4f4f5;
+  --color-surface-container-highest: #e4e4e7;
+  
+  --color-primary: #18181b; /* almost black for minimal primary */
+  --color-primary-dim: #27272a;
+  --color-primary-container: #f4f4f5;
+  --color-on-primary: #fafafa;
+  
+  --color-on-surface: #09090b;
+  --color-on-surface-variant: #71717a; /* Muted standard */
+  --color-outline-variant: #e4e4e7;
+  
+  --color-secondary: #f4f4f5; /* Muted secondary */
+  --color-on-secondary: #09090b;
+  --color-secondary-fixed: #e4e4e7;
+
+  --font-plus-jakarta: var(--font-plus-jakarta-sans), sans-serif;
+  --font-manrope: var(--font-manrope), sans-serif;
+  
+  --shadow-ambient: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* Soft, minimal shadow */
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-manrope);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-plus-jakarta);
+}
