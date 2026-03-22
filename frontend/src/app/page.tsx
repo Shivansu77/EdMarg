@@ -8,6 +8,7 @@ import BlogSection from '@/components/BlogSection';
 import CommunityReviewsSection from '@/components/CommunityReviewsSection';
 import GetStartedSection from '@/components/GetStartedSection';
 import Footer from '@/components/Footer';
+import HeroSection from '@/components/HeroSection';
 
 export default function Home() {
   return (
@@ -46,89 +47,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Hero Section */}
-      <main className="max-w-7xl mx-auto px-8 py-16 md:py-24 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-
-        {/* Left column - Abstract Illustration Placeholder */}
-        <div className="relative w-full aspect-square md:aspect-[4/3] flex items-center justify-center">
-          {/* Illustration mockup mimicking the hand and pill shapes */}
-          <div className="relative w-full h-full max-w-[400px] max-h-[400px]">
-            {/* Outline shapes & sparks */}
-            <svg className="absolute inset-0 w-full h-full text-gray-900" viewBox="0 0 400 400" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M50 150 C 40 100, 100 80, 120 120" strokeLinecap="round" />
-              <path d="M300 100 C 350 90, 360 140, 320 160" strokeLinecap="round" />
-              {/* Sparkles */}
-              <path d="M 80 80 L 90 90 M 90 80 L 80 90" strokeLinecap="round" />
-              <path d="M 330 250 L 340 260 M 340 250 L 330 260" strokeLinecap="round" />
-            </svg>
-
-            {/* Pill 1 */}
-            <div className="absolute top-[25%] left-[10%] bg-[#FFD147] border-2 border-gray-900 rounded-full px-8 py-4 transform -rotate-12 shadow-[4px_4px_0px_rgba(17,24,39,1)] z-10 transition-transform hover:-translate-y-1 hover:scale-105">
-              <span className="text-xl font-bold tracking-wide">Students</span>
-            </div>
-
-            {/* Pill 2 */}
-            <div className="absolute top-[45%] left-[20%] bg-[#6B46FF] text-white border-2 border-gray-900 rounded-full px-10 py-5 transform rotate-3 shadow-[4px_4px_0px_rgba(17,24,39,1)] z-20 transition-transform hover:-translate-y-1 hover:scale-105">
-              <span className="text-2xl font-bold tracking-wide">Studying</span>
-            </div>
-
-            {/* Pill 3 */}
-            <div className="absolute top-[65%] left-[15%] bg-[#4ADE80] border-2 border-gray-900 rounded-full px-12 py-5 transform -rotate-6 shadow-[4px_4px_0px_rgba(17,24,39,1)] z-30 transition-transform hover:-translate-y-1 hover:scale-105">
-              <span className="text-2xl font-bold tracking-wide">Together</span>
-            </div>
-
-            {/* Bottom hand shape outline */}
-            <svg className="absolute bottom-0 right-[10%] w-32 h-32 text-gray-900 transform translate-y-1/2" viewBox="0 0 100 100" fill="#FFC0CB" stroke="currentColor" strokeWidth="2">
-              <path d="M 30 80 C 10 70, 0 50, 10 30 C 20 10, 50 10, 60 30 C 70 50, 90 60, 80 80 C 70 100, 40 100, 30 80 Z" />
-              <path d="M 60 30 C 70 20, 80 30, 75 45" fill="none" strokeLinecap="round" />
-            </svg>
-          </div>
-        </div>
-
-        {/* Right column - Content & Form */}
-        <div className="flex flex-col items-start max-w-lg">
-          <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6">
-            Your Path to the <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500">
-              Right Career
-            </span>
-          </h1>
-
-          <p className="text-gray-600 text-lg md:text-xl leading-relaxed mb-10">
-            Connect with expert mentors and discover your perfect career through personalized guidance.
-          </p>
-
-          {/* Email Signup Form */}
-          <form className="w-full max-w-md flex flex-col sm:flex-row items-stretch sm:items-center mb-12 gap-3 sm:gap-0 sm:relative sm:shadow-[0px_8px_24px_rgba(0,0,0,0.06)] sm:rounded-full sm:border-2 sm:border-gray-200 sm:focus-within:border-purple-600 sm:transition-colors">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 bg-transparent border-2 sm:border-none border-gray-200 outline-none py-4 px-6 text-gray-800 placeholder-gray-400 rounded-full focus:border-purple-600 transition-colors shadow-[0px_8px_24px_rgba(0,0,0,0.06)] sm:shadow-none"
-              required
-            />
-            <button
-              type="submit"
-              className="sm:absolute sm:right-1 sm:top-1 sm:bottom-1 bg-[#6B46FF] hover:bg-[#5835ea] text-white px-6 py-4 sm:py-0 font-semibold rounded-full transition-colors whitespace-nowrap"
-            >
-              Take Career Assessment
-            </button>
-          </form>
-
-          {/* Trusted Companies */}
-          <div>
-            <p className="text-sm text-gray-500 mb-4 font-medium">Largest companies find talent here.</p>
-            <div className="flex items-center gap-6 opacity-60 grayscale">
-              {/* Fake Logos using Text */}
-              <span className="text-xl font-bold font-serif tracking-tighter">Google</span>
-              <span className="text-xl font-bold tracking-tighter text-green-600">hulu</span>
-              <span className="text-xl font-semibold tracking-wide uppercase">Uber</span>
-              <span className="text-xl font-bold tracking-tight text-indigo-600">stripe</span>
-            </div>
-          </div>
-
-        </div>
-
-      </main>
+      <HeroSection />
 
       <TransformSection />
       <JoinSection />
