@@ -5,6 +5,7 @@ import TopMentorsSection from '@/components/TopMentorsSection';
 import JoinSection from '@/components/JoinSection';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import BlogSection from '@/components/BlogSection';
 
 export default function Home() {
   return (
@@ -16,6 +17,7 @@ export default function Home() {
         <ResultsSection />
         <TransformSection />
         <TopMentorsSection />
+        <BlogSection />
         <JoinSection />
       </main>
 
