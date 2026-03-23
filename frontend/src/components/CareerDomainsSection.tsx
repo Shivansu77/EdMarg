@@ -3,7 +3,6 @@ import {
   Settings, HeartPulse, Briefcase, Palette, Landmark, Laptop, Cpu, 
   Activity, TrendingUp, PenTool, Shield, Microscope, Hammer, ChevronRight, Compass
 } from 'lucide-react';
-
 const DOMAINS = [
   {
     icon: <Settings className="w-7 h-7" />,
