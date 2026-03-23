@@ -1,35 +1,39 @@
 @import "tailwindcss";
+
 @theme {
   --color-background: #ffffff;
-  --color-foreground: #09090b;
-  --color-border: #e4e4e7;
-  --color-input: #e4e4e7;
-  --color-ring: #09090b;
+  --color-foreground: #0f0f23;
+  --color-border: #e2e8f0;
+  --color-input: #e2e8f0;
+  --color-ring: #6366f1;
 
-  --color-surface: #fafafa;
-  --color-surface-dim: #f4f4f5;
+  --color-surface: #ffffff;
+  --color-surface-dim: #f8faff;
   --color-surface-container-low: #ffffff;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container: #f4f4f5;
-  --color-surface-container-highest: #e4e4e7;
-  
-  --color-primary: #18181b; /* almost black for minimal primary */
-  --color-primary-dim: #27272a;
-  --color-primary-container: #f4f4f5;
-  --color-on-primary: #fafafa;
-  
-  --color-on-surface: #09090b;
-  --color-on-surface-variant: #71717a; /* Muted standard */
-  --color-outline-variant: #e4e4e7;
-  
-  --color-secondary: #f4f4f5; /* Muted secondary */
-  --color-on-secondary: #09090b;
-  --color-secondary-fixed: #e4e4e7;
+  --color-surface-container: #f1f5ff;
+  --color-surface-container-highest: #e0e7ff;
+
+  --color-primary: #6366f1;
+  --color-primary-dim: #4f46e5;
+  --color-primary-container: #eef2ff;
+  --color-on-primary: #ffffff;
+
+  --color-accent: #8b5cf6;
+  --color-accent-green: #10b981;
+
+  --color-on-surface: #0f0f23;
+  --color-on-surface-variant: #64748b;
+  --color-outline-variant: #e2e8f0;
+
+  --color-secondary: #f1f5ff;
+  --color-on-secondary: #0f0f23;
+  --color-secondary-fixed: #e0e7ff;
 
   --font-plus-jakarta: var(--font-plus-jakarta-sans), sans-serif;
   --font-manrope: var(--font-manrope), sans-serif;
-  
-  --shadow-ambient: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* Soft, minimal shadow */
+
+  --shadow-ambient: 0 4px 24px -4px rgba(99, 102, 241, 0.12), 0 2px 8px -2px rgba(0,0,0,0.06);
 }
 
 body {
@@ -40,4 +44,76 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-plus-jakarta);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(99,102,241,0.3); }
+  50% { box-shadow: 0 0 40px rgba(99,102,241,0.6); }
+}
+@keyframes slide-right {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.animate-float { animation: float 4s ease-in-out infinite; }
+.animate-float-delayed { animation: float-delayed 5s ease-in-out infinite 1s; }
+.animate-fade-in-up { animation: fadeInUp 0.7s ease-out forwards; }
+.animate-count-up { animation: countUp 0.6s ease-out forwards; }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+.animate-slide-right { animation: slide-right 0.5s ease-out forwards; }
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient-text {
+  background: linear-gradient(270deg, #6366f1, #8b5cf6, #06b6d4, #f59e0b, #ec4899, #6366f1);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 3s ease infinite;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-border {
+  border: 1px solid transparent;
+  background: linear-gradient(white, white) padding-box,
+    linear-gradient(135deg, #6366f1, #8b5cf6) border-box;
+}
+
+.glow-card {
+  box-shadow: 0 0 0 1px rgba(99,102,241,0.1), 0 8px 32px rgba(99,102,241,0.12);
+}
+
+.glow-card:hover {
+  box-shadow: 0 0 0 1px rgba(99,102,241,0.2), 0 16px 48px rgba(99,102,241,0.2);
 }

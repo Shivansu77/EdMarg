@@ -46,7 +46,7 @@ const Navbar = () => {
           </Link>
           <Link
             href="/assessment"
-            className="px-5 py-2.5 text-[13px] font-medium bg-primary text-on-primary rounded-md shadow-sm hover:bg-primary/90 transition-colors font-manrope whitespace-nowrap"
+            className="px-5 py-2.5 text-[13px] font-medium text-white rounded-xl shadow-sm transition-all hover:scale-105 font-manrope whitespace-nowrap" style={{background: 'linear-gradient(135deg, #6366f1, #8b5cf6)'}}
           >
             Take Assessment
           </Link>
@@ -85,7 +85,7 @@ const Navbar = () => {
               <Link
                 href="/assessment"
                 onClick={() => setIsOpen(false)}
-                className="w-full py-3.5 text-center text-base font-medium bg-primary text-on-primary rounded-md shadow-sm font-manrope hover:bg-primary/90 transition-colors"
+                className="w-full py-3.5 text-center text-base font-medium text-white rounded-xl shadow-sm font-manrope transition-all hover:opacity-90" style={{background: 'linear-gradient(135deg, #6366f1, #8b5cf6)'}}
               >
                 Take Assessment
               </Link>
