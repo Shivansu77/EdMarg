@@ -6,6 +6,8 @@ import TestimonialsSection from '@/components/TestimonialsSection';
 import JoinSection from '@/components/JoinSection';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import BlogSection from '@/components/BlogSection';
+import CommunityReviewsSection from '@/components/CommunityReviewsSection';
 
 export default function Home() {
   return (
@@ -17,6 +19,8 @@ export default function Home() {
         <TransformSection />
         <TopMentorsSection />
         <TestimonialsSection />
+        <BlogSection />
+        <CommunityReviewsSection />
         <JoinSection />
       </main>
       <Footer />

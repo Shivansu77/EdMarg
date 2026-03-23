@@ -37,18 +37,18 @@ const Navbar = () => {
         </nav>
 
         {/* Desktop Auth Buttons - Right Aligned */}
-        <div className="hidden lg:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-5">
           <Link
-            href="/connect"
-            className="text-[13px] font-medium text-on-surface hover:text-primary transition-colors font-manrope whitespace-nowrap"
+            href="/login"
+            className="text-[13px] font-medium text-on-surface hover:text-on-surface-variant transition-colors font-manrope whitespace-nowrap"
           >
-            Connect with Mentor
+            Log in
           </Link>
           <Link
-            href="/assessment"
+            href="/signup"
             className="px-5 py-2.5 text-[13px] font-medium text-white rounded-xl shadow-sm transition-all hover:scale-105 font-manrope whitespace-nowrap" style={{background: 'linear-gradient(135deg, #6366f1, #8b5cf6)'}}
           >
-            Take Assessment
+            Sign up
           </Link>
         </div>
 
@@ -76,18 +76,18 @@ const Navbar = () => {
             
             <div className="mt-auto mb-16 flex flex-col gap-4">
               <Link
-                href="/connect"
+                href="/login"
                 onClick={() => setIsOpen(false)}
                 className="w-full py-3.5 text-center text-base font-medium text-on-surface border border-border rounded-md font-manrope hover:bg-surface-dim transition-colors"
               >
-                Connect with Mentor
+                Log in
               </Link>
               <Link
-                href="/assessment"
+                href="/signup"
                 onClick={() => setIsOpen(false)}
                 className="w-full py-3.5 text-center text-base font-medium text-white rounded-xl shadow-sm font-manrope transition-all hover:opacity-90" style={{background: 'linear-gradient(135deg, #6366f1, #8b5cf6)'}}
               >
-                Take Assessment
+                Sign up
               </Link>
             </div>
           </div>
