@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 
 const AVATARS = [
   { src: "https://i.pravatar.cc/150?u=1", size: 48, top: "5%", left: "5%", classes: "flex" },
@@ -10,13 +11,6 @@ const AVATARS = [
   { src: "https://i.pravatar.cc/150?u=3", size: 56, top: "70%", left: "85%", classes: "flex" },
   { src: "https://i.pravatar.cc/150?u=4", size: 48, top: "80%", left: "65%", classes: "hidden md:flex" },
   { src: "https://i.pravatar.cc/150?u=5", size: 40, top: "8%", left: "85%", classes: "flex" },
-];
-
-const SHAPES = [
-  // Dot grid 1
-  { top: "20%", left: "40%", width: "80px", height: "80px", isPattern: true },
-  // Dot grid 2
-  { top: "60%", left: "25%", width: "60px", height: "60px", isPattern: true },
 ];
 
 const GetStartedSection = () => {
@@ -48,7 +42,13 @@ const GetStartedSection = () => {
               height: `${avatar.size}px`
             }}
           >
-            <img src={avatar.src} alt="Mentor Avatar" className="w-full h-full object-cover" />
+            <Image
+              src={avatar.src}
+              alt="Mentor avatar"
+              width={avatar.size}
+              height={avatar.size}
+              className="w-full h-full object-cover"
+            />
           </div>
         ))}
       </div>

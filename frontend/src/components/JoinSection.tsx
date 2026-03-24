@@ -1,38 +1,59 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
 
-const JoinSection = () => (
-  <section className="section-dark py-24 lg:py-32 relative overflow-hidden">
-    <div className="absolute top-[-20%] left-[20%] w-[500px] h-[500px] rounded-full blur-[150px] opacity-15 bg-[#7C3AED]" />
-    <div className="absolute bottom-[-10%] right-[10%] w-[400px] h-[400px] rounded-full blur-[120px] opacity-10 bg-[#2DD4BF]" />
+const JoinSection = () => {
+  return (
+    <section className="overflow-hidden bg-white py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
-    <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center relative z-10">
-      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8">
-          <Sparkles className="w-4 h-4 text-[#A78BFA]" />
-          <span className="text-xs font-semibold text-[#A78BFA] uppercase tracking-widest font-inter">Start Your Journey Today</span>
+        <div className="relative w-full overflow-hidden rounded-3xl border border-border bg-surface p-10 text-center shadow-[0_14px_40px_rgba(15,23,42,0.08)] lg:p-16">
+
+          <div className="pointer-events-none absolute -left-16 top-0 h-48 w-48 rounded-full bg-slate-200/40 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 right-0 h-52 w-52 rounded-full bg-indigo-100/55 blur-3xl" />
+
+          <div className="absolute left-10 top-8 opacity-60">
+            <Sparkles className="h-5 w-5 text-primary" />
+          </div>
+
+          <div className="relative z-10 mx-auto max-w-3xl">
+            <p className="font-manrope mb-4 text-sm font-semibold uppercase tracking-widest text-primary">
+              Start your journey today
+            </p>
+            <h2 className="font-plus-jakarta mb-5 text-[2rem] font-extrabold leading-tight tracking-tight text-on-surface sm:text-[2.5rem] lg:text-[3.1rem]">
+              Still confused about <br className="hidden sm:block" /> your career?
+            </h2>
+            <p className="font-manrope mx-auto mb-4 max-w-2xl text-base text-on-surface-variant lg:text-lg">
+              Don&apos;t navigate the complex world of professional choices alone. Get the clarity you deserve today.
+            </p>
+            <p className="font-manrope mb-10 text-sm font-medium text-on-surface-variant">
+              Clarity is one step away.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 lg:gap-6">
+              <Link
+                href="/assessment"
+                className="font-manrope flex w-full items-center justify-center gap-2 rounded-xl bg-on-surface px-8 py-3.5 text-base font-semibold text-white transition-colors hover:bg-slate-800 sm:w-auto"
+              >
+                Take Assessment <ArrowRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/connect"
+                className="font-manrope w-full rounded-xl border border-border bg-white px-8 py-3.5 text-base font-semibold text-on-surface transition-colors hover:bg-surface-dim sm:w-auto"
+              >
+                Connect with Mentor
+              </Link>
+            </div>
+
+            <p className="font-manrope relative z-10 mt-8 text-sm font-medium text-on-surface-variant">
+              Free career roadmap with every mentor session
+            </p>
+          </div>
         </div>
-        <h2 className="text-[2.5rem] leading-tight sm:text-[3rem] lg:text-[4rem] font-bold text-white tracking-tight mb-6 font-sora">
-          Still confused about<br />your career?
-        </h2>
-        <p className="text-base lg:text-lg text-white/50 font-inter mb-10 max-w-2xl mx-auto">
-          Don&apos;t navigate the complex world of professional choices alone. Get the clarity you deserve with AI + expert mentorship.
-        </p>
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/assessment" className="btn-primary w-full sm:w-auto px-10 py-4 text-base flex items-center justify-center gap-2 font-inter">
-            Take Assessment <ArrowRight className="w-4 h-4" />
-          </Link>
-          <Link href="/connect" className="btn-outline-light w-full sm:w-auto px-10 py-4 text-base text-center font-inter">
-            Connect with Mentor
-          </Link>
-        </div>
-      </motion.div>
-    </div>
-  </section>
-);
+
+      </div>
+    </section>
+  );
+};
 
 export default JoinSection;

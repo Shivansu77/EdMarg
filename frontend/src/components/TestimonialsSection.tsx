@@ -1,115 +1,78 @@
-'use client';
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { Play, Quote } from 'lucide-react';
 
 const TESTIMONIALS = [
   {
     name: 'Priya Sharma',
-    title: 'CEO & Founder',
-    company: 'TCS Analytics Division',
-    quote: 'TRANSFORMING CAREERS WITH DATA-DRIVEN CLARITY',
-    text: "Leveraging Edmarg's AI assessment technology has positioned us for growth alongside the next generation of professionals. By eliminating the guesswork of career choices, we've achieved unprecedented placement rates and student satisfaction.",
-    avatar: '👩‍💻',
-    initials: 'PS',
+    outcome: 'Got into Data Science at TCS',
+    story: 'I was completely lost after 12th. Edmarg\'s assessment showed me Data Science was my path. Within 5 days I had a clear roadmap.',
+    highlight: 'Within 5 days I had a clear roadmap.',
+    initial: 'PS',
   },
   {
     name: 'Arjun Mehta',
-    title: 'Head of Design',
-    company: 'Flipkart',
-    quote: 'DRIVING GROWTH WITH SMART MENTORSHIP',
-    text: "Edmarg's mentorship platform connected me with the right design leaders at the right time. Within 3 weeks I had a portfolio that got me hired. The structured roadmap gave me confidence I never had before as a confused engineering student.",
-    avatar: '👨‍🎨',
-    initials: 'AM',
+    outcome: 'Landed UX role at a startup',
+    story: 'My mentor at Edmarg helped me build a portfolio in 3 weeks. I went from confused engineering student to confident designer.',
+    highlight: 'From confused student to confident designer.',
+    initial: 'AM',
   },
   {
     name: 'Sneha Patel',
-    title: 'Civil Services Officer',
-    company: 'Government of India',
-    quote: 'FINDING YOUR TRUE CALLING IS POSSIBLE',
-    text: "Everyone told me to do MBA. Edmarg helped me realize my true calling was civil services. The assessment was eye-opening, and my mentor had cleared UPSC themselves. Best decision of my life, and it started with one conversation.",
-    avatar: '👩‍⚖️',
-    initials: 'SP',
+    outcome: 'Cleared UPSC Prelims',
+    story: 'Everyone told me to do MBA. Edmarg helped me realize my true calling was civil services. Best decision of my life.',
+    highlight: 'Edmarg helped me realize my true calling.',
+    initial: 'SP',
   },
 ];
 
 const TestimonialsSection = () => {
-  const [current, setCurrent] = useState(0);
-  const next = useCallback(() => setCurrent(p => (p + 1) % TESTIMONIALS.length), []);
-  const prev = () => setCurrent(p => (p - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
-  useEffect(() => { const i = setInterval(next, 6000); return () => clearInterval(i); }, [next]);
-
   return (
-    <section id="success-stories" className="section-dark py-24 lg:py-32 overflow-hidden relative">
-      {/* Background glow */}
-      <div className="absolute top-[20%] left-[10%] w-[400px] h-[400px] rounded-full blur-[150px] opacity-10 bg-[#7C3AED]" />
+    <section id="success-stories" className="overflow-hidden bg-white py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
-      <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-16">
-          <h2 className="text-[2rem] md:text-[2.5rem] font-bold text-white tracking-tight font-sora">
-            What the <span className="text-[#A78BFA]">Top Professionals</span><br />say about Edmarg
+        <div className="mb-14 text-center">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface-dim px-4 py-2">
+            <span className="font-manrope text-xs font-semibold uppercase tracking-widest text-primary">Real Stories</span>
+          </div>
+          <h2 className="font-plus-jakarta text-[2.1rem] font-extrabold tracking-tight text-on-surface md:text-[2.9rem]">
+            Students Who Found Their Path
           </h2>
-        </motion.div>
+        </div>
 
-        {/* Testimonial */}
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={current}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.5 }}
-              className="flex flex-col lg:flex-row gap-0 rounded-3xl overflow-hidden"
-            >
-              {/* Left — Avatar area */}
-              <div className="w-full lg:w-[40%] bg-gradient-to-br from-[#1E1B4B] to-[#312E81] p-10 lg:p-14 flex flex-col justify-center items-center relative min-h-[300px]">
-                {/* LinkedIn icon */}
-                <div className="absolute top-6 left-6 w-10 h-10 rounded-lg bg-[#0077B5] flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">in</span>
+        <div className="mb-10 grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {TESTIMONIALS.map((t, idx) => (
+            <div key={idx} className="flex flex-col gap-5 rounded-3xl border border-border bg-white p-7 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
+              <Quote className="h-7 w-7 text-primary/30" />
+              <p className="font-manrope text-base leading-relaxed text-on-surface-variant">
+                {t.story.replace(t.highlight, '')}
+                <span className="font-semibold text-on-surface">{t.highlight}</span>
+              </p>
+              <div className="mt-auto flex items-center gap-3 border-t border-border pt-4">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-surface-dim">
+                  <span className="font-manrope text-xs font-semibold text-on-surface">{t.initial}</span>
                 </div>
-                {/* Large initials */}
-                <div className="w-32 h-32 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mb-6">
-                  <span className="text-5xl font-bold text-white/30 font-sora">{TESTIMONIALS[current].initials}</span>
-                </div>
-                {/* Decorative name in background */}
-                <p className="text-[4rem] font-extrabold text-white/[0.04] absolute bottom-4 right-4 font-sora leading-none tracking-tight select-none">
-                  {TESTIMONIALS[current].name.split(' ')[0]}
-                </p>
-              </div>
-
-              {/* Right — Content */}
-              <div className="w-full lg:w-[60%] bg-white/[0.03] border border-white/5 p-10 lg:p-14 flex flex-col justify-center">
-                <div className="w-16 h-1 bg-[#7C3AED] rounded mb-8" />
-                <h3 className="text-xl lg:text-2xl font-bold text-white mb-6 tracking-tight font-sora leading-tight">
-                  {TESTIMONIALS[current].quote}
-                </h3>
-                <p className="text-white/50 text-base leading-[1.8] mb-10 font-inter">
-                  {TESTIMONIALS[current].text}
-                </p>
                 <div>
-                  <p className="font-bold text-white font-sora text-lg">{TESTIMONIALS[current].name}</p>
-                  <p className="text-sm text-white/40 font-inter">
-                    {TESTIMONIALS[current].title}, {TESTIMONIALS[current].company}
-                  </p>
+                  <p className="font-plus-jakarta font-semibold text-on-surface">{t.name}</p>
+                  <p className="font-manrope text-xs text-on-surface-variant">{t.outcome}</p>
                 </div>
               </div>
-            </motion.div>
-          </AnimatePresence>
+            </div>
+          ))}
+        </div>
 
-          {/* Navigation Arrows */}
-          <div className="flex items-center gap-4 mt-8">
-            <button onClick={prev} className="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">
-              <ChevronLeft size={20} />
-            </button>
-            <button onClick={next} className="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">
-              <ChevronRight size={20} />
-            </button>
-            <span className="ml-4 text-sm text-white/30 font-inter">{current + 1} / {TESTIMONIALS.length}</span>
+        {/* Video Testimonial Placeholder */}
+        <div className="group relative flex h-[280px] cursor-pointer items-center justify-center overflow-hidden rounded-3xl border border-border bg-slate-900 transition-all duration-300 hover:shadow-xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(99,102,241,0.25),transparent_50%),radial-gradient(circle_at_70%_50%,rgba(148,163,184,0.2),transparent_50%)]" />
+          <div className="relative z-10 flex flex-col items-center gap-4">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/25 bg-white/10 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
+              <Play className="ml-1 h-8 w-8 fill-white text-white" />
+            </div>
+            <p className="font-plus-jakarta text-lg font-semibold text-white">Watch Student Stories</p>
+            <p className="font-manrope text-sm text-white/70">See how learners improved their career direction</p>
           </div>
         </div>
+
       </div>
     </section>
   );

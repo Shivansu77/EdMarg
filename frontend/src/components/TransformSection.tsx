@@ -1,79 +1,99 @@
-'use client';
-
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Check, ArrowRight } from 'lucide-react';
+import { ArrowRight, Check, X } from 'lucide-react';
 
-const BEFORE = ['Endless scrolling through job boards', 'Anxiety about choosing the wrong major', 'Conflicting advice from peers', 'Fear of being stuck in a career you hate'];
-const AFTER = ['Data-backed clarity on your best-fit career', 'Direct connection with industry-leading mentors', 'A structured 5-year roadmap for success', 'Confidence to pursue your true passion'];
+const BEFORE_LIST = [
+  'Endless scrolling through job boards',
+  'Anxiety about choosing the wrong major',
+  'Listening to conflicting advice from peers',
+  'Fear of being stuck in a 9-5 you hate',
+];
 
-const TransformSection = () => (
-  <section className="section-dark py-24 lg:py-32 border-t border-white/5">
-    <div className="max-w-7xl mx-auto px-6 lg:px-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-        <h2 className="text-[2.2rem] md:text-[3rem] font-extrabold text-white tracking-tight font-sora">
-          From Confusion to <span className="gradient-text">Clarity</span>
-        </h2>
-      </motion.div>
+const AFTER_LIST = [
+  'Data-backed clarity on your best-fit career',
+  'Direct connection with industry-leading mentors',
+  'A structured 5-year roadmap for success',
+  'Confidence to pursue your true passion',
+];
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-16 max-w-5xl mx-auto">
-        {/* Before Card */}
-        <motion.div
-          initial={{ opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          whileHover={{ scale: 1.02 }}
-          className="card-dark rounded-2xl p-8 lg:p-10 group"
-          style={{ borderTop: '2px solid #EF4444' }}
-        >
-          <h3 className="text-xl font-bold text-white/30 mb-6 font-sora group-hover:text-red-400/60 transition-colors">😕 Without Edmarg</h3>
-          <ul className="space-y-5">
-            {BEFORE.map((item, i) => (
-              <motion.li key={i} initial={{ opacity: 0, x: -15 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 * i }}
-                className="flex items-start gap-4 group/item">
-                <motion.div whileHover={{ scale: 1.2, rotate: 90 }} transition={{ type: 'spring', stiffness: 400 }}
-                  className="mt-0.5 w-7 h-7 rounded-full bg-red-500/10 flex items-center justify-center shrink-0 border border-red-500/20 group-hover/item:bg-red-500/20 transition-colors">
-                  <X className="text-red-400 w-3.5 h-3.5" strokeWidth={3} />
-                </motion.div>
-                <span className="text-white/40 text-sm font-medium font-inter group-hover/item:text-white/60 transition-colors">{item}</span>
-              </motion.li>
-            ))}
-          </ul>
-        </motion.div>
+const TransformSection = () => {
+  return (
+    <section className="overflow-hidden bg-surface py-20 lg:py-28">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
-        {/* After Card */}
-        <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          whileHover={{ scale: 1.02 }}
-          className="card-dark rounded-2xl p-8 lg:p-10 group relative overflow-hidden"
-          style={{ borderTop: '2px solid #7C3AED' }}
-        >
-          <div className="absolute top-0 right-0 w-48 h-48 rounded-full blur-[80px] opacity-0 group-hover:opacity-[0.08] bg-[#7C3AED] transition-opacity duration-700" />
-          <h3 className="text-xl font-bold text-white mb-6 font-sora group-hover:text-[#A78BFA] transition-colors relative z-10">🚀 With Edmarg</h3>
-          <ul className="space-y-5 relative z-10">
-            {AFTER.map((item, i) => (
-              <motion.li key={i} initial={{ opacity: 0, x: 15 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.1 * i }}
-                className="flex items-start gap-4 group/item">
-                <motion.div whileHover={{ scale: 1.2 }} transition={{ type: 'spring', stiffness: 400 }}
-                  className="mt-0.5 w-7 h-7 rounded-full bg-gradient-to-r from-[#7C3AED] to-[#A78BFA] flex items-center justify-center shrink-0 group-hover/item:shadow-md group-hover/item:shadow-purple-500/30 transition-shadow">
-                  <Check className="text-white w-3.5 h-3.5" strokeWidth={3} />
-                </motion.div>
-                <span className="text-white/70 text-sm font-semibold font-inter group-hover/item:text-white transition-colors">{item}</span>
-              </motion.li>
-            ))}
-          </ul>
-          <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.6 }}
-            className="mt-8 pt-6 border-t border-white/5 relative z-10">
-            <a href="/assessment" className="inline-flex items-center gap-2 text-sm font-semibold text-[#A78BFA] hover:text-white transition-colors font-inter group/cta">
-              Start your journey <ArrowRight className="w-4 h-4 group-hover/cta:translate-x-1 transition-transform" />
-            </a>
-          </motion.div>
-        </motion.div>
+        {/* Header */}
+        <div className="mb-14 text-center lg:mb-16">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface-dim px-4 py-2">
+            <span className="font-manrope text-xs font-semibold uppercase tracking-widest text-primary">The Transformation</span>
+          </div>
+          <h2 className="font-plus-jakarta text-[2.1rem] font-extrabold leading-tight tracking-tight text-on-surface md:text-[3rem]">
+            From Confusion to Clarity
+          </h2>
+        </div>
+
+        {/* Split Screen */}
+        <div className="flex flex-col items-stretch gap-0 overflow-hidden rounded-3xl border border-border bg-white shadow-[0_16px_40px_rgba(15,23,42,0.08)] lg:flex-row">
+
+          {/* BEFORE — Grey/Dull */}
+          <div className="relative flex flex-1 flex-col justify-between overflow-hidden bg-slate-50 p-8 lg:p-10">
+
+            <div className="relative z-10">
+              <div className="mb-7 inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white/80 px-3 py-1.5">
+                <span className="font-manrope text-[10px] font-semibold uppercase tracking-widest text-slate-500">Before Edmarg</span>
+              </div>
+              <h3 className="font-plus-jakarta mb-7 text-2xl font-bold text-slate-700 lg:text-3xl">Unclear Direction</h3>
+              <ul className="space-y-5">
+                {BEFORE_LIST.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-4">
+                    <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-slate-300 bg-slate-200">
+                      <X className="h-3 w-3 text-slate-500" strokeWidth={3} />
+                    </div>
+                    <span className="font-manrope text-sm font-medium leading-relaxed text-slate-600 lg:text-base">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="relative z-10 mt-8 border-t border-slate-300 pt-5">
+              <p className="font-manrope text-xs font-semibold uppercase tracking-widest text-slate-500">Feeling: overwhelmed and stuck</p>
+            </div>
+          </div>
+
+          {/* Divider Arrow */}
+          <div className="z-10 flex items-center justify-center bg-white px-2 py-4 lg:w-16 lg:px-0 lg:py-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-dim shadow-sm">
+              <ArrowRight className="h-5 w-5 text-primary" />
+            </div>
+          </div>
+
+          {/* AFTER — Vibrant/Colorful */}
+          <div className="relative flex flex-1 flex-col justify-between overflow-hidden bg-indigo-50/45 p-8 lg:p-10">
+
+            <div className="relative z-10">
+              <div className="mb-7 inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white/80 px-3 py-1.5">
+                <span className="font-manrope text-[10px] font-semibold uppercase tracking-widest text-primary">After Edmarg</span>
+              </div>
+              <h3 className="font-plus-jakarta mb-7 text-2xl font-bold text-on-surface lg:text-3xl">Clear Career Plan</h3>
+              <ul className="space-y-5">
+                {AFTER_LIST.map((item, idx) => (
+                  <li key={idx} className="flex items-start gap-4">
+                    <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary">
+                      <Check className="h-3 w-3 text-white" strokeWidth={3} />
+                    </div>
+                    <span className="font-manrope text-sm font-semibold leading-relaxed text-on-surface lg:text-base">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="relative z-10 mt-8 border-t border-indigo-200 pt-5">
+              <p className="font-manrope text-xs font-semibold uppercase tracking-widest text-primary">Feeling: empowered and focused</p>
+            </div>
+          </div>
+
+        </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 export default TransformSection;

@@ -79,7 +79,7 @@ export default function LoginForm() {
       </form>
 
       <div className="mt-8 text-center text-sm text-on-surface-variant font-manrope flex items-center justify-center gap-1">
-        <span>Don't have an account?</span>
+        <span>Don&apos;t have an account?</span>
         <Link href="/signup" className="font-medium text-primary hover:underline">
           Sign up
         </Link>
