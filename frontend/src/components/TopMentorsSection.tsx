@@ -47,7 +47,7 @@ const TopMentorsSection = () => {
               <ChevronRight size={20} />
             </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Mentor Cards Container */}
         <div 

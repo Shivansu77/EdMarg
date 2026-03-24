@@ -86,7 +86,11 @@ function StatCard({ stat, animate }: { stat: typeof STATS[0]; animate: boolean }
   );
 }
 
-const ResultsSection = () => {
+type ResultsSectionProps = {
+  hideIntro?: boolean;
+};
+
+const ResultsSection = ({ hideIntro = false }: ResultsSectionProps) => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const [animate, setAnimate] = useState(false);
   const hasAnimatedRef = useRef(false);
@@ -123,18 +127,20 @@ const ResultsSection = () => {
         </div>
 
         {/* Section Header */}
-        <div className="mx-auto mb-14 max-w-2xl text-center lg:mb-16">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface-dim px-4 py-2">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <span className="font-manrope text-xs font-semibold uppercase tracking-widest text-primary">How It Works</span>
+        {!hideIntro && (
+          <div className="mx-auto mb-14 max-w-2xl text-center lg:mb-16">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface-dim px-4 py-2">
+              <TrendingUp className="h-4 w-4 text-primary" />
+              <span className="font-manrope text-xs font-semibold uppercase tracking-widest text-primary">How It Works</span>
+            </div>
+            <h2 className="font-plus-jakarta mb-4 text-[2.1rem] font-extrabold tracking-tight text-on-surface md:text-[2.9rem]">
+              Your Journey to Career Clarity
+            </h2>
+            <p className="font-manrope text-base text-on-surface-variant lg:text-lg">
+              A simple three-step journey to finding your career North Star.
+            </p>
           </div>
-          <h2 className="font-plus-jakarta mb-4 text-[2.1rem] font-extrabold tracking-tight text-on-surface md:text-[2.9rem]">
-            Your Journey to Career Clarity
-          </h2>
-          <p className="font-manrope text-base text-on-surface-variant lg:text-lg">
-            A simple three-step journey to finding your career North Star.
-          </p>
-        </div>
+        )}
 
         {/* Steps */}
         <div className="relative grid grid-cols-1 gap-5 md:grid-cols-3 lg:gap-6">
