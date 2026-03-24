@@ -29,7 +29,7 @@ const WhyEdMargSection = () => {
           transition={{ duration: 0.8 }}
           className="text-center mb-0 space-y-3"
         >
-          <h2 className="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+          <h2 className="text-5xl md:text-6xl font-extrabold bg-linear-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
             Why EdMarg?
           </h2>
           <p className="text-lg text-white/60 max-w-2xl mx-auto font-medium">
@@ -44,7 +44,7 @@ const WhyEdMargSection = () => {
             {/* Central Orb */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="relative w-28 h-28 flex items-center justify-center">
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-cyan-400/15 rounded-full blur-2xl" />
+                <div className="absolute inset-0 bg-linear-to-br from-purple-500/30 to-cyan-400/15 rounded-full blur-2xl" />
                 <div className="absolute inset-0 border-2 border-purple-500/30 rounded-full" />
                 <div className="w-2.5 h-2.5 bg-purple-400 rounded-full shadow-lg shadow-purple-500/40" />
               </div>
@@ -157,7 +157,7 @@ const WhyEdMargSection = () => {
             Ready to start your career journey?
           </p>
           <motion.button
-            className="px-10 py-3.5 text-base font-semibold rounded-lg bg-gradient-to-r from-purple-600 to-violet-600 text-white shadow-lg shadow-purple-500/30"
+            className="px-10 py-3.5 text-base font-semibold rounded-lg bg-linear-to-r from-purple-600 to-violet-600 text-white shadow-lg shadow-purple-500/30"
             whileHover={{
               scale: 1.05,
               boxShadow: '0 24px 60px rgba(139, 92, 246, 0.5)',
