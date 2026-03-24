@@ -1,88 +1,115 @@
-import React from 'react';
-import { Quote, Play } from 'lucide-react';
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const TESTIMONIALS = [
   {
     name: 'Priya Sharma',
-    outcome: 'Got into Data Science at TCS',
-    story: 'I was completely lost after 12th. Edmarg\'s assessment showed me Data Science was my path. Within 5 days I had a clear roadmap.',
-    highlight: 'Within 5 days I had a clear roadmap.',
+    title: 'CEO & Founder',
+    company: 'TCS Analytics Division',
+    quote: 'TRANSFORMING CAREERS WITH DATA-DRIVEN CLARITY',
+    text: "Leveraging Edmarg's AI assessment technology has positioned us for growth alongside the next generation of professionals. By eliminating the guesswork of career choices, we've achieved unprecedented placement rates and student satisfaction.",
     avatar: '👩‍💻',
-    color: '#6366f1',
+    initials: 'PS',
   },
   {
     name: 'Arjun Mehta',
-    outcome: 'Landed UX role at a startup',
-    story: 'My mentor at Edmarg helped me build a portfolio in 3 weeks. I went from confused engineering student to confident designer.',
-    highlight: 'From confused student to confident designer.',
+    title: 'Head of Design',
+    company: 'Flipkart',
+    quote: 'DRIVING GROWTH WITH SMART MENTORSHIP',
+    text: "Edmarg's mentorship platform connected me with the right design leaders at the right time. Within 3 weeks I had a portfolio that got me hired. The structured roadmap gave me confidence I never had before as a confused engineering student.",
     avatar: '👨‍🎨',
-    color: '#8b5cf6',
+    initials: 'AM',
   },
   {
     name: 'Sneha Patel',
-    outcome: 'Cleared UPSC Prelims',
-    story: 'Everyone told me to do MBA. Edmarg helped me realize my true calling was civil services. Best decision of my life.',
-    highlight: 'Edmarg helped me realize my true calling.',
+    title: 'Civil Services Officer',
+    company: 'Government of India',
+    quote: 'FINDING YOUR TRUE CALLING IS POSSIBLE',
+    text: "Everyone told me to do MBA. Edmarg helped me realize my true calling was civil services. The assessment was eye-opening, and my mentor had cleared UPSC themselves. Best decision of my life, and it started with one conversation.",
     avatar: '👩‍⚖️',
-    color: '#10b981',
+    initials: 'SP',
   },
 ];
 
 const TestimonialsSection = () => {
+  const [current, setCurrent] = useState(0);
+  const next = useCallback(() => setCurrent(p => (p + 1) % TESTIMONIALS.length), []);
+  const prev = () => setCurrent(p => (p - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  useEffect(() => { const i = setInterval(next, 6000); return () => clearInterval(i); }, [next]);
+
   return (
-    <section id="success-stories" className="py-20 lg:py-32 overflow-hidden"
-      style={{background: 'linear-gradient(180deg, #f8faff 0%, #ffffff 100%)'}}>
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
+    <section id="success-stories" className="section-dark py-24 lg:py-32 overflow-hidden relative">
+      {/* Background glow */}
+      <div className="absolute top-[20%] left-[10%] w-[400px] h-[400px] rounded-full blur-[150px] opacity-10 bg-[#7C3AED]" />
 
+      <div className="max-w-7xl mx-auto px-6 lg:px-12">
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#eef2ff] border border-[#6366f1]/20 mb-6">
-            <span className="text-xs font-bold text-[#6366f1] uppercase tracking-widest">Real Stories</span>
-          </div>
-          <h2 className="text-[2.2rem] md:text-[3rem] font-extrabold text-on-surface tracking-tight font-plus-jakarta">
-            Students Who Found Their <span className="gradient-text">Path</span>
+        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-16">
+          <h2 className="text-[2rem] md:text-[2.5rem] font-bold text-white tracking-tight font-sora">
+            What the <span className="text-[#A78BFA]">Top Professionals</span><br />say about Edmarg
           </h2>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
-          {TESTIMONIALS.map((t, idx) => (
-            <div key={idx} className="bg-white rounded-3xl p-8 glow-card transition-all duration-300 hover:scale-105 hover:-translate-y-1 flex flex-col gap-5">
-              <Quote className="w-8 h-8 opacity-20" style={{color: t.color}} />
-              <p className="text-on-surface-variant font-manrope text-base leading-relaxed">
-                {t.story.replace(t.highlight, '')}
-                <span className="font-bold" style={{color: t.color}}>{t.highlight}</span>
-              </p>
-              <div className="mt-auto pt-5 border-t border-gray-100 flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2"
-                  style={{borderColor: `${t.color}40`, background: `${t.color}10`}}>
-                  {t.avatar}
+        {/* Testimonial */}
+        <div className="relative">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={current}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
+              className="flex flex-col lg:flex-row gap-0 rounded-3xl overflow-hidden"
+            >
+              {/* Left — Avatar area */}
+              <div className="w-full lg:w-[40%] bg-gradient-to-br from-[#1E1B4B] to-[#312E81] p-10 lg:p-14 flex flex-col justify-center items-center relative min-h-[300px]">
+                {/* LinkedIn icon */}
+                <div className="absolute top-6 left-6 w-10 h-10 rounded-lg bg-[#0077B5] flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">in</span>
                 </div>
+                {/* Large initials */}
+                <div className="w-32 h-32 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center mb-6">
+                  <span className="text-5xl font-bold text-white/30 font-sora">{TESTIMONIALS[current].initials}</span>
+                </div>
+                {/* Decorative name in background */}
+                <p className="text-[4rem] font-extrabold text-white/[0.04] absolute bottom-4 right-4 font-sora leading-none tracking-tight select-none">
+                  {TESTIMONIALS[current].name.split(' ')[0]}
+                </p>
+              </div>
+
+              {/* Right — Content */}
+              <div className="w-full lg:w-[60%] bg-white/[0.03] border border-white/5 p-10 lg:p-14 flex flex-col justify-center">
+                <div className="w-16 h-1 bg-[#7C3AED] rounded mb-8" />
+                <h3 className="text-xl lg:text-2xl font-bold text-white mb-6 tracking-tight font-sora leading-tight">
+                  {TESTIMONIALS[current].quote}
+                </h3>
+                <p className="text-white/50 text-base leading-[1.8] mb-10 font-inter">
+                  {TESTIMONIALS[current].text}
+                </p>
                 <div>
-                  <p className="font-bold text-on-surface font-plus-jakarta">{t.name}</p>
-                  <p className="text-xs font-semibold font-manrope" style={{color: t.color}}>{t.outcome}</p>
+                  <p className="font-bold text-white font-sora text-lg">{TESTIMONIALS[current].name}</p>
+                  <p className="text-sm text-white/40 font-inter">
+                    {TESTIMONIALS[current].title}, {TESTIMONIALS[current].company}
+                  </p>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            </motion.div>
+          </AnimatePresence>
 
-        {/* Video Testimonial Placeholder */}
-        <div className="relative rounded-3xl overflow-hidden flex items-center justify-center cursor-pointer group transition-all duration-300 hover:scale-[1.01]"
-          style={{
-            height: '280px',
-            background: 'linear-gradient(135deg, #1e1b4b, #312e81, #4c1d95)',
-          }}>
-          <div className="absolute inset-0 opacity-10"
-            style={{backgroundImage: 'radial-gradient(circle at 30% 50%, #6366f1, transparent), radial-gradient(circle at 70% 50%, #8b5cf6, transparent)'}} />
-          <div className="relative z-10 flex flex-col items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/40 group-hover:scale-110 transition-transform duration-300">
-              <Play className="w-8 h-8 text-white fill-white ml-1" />
-            </div>
-            <p className="text-white font-bold text-lg font-plus-jakarta">Watch Student Stories</p>
-            <p className="text-white/60 text-sm font-manrope">See how Edmarg changed their lives</p>
+          {/* Navigation Arrows */}
+          <div className="flex items-center gap-4 mt-8">
+            <button onClick={prev} className="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">
+              <ChevronLeft size={20} />
+            </button>
+            <button onClick={next} className="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-all">
+              <ChevronRight size={20} />
+            </button>
+            <span className="ml-4 text-sm text-white/30 font-inter">{current + 1} / {TESTIMONIALS.length}</span>
           </div>
         </div>
-
       </div>
     </section>
   );

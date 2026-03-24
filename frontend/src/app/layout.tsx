@@ -1,20 +1,22 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Manrope } from "next/font/google";
+import { Sora, Inter } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
+const sora = Sora({
+  variable: "--font-sora-var",
   subsets: ["latin"],
+  weight: ["400", "600", "700", "800"],
 });
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+const inter = Inter({
+  variable: "--font-inter-var",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "Edmarg - Your Path to the Right Career",
-  description: "Find clarity and confidence through guided assessments and expert mentorship.",
+  title: "Edmarg — AI-Powered Career Mentorship Platform",
+  description: "Find clarity and confidence through AI-driven assessments and expert mentorship. Your guide to the right career path.",
+  keywords: "career mentorship, AI career guidance, career assessment, mentor platform, career clarity",
 };
 
 export default function RootLayout({
@@ -26,9 +28,9 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${plusJakartaSans.variable} ${manrope.variable} h-full antialiased`}
+      className={`${sora.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-surface text-on-surface font-manrope">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#0B0F19] text-[#E2E8F0] font-inter">{children}</body>
     </html>
   );
 }
