@@ -62,14 +62,28 @@ const TestimonialsSection = () => {
         </div>
 
         {/* Video Testimonial Placeholder */}
-        <div className="group relative flex h-[280px] cursor-pointer items-center justify-center overflow-hidden rounded-3xl border border-border bg-slate-900 transition-all duration-300 hover:shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(99,102,241,0.25),transparent_50%),radial-gradient(circle_at_70%_50%,rgba(148,163,184,0.2),transparent_50%)]" />
-          <div className="relative z-10 flex flex-col items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/25 bg-white/10 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
+        <div className="group relative flex min-h-75 cursor-pointer items-center justify-center overflow-hidden rounded-3xl border border-border bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 px-6 py-10 text-center transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl md:min-h-80">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -left-12 top-8 h-48 w-48 rounded-full bg-indigo-500/25 blur-3xl" />
+            <div className="absolute -right-10 bottom-6 h-52 w-52 rounded-full bg-cyan-400/15 blur-3xl" />
+          </div>
+
+          <div className="relative z-10 flex max-w-2xl flex-col items-center gap-4">
+            <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/30 bg-white/10 backdrop-blur-sm transition-transform duration-300 group-hover:scale-105">
               <Play className="ml-1 h-8 w-8 fill-white text-white" />
             </div>
-            <p className="font-plus-jakarta text-lg font-semibold text-white">Watch Student Stories</p>
-            <p className="font-manrope text-sm text-white/70">See how learners improved their career direction</p>
+
+            <p className="font-plus-jakarta text-xl font-bold tracking-tight text-white md:text-2xl">
+              Watch Student Stories
+            </p>
+
+            <p className="font-manrope max-w-xl text-sm leading-relaxed text-white/80 md:text-base">
+              See how learners improved their career direction through guided assessments and mentor-led action plans.
+            </p>
+
+            <span className="font-manrope mt-1 inline-flex items-center rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/90">
+              Play Testimonials
+            </span>
           </div>
         </div>
 
