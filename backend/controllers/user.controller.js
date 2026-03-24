@@ -62,7 +62,10 @@ exports.getUsers = async (req, res, next) => {
 // @access  Public
 exports.createUser = async (req, res, next) => {
   try {
-    const { name, email, password, phoneNumber, role } = req.body || {};
+    const { 
+      name, email, password, phoneNumber, role, 
+      studentProfile, mentorProfile 
+    } = req.body || {};
 
     if (!name || !email || !password) {
       return res.status(400).json({
@@ -87,13 +90,21 @@ exports.createUser = async (req, res, next) => {
       });
     }
 
-    const user = await User.create({
+    const userData = {
       name: name.trim(),
       email: normalizedEmail,
       password,
       phoneNumber: phoneNumber?.trim() || '',
-      role,
-    });
+      role: role || 'student',
+    };
+
+    if (role === 'student' && studentProfile) {
+      userData.studentProfile = studentProfile;
+    } else if (role === 'mentor' && mentorProfile) {
+      userData.mentorProfile = mentorProfile;
+    }
+
+    const user = await User.create(userData);
 
     return sendAuthResponse(res, 201, user, 'Signup successful');
   } catch (error) {
@@ -163,3 +174,21 @@ exports.logoutUser = async (req, res) => {
     message: 'Logged out successfully',
   });
 };
+
+
+// @desc    Get all mentors
+//@route GET /api/users/browsementor
+//@access Public
+
+exports.getBrowseMentors = async (req, res, next) => {
+  try {
+    const mentors = await User.find({ role: 'mentor' }).select('-password');
+    res.status(200).json({
+      success: true,
+      count: mentors.length,
+      data: mentors,
+    });
+  } catch (err) {
+    console.err('error in getting Mentor')
+  }
+}
