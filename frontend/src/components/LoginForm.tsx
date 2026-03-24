@@ -7,11 +7,36 @@ import { ArrowRight, Mail, Lock } from 'lucide-react';
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log('Login submitted:', { email, password });
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Login failed');
+      }
+
+      setSuccess(`Welcome back, ${result.data?.name || 'User'}!`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to login');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -71,11 +96,24 @@ export default function LoginForm() {
 
         <button
           type="submit"
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary text-on-primary font-medium text-sm rounded-md hover:bg-primary/90 transition-colors font-manrope mt-6"
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-primary text-on-primary font-medium text-sm rounded-md hover:bg-primary/90 transition-colors font-manrope mt-6 disabled:cursor-not-allowed disabled:opacity-70"
+          disabled={loading}
         >
-          Sign In
+          {loading ? 'Signing in...' : 'Sign In'}
           <ArrowRight size={16} />
         </button>
+
+        {error && (
+          <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-manrope text-rose-700">
+            {error}
+          </p>
+        )}
+
+        {success && (
+          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-manrope text-emerald-700">
+            {success}
+          </p>
+        )}
       </form>
 
       <div className="mt-8 text-center text-sm text-on-surface-variant font-manrope flex items-center justify-center gap-1">
