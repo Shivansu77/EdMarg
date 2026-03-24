@@ -66,7 +66,7 @@ const HeroSection = () => {
           </div>
 
           <div className="relative mx-auto w-full max-w-xl">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-border bg-white shadow-[0_20px_50px_rgba(15,23,42,0.12)]">
+            <div className="relative aspect-4/5 overflow-hidden rounded-3xl border border-border bg-white shadow-[0_20px_50px_rgba(15,23,42,0.12)]">
               <Image
                 src="/hero-student.png"
                 alt="Student getting career mentorship"

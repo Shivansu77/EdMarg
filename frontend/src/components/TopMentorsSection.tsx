@@ -2,18 +2,15 @@
 
 import React, { useRef } from 'react';
 import {
-  ArrowRight,
   Award,
   BriefcaseBusiness,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Star,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 
 const MENTORS = [
   { name: 'Dr. Aris V.', role: 'Senior Product Designer', company: 'Google', rating: 4.9, students: 340, successRate: 94, image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400', tags: ['UX Design', 'Career Growth'] },
@@ -39,7 +36,7 @@ const TopMentorsSection = () => {
               Get direct access to mentors from the world's most innovative companies.
             </p>
           </div>
-          <div className="flex items-center gap-2 hidden md:flex">
+          <div className="hidden items-center gap-2 md:flex">
             <button onClick={() => scroll('left')} className="w-12 h-12 rounded-full border border-gray-200 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors" aria-label="Previous mentor">
               <ChevronLeft size={20} />
             </button>
@@ -47,7 +44,7 @@ const TopMentorsSection = () => {
               <ChevronRight size={20} />
             </button>
           </div>
-        </motion.div>
+        </div>
 
         {/* Mentor Cards Container */}
         <div 
@@ -57,10 +54,10 @@ const TopMentorsSection = () => {
           {MENTORS.map((mentor, idx) => (
             <div
               key={idx}
-              className="min-w-[85vw] sm:min-w-[350px] lg:min-w-0 snap-center group relative bg-white border border-gray-100 rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-indigo-500/5 hover:-translate-y-1 flex flex-col"
+              className="group relative flex min-w-[85vw] snap-center flex-col overflow-hidden rounded-4xl border border-gray-100 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/5 sm:min-w-87.5 lg:min-w-0"
             >
               {/* Image Container */}
-              <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-50">
+              <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-50">
                 <Image 
                   src={mentor.image} 
                   alt={mentor.name} 
@@ -86,7 +83,7 @@ const TopMentorsSection = () => {
               </div>
 
               {/* Content */}
-              <div className="p-6 md:p-8 flex flex-col flex-grow">
+              <div className="flex grow flex-col p-6 md:p-8">
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {mentor.tags.map(tag => (

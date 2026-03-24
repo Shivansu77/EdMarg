@@ -105,7 +105,7 @@ const CareerDomainsSection = () => {
                 key={idx}
                 className="px-6 md:px-10 py-5 flex items-center gap-5 hover:bg-surface-dim transition-colors cursor-pointer group"
               >
-                <div className={`w-12 h-12 rounded-lg bg-surface border border-border flex items-center justify-center flex-shrink-0 shadow-sm transition-colors ${path.color.split(' ')[0]} group-hover:text-white ${path.color.split(' ')[1]}`}>
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-border bg-surface shadow-sm transition-colors ${path.color.split(' ')[0]} group-hover:text-white ${path.color.split(' ')[1]}`}>
                   {path.icon}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -116,7 +116,7 @@ const CareerDomainsSection = () => {
                     {path.desc}
                   </div>
                 </div>
-                <div className="w-8 h-8 rounded-md flex items-center justify-center bg-surface border border-border text-on-surface-variant group-hover:text-on-surface transition-colors flex-shrink-0 shadow-sm">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-on-surface-variant shadow-sm transition-colors group-hover:text-on-surface">
                   <ChevronRight className="w-4 h-4" />
                 </div>
               </div>

@@ -15,7 +15,7 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-surface border border-border rounded-xl shadow-[var(--shadow-ambient)]">
+    <div className="mx-auto w-full max-w-md rounded-xl border border-border bg-surface p-8 shadow-(--shadow-ambient)">
       <div className="mb-8 text-center">
         <h2 className="text-2xl font-bold font-plus-jakarta text-on-surface mb-2">Welcome Back</h2>
         <p className="text-sm font-manrope text-on-surface-variant">

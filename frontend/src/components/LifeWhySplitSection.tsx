@@ -52,7 +52,7 @@ const LifeWhySplitSection = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.08 * idx }}
-                  className="flex items-start gap-4 p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-[#7C3AED]/30 transition-all duration-300"
+                  className="flex items-start gap-4 rounded-2xl border border-white/6 bg-white/3 p-5 transition-all duration-300 hover:border-[#7C3AED]/30 hover:bg-white/6"
                 >
                   <div className="check-icon mt-0.5">
                     <Check className="w-4 h-4 text-white" strokeWidth={3} />
@@ -71,7 +71,7 @@ const LifeWhySplitSection = () => {
             className="w-full"
           >
             <div className="text-center mb-8 md:mb-10 space-y-2">
-              <h2 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
+              <h2 className="bg-linear-to-r from-white via-purple-200 to-white bg-clip-text text-4xl font-extrabold text-transparent md:text-5xl">
                 Why EdMarg?
               </h2>
               <p className="text-base text-white/60 max-w-xl mx-auto font-medium">
@@ -80,10 +80,10 @@ const LifeWhySplitSection = () => {
             </div>
 
             <div className="flex justify-center items-center relative w-full mt-1 md:mt-2" style={{ perspective: '1200px' }}>
-              <div className="relative w-full max-w-[560px] aspect-square flex items-center justify-center">
+              <div className="relative flex aspect-square w-full max-w-140 items-center justify-center">
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                   <div className="relative w-20 h-20 flex items-center justify-center">
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 to-cyan-400/15 rounded-full blur-2xl" />
+                    <div className="absolute inset-0 rounded-full bg-linear-to-br from-purple-500/30 to-cyan-400/15 blur-2xl" />
                     <div className="absolute inset-0 border border-purple-500/30 rounded-full" />
                     <div className="w-2 h-2 bg-purple-400 rounded-full shadow-lg shadow-purple-500/40" />
                   </div>

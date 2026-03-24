@@ -30,7 +30,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${sora.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-[#0B0F19] text-[#E2E8F0] font-inter">{children}</body>
+      <body className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">{children}</body>
     </html>
   );
 }

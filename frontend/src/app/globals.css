@@ -1,21 +1,41 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #FAFAFE;
-  --color-foreground: #1A1A2E;
+  --color-background: #f8fafc;
+  --color-foreground: #0f172a;
+
+  --color-surface: #ffffff;
+  --color-surface-dim: #f8fafc;
+  --color-surface-container: #eef2ff;
+
+  --color-on-surface: #0f172a;
+  --color-on-surface-variant: #475569;
+  --color-border: #e2e8f0;
+
+  --color-primary: #4f46e5;
+  --color-primary-dim: #4338ca;
+  --color-on-primary: #ffffff;
+
+  --color-input: #e2e8f0;
+  --color-ring: #4f46e5;
+
   --font-sora: var(--font-sora-var), sans-serif;
   --font-inter: var(--font-inter-var), sans-serif;
+  --font-plus-jakarta: var(--font-sora-var), sans-serif;
+  --font-manrope: var(--font-inter-var), sans-serif;
+
+  --shadow-ambient: 0 10px 30px rgba(79, 70, 229, 0.14), 0 2px 8px rgba(15, 23, 42, 0.08);
 }
 
 html { scroll-behavior: smooth; }
 
 body {
-  background-color: #0B0F19;
-  color: #E2E8F0;
-  font-family: var(--font-inter);
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-manrope);
 }
 
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-sora); }
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-plus-jakarta); }
 
 /* ===== SECTION BACKGROUNDS ===== */
 .section-dark {
@@ -24,13 +44,13 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-sora); }
 }
 
 .section-light {
-  background: #0F1322;
-  color: #E2E8F0;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .section-offwhite {
-  background: #0B0F19;
-  color: #E2E8F0;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 /* ===== CARDS ===== */

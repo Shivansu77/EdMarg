@@ -15,7 +15,7 @@ const AVATARS = [
 
 const GetStartedSection = () => {
   return (
-    <section className="relative w-full py-32 md:py-40 overflow-hidden bg-[#FAFAFA] min-h-[500px] flex items-center justify-center border-t border-b border-gray-100">
+    <section className="relative flex min-h-125 w-full items-center justify-center overflow-hidden border-t border-b border-gray-100 bg-[#FAFAFA] py-32 md:py-40">
       
       {/* Subtle Dot Patterns */}
       <div className="absolute inset-0 z-0 pointer-events-none opacity-[0.03]">
@@ -72,7 +72,7 @@ const GetStartedSection = () => {
         {/* Clean Email Form - Always inline (never collapse on mobile) */}
         <form className="w-full max-w-lg flex flex-row items-stretch p-1.5 bg-white rounded-full border border-gray-200 shadow-xl shadow-gray-100/50 relative transform hover:-translate-y-0.5 transition-transform duration-300">
           <div className="flex-1 flex items-center px-3 sm:px-4 py-2 min-w-0">
-            <svg className="w-5 h-5 text-gray-400 mr-2 sm:mr-3 flex-shrink-0 hidden xs:block" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="mr-2 hidden h-5 w-5 shrink-0 text-gray-400 xs:block sm:mr-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2" ry="2"/>
               <path d="m2 4 10 8 10-8"/>
             </svg>
@@ -85,7 +85,7 @@ const GetStartedSection = () => {
           </div>
           <button
             type="submit"
-            className="w-auto font-semibold text-white px-5 sm:px-8 py-3 rounded-full bg-gray-900 hover:bg-black transition-colors flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap text-sm sm:text-base flex-shrink-0"
+            className="flex w-auto shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-gray-900 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-black sm:gap-2 sm:px-8 sm:text-base"
           >
             <span className="hidden xs:inline">Join free now</span>
             <span className="inline xs:hidden">Join</span>
