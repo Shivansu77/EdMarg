@@ -7,19 +7,16 @@ import DashboardHeader from './DashboardHeader';
 interface DashboardLayoutProps {
   children: React.ReactNode;
   userName?: string;
-  userImage?: string;
 }
 
-const DashboardLayout = ({ children, userName, userImage }: DashboardLayoutProps) => {
+const DashboardLayout = ({ children, userName }: DashboardLayoutProps) => {
   return (
-    <div className="min-h-screen bg-surface flex">
+    <div className="min-h-screen bg-[#f7f8fc] flex">
       <Sidebar />
       <div className="flex-1 ml-64 flex flex-col min-h-screen">
-        <DashboardHeader userName={userName} userImage={userImage} />
-        <main className="flex-1 mt-20 p-10 overflow-y-auto bg-surface">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
+        <DashboardHeader userName={userName} />
+        <main className="flex-1 mt-[76px] p-8 overflow-y-auto bg-[#f7f8fc]">
+          <div className="max-w-7xl mx-auto">{children}</div>
         </main>
       </div>
     </div>
