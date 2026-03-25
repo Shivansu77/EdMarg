@@ -1,22 +1,23 @@
-import type { Metadata } from "next";
-import { Inter, Manrope } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter, Manrope } from 'next/font/google';
+import { Providers } from '@/context/Providers';
+import './globals.css';
 
 const manrope = Manrope({
-  variable: "--font-manrope-var",
-  subsets: ["latin"],
-  weight: ["400", "600", "700", "800"],
+  variable: '--font-manrope-var',
+  subsets: ['latin'],
+  weight: ['400', '600', '700', '800'],
 });
 
 const inter = Inter({
-  variable: "--font-inter-var",
-  subsets: ["latin"],
+  variable: '--font-inter-var',
+  subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: "Edmarg — AI-Powered Career Mentorship Platform",
-  description: "Find clarity and confidence through AI-driven assessments and expert mentorship. Your guide to the right career path.",
-  keywords: "career mentorship, AI career guidance, career assessment, mentor platform, career clarity",
+  title: 'Edmarg — AI-Powered Career Mentorship Platform',
+  description: 'Find clarity and confidence through AI-driven assessments and expert mentorship. Your guide to the right career path.',
+  keywords: 'career mentorship, AI career guidance, career assessment, mentor platform, career clarity',
 };
 
 export default function RootLayout({
@@ -31,7 +32,9 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${manrope.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">{children}</body>
+      <body className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

@@ -14,26 +14,48 @@ export default function ProtectedRoute({ children, requiredRole = 'student' }: P
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    const verifyAuth = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
 
-    if (!token || !user) {
-      router.replace('/login');
-      return;
-    }
+        if (!token || !user) {
+          router.replace('/login');
+          return;
+        }
 
-    try {
-      const userData = JSON.parse(user);
-      if (requiredRole && userData.role !== requiredRole) {
+        const userData = JSON.parse(user);
+        
+        // Verify token with backend
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/me`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          router.replace('/login');
+          return;
+        }
+
+        if (requiredRole && userData.role !== requiredRole) {
+          router.replace('/login');
+          return;
+        }
+
+        setIsAuthenticated(true);
+      } catch (e) {
         router.replace('/login');
-        return;
+      } finally {
+        setLoading(false);
       }
-      setIsAuthenticated(true);
-    } catch (e) {
-      router.replace('/login');
-    } finally {
-      setLoading(false);
-    }
+    };
+
+    verifyAuth();
   }, [router, requiredRole]);
 
   if (loading) {

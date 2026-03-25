@@ -1,77 +1,51 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    trim: true
+const userSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    role: {
+      type: String,
+      enum: ['student', 'mentor', 'admin'],
+      default: 'student',
+    },
+    profileImage: String,
+    mentorProfile: {
+      expertise: [String],
+      bio: String,
+      experienceYears: Number,
+      pricePerSession: Number,
+      rating: { type: Number, default: 0 },
+      approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending',
+      },
+      approvedAt: Date,
+      approvedBy: mongoose.Schema.Types.ObjectId,
+      rejectionReason: String,
+    },
   },
+  { timestamps: true }
+);
 
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
-
-  password: {
-    type: String,
-    required: true,
-    select: false
-  },
-
-  phoneNumber: {
-    type: String,
-    trim: true
-  },
-
-  role: {
-    type: String,
-    enum: ["student", "mentor", "admin"],
-    default: "student"
-  },
-
-  profileImage: {
-    type: String,
-    default: ""
-  },
-
-  isVerified: {
-    type: Boolean,
-    default: false
-  },
-
-  studentProfile: {
-    classLevel: String,
-    interests: [String],
-    careerRecommendation: String
-  },
-
-  mentorProfile: {
-    expertise: [String],
-    bio: String,
-    experienceYears: Number,
-    pricePerSession: Number,
-    rating: {
-      type: Number,
-      default: 0
-    }
-  },
-
-  razorpayCustomerId: String
-
-}, { timestamps: true });
-
-userSchema.pre('save', async function hashPassword() {
-  if (!this.isModified('password')) return;
-  this.password = await bcrypt.hash(this.password, 12);
+const tokenBlacklistSchema = new mongoose.Schema({
+  token: { type: String, required: true, unique: true },
+  expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } },
 });
 
-userSchema.methods.comparePassword = async function comparePassword(candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
-};
-
 const User = mongoose.model('User', userSchema);
-module.exports = User;
+const TokenBlacklist = mongoose.model('TokenBlacklist', tokenBlacklistSchema);
+
+module.exports = { User, TokenBlacklist };

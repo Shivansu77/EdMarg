@@ -1,194 +1,107 @@
-const User = require('../models/user.model');
-const jwt = require('jsonwebtoken');
+const userService = require('../services/user.service');
 
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
-const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret_in_env';
-
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  maxAge: 24 * 60 * 60 * 1000,
-};
-
-const signToken = (user) => jwt.sign(
-  {
-    userId: user._id,
-    role: user.role,
-    email: user.email,
-  },
-  JWT_SECRET,
-  { expiresIn: JWT_EXPIRES_IN }
-);
-
-const sanitizeUser = (userDoc) => ({
-  _id: userDoc._id,
-  name: userDoc.name,
-  email: userDoc.email,
-  phoneNumber: userDoc.phoneNumber,
-  role: userDoc.role,
-  profileImage: userDoc.profileImage,
-  isVerified: userDoc.isVerified,
-  createdAt: userDoc.createdAt,
-  updatedAt: userDoc.updatedAt,
-});
-
-const sendAuthResponse = (res, statusCode, user, message) => {
-  const token = signToken(user);
-  res.cookie('accessToken', token, cookieOptions);
-
-  return res.status(statusCode).json({
-    success: true,
-    token,
-    data: sanitizeUser(user),
-    message,
-  });
-};
-
-// @desc    Get all users
-// @route   GET /api/users
-// @access  Public
-exports.getUsers = async (req, res, next) => {
-  try {
-    const users = await User.find().select('-password');
-    res.status(200).json({ success: true, count: users.length, data: users });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Create a user
-// @route   POST /api/users
-// @access  Public
-exports.createUser = async (req, res, next) => {
-  try {
-    const { 
-      name, email, password, phoneNumber, role, 
-      studentProfile, mentorProfile 
-    } = req.body || {};
-
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        error: 'name, email, and password are required',
-      });
-    }
-
-    if (typeof password !== 'string' || password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        error: 'Password must be at least 8 characters long',
-      });
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
-    const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) {
-      return res.status(409).json({
-        success: false,
-        error: 'User already exists with this email',
-      });
-    }
-
-    const userData = {
-      name: name.trim(),
-      email: normalizedEmail,
-      password,
-      phoneNumber: phoneNumber?.trim() || '',
-      role: role || 'student',
-    };
-
-    if (role === 'student' && studentProfile) {
-      userData.studentProfile = studentProfile;
-    } else if (role === 'mentor' && mentorProfile) {
-      userData.mentorProfile = mentorProfile;
-    }
-
-    const user = await User.create(userData);
-
-    return sendAuthResponse(res, 201, user, 'Signup successful');
-  } catch (error) {
-    next(error);
-  }
-};
-
-// @desc    Login user
-// @route   POST /api/users/login
-// @access  Public
+/* ================= LOGIN ================= */
 exports.loginUser = async (req, res, next) => {
   try {
-    const { email, password } = req.body || {};
+    const { email, password } = req.body;
 
+    // validation
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        error: 'email and password are required',
+        message: 'Email and password are required',
       });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
+    const user = await userService.loginUser(email, password);
+
     if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Invalid credentials',
+        message: 'Invalid credentials',
       });
     }
 
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        error: 'Invalid credentials',
-      });
+    const token = await userService.generateToken(user._id);
+
+    // secure cookie
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        profileImage: user.profileImage,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ================= BROWSE MENTORS ================= */
+exports.getBrowseMentors = async (req, res, next) => {
+  try {
+    let page = Number(req.query.page);
+    let limit = Number(req.query.limit);
+
+    page = Number.isInteger(page) && page > 0 ? page : 1;
+    limit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 50) : 20;
+
+    const mentors = await userService.getMentors(page, limit);
+    const total = await userService.getMentorCount();
+
+    return res.status(200).json({
+      success: true,
+      count: mentors.length,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+      data: mentors,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/* ================= LOGOUT ================= */
+exports.logoutUser = async (req, res, next) => {
+  try {
+    let token = req.cookies?.accessToken;
+
+    // fallback to Authorization header
+    if (!token && req.headers.authorization) {
+      const parts = req.headers.authorization.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        token = parts[1];
+      }
     }
 
-    return sendAuthResponse(res, 200, user, 'Login successful');
+    if (token) {
+      await userService.logoutUser(token);
+    }
+
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
+    });
   } catch (error) {
     next(error);
   }
 };
-
-// @desc    Get current logged in user
-// @route   GET /api/users/me
-// @access  Private
-exports.getMe = async (req, res) => {
-  return res.status(200).json({
-    success: true,
-    data: req.user,
-  });
-};
-
-// @desc    Logout user
-// @route   POST /api/users/logout
-// @access  Public
-exports.logoutUser = async (req, res) => {
-  res.clearCookie('accessToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-  });
-
-  return res.status(200).json({
-    success: true,
-    message: 'Logged out successfully',
-  });
-};
-
-
-// @desc    Get all mentors
-//@route GET /api/users/browsementor
-//@access Public
-
-exports.getBrowseMentors = async (req, res, next) => {
-  try {
-    const mentors = await User.find({ role: 'mentor' }).select('-password');
-    res.status(200).json({
-      success: true,
-      count: mentors.length,
-      data: mentors,
-    });
-  } catch (err) {
-    console.err('error in getting Mentor')
-  }
-}

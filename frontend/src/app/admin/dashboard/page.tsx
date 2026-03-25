@@ -1,17 +1,85 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { BriefcaseBusiness, GraduationCap, ShieldCheck, UserCog } from 'lucide-react';
-
-const adminStats = [
-  { label: 'Students Active', value: '1,284', icon: GraduationCap },
-  { label: 'Mentors Verified', value: '96', icon: ShieldCheck },
-  { label: 'Career Tracks', value: '38', icon: BriefcaseBusiness },
-  { label: 'Admins Online', value: '07', icon: UserCog },
-];
+import { BriefcaseBusiness, GraduationCap, ShieldCheck, UserCog, CheckCircle, XCircle } from 'lucide-react';
 
 function AdminDashboardContent() {
+  const [stats, setStats] = useState(null);
+  const [pendingMentors, setPendingMentors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, usersRes] = await Promise.all([
+          fetch('/api/admin/stats'),
+          fetch('/api/admin/users?role=mentor&limit=5'),
+        ]);
+
+        if (!statsRes.ok || !usersRes.ok) throw new Error('Failed to fetch data');
+
+        const statsData = await statsRes.json();
+        const usersData = await usersRes.json();
+
+        setStats(statsData.data);
+        setPendingMentors(
+          usersData.data.filter((m) => m.mentorProfile?.approvalStatus === 'pending')
+        );
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const adminStats = [
+    { label: 'Students Active', value: stats?.totalStudents || '0', icon: GraduationCap },
+    { label: 'Mentors Verified', value: stats?.approvedMentors || '0', icon: ShieldCheck },
+    { label: 'Pending Approval', value: stats?.pendingMentors || '0', icon: UserCog },
+    { label: 'Total Users', value: stats?.totalUsers || '0', icon: BriefcaseBusiness },
+  ];
+
+  const handleApproveMentor = async (mentorId) => {
+    try {
+      const res = await fetch(`/api/admin/mentors/${mentorId}/approve`, { method: 'PUT' });
+      if (res.ok) {
+        setPendingMentors(pendingMentors.filter((m) => m._id !== mentorId));
+        setStats((prev) => ({
+          ...prev,
+          approvedMentors: (prev?.approvedMentors || 0) + 1,
+          pendingMentors: Math.max(0, (prev?.pendingMentors || 0) - 1),
+        }));
+      }
+    } catch (err) {
+      console.error('Error approving mentor:', err);
+    }
+  };
+
+  const handleRejectMentor = async (mentorId) => {
+    try {
+      const res = await fetch(`/api/admin/mentors/${mentorId}/reject`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: 'Rejected by admin' }),
+      });
+      if (res.ok) {
+        setPendingMentors(pendingMentors.filter((m) => m._id !== mentorId));
+        setStats((prev) => ({
+          ...prev,
+          pendingMentors: Math.max(0, (prev?.pendingMentors || 0) - 1),
+        }));
+      }
+    } catch (err) {
+      console.error('Error rejecting mentor:', err);
+    }
+  };
+
   return (
     <DashboardLayout userName="Admin Team">
       <div className="space-y-10 pb-10">
@@ -23,19 +91,68 @@ function AdminDashboardContent() {
           </p>
         </section>
 
-        <section className="bg-surface-container-low rounded-[1.5rem] p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
-            {adminStats.map((stat) => (
-              <article key={stat.label} className="rounded-[1.5rem] p-6 bg-surface-container-lowest space-y-4">
-                <div className="w-12 h-12 rounded-2xl bg-surface-container-high flex items-center justify-center text-tertiary">
-                  <stat.icon size={22} />
-                </div>
-                <p className="text-[11px] uppercase tracking-[0.08em] text-on-surface-variant font-semibold">{stat.label}</p>
-                <h2 className="text-3xl font-manrope font-extrabold tracking-[-0.02em]">{stat.value}</h2>
-              </article>
-            ))}
+        {error && (
+          <div className="rounded-[1.5rem] p-6 bg-red-50 border border-red-200">
+            <p className="text-red-700 font-semibold">Error: {error}</p>
           </div>
-        </section>
+        )}
+
+        {loading ? (
+          <div className="rounded-[1.5rem] p-8 bg-surface-container-low text-center">
+            <p className="text-on-surface-variant">Loading dashboard...</p>
+          </div>
+        ) : (
+          <>
+            <section className="bg-surface-container-low rounded-[1.5rem] p-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+                {adminStats.map((stat) => (
+                  <article key={stat.label} className="rounded-[1.5rem] p-6 bg-surface-container-lowest space-y-4">
+                    <div className="w-12 h-12 rounded-2xl bg-surface-container-high flex items-center justify-center text-tertiary">
+                      <stat.icon size={22} />
+                    </div>
+                    <p className="text-[11px] uppercase tracking-[0.08em] text-on-surface-variant font-semibold">{stat.label}</p>
+                    <h2 className="text-3xl font-manrope font-extrabold tracking-[-0.02em]">{stat.value}</h2>
+                  </article>
+                ))}
+              </div>
+            </section>
+
+            {pendingMentors.length > 0 && (
+              <section className="bg-surface-container-low rounded-[1.5rem] p-8">
+                <h2 className="text-2xl font-bold mb-6">Pending Mentor Approvals</h2>
+                <div className="space-y-4">
+                  {pendingMentors.map((mentor) => (
+                    <div key={mentor._id} className="rounded-lg border border-gray-200 p-4 flex items-center justify-between bg-white">
+                      <div>
+                        <p className="font-semibold text-gray-900">{mentor.name}</p>
+                        <p className="text-sm text-gray-600">{mentor.email}</p>
+                        {mentor.mentorProfile?.expertise && (
+                          <p className="text-xs text-gray-500 mt-1">{mentor.mentorProfile.expertise.join(', ')}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApproveMentor(mentor._id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all"
+                        >
+                          <CheckCircle size={18} />
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleRejectMentor(mentor._id)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all"
+                        >
+                          <XCircle size={18} />
+                          Reject
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
     </DashboardLayout>
   );

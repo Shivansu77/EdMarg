@@ -1,16 +1,28 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
+const { User, TokenBlacklist } = require('../models/user.model');
 
+/* ================= TOKEN EXTRACTOR ================= */
 const getTokenFromRequest = (req) => {
+  // cookie priority
   if (req.cookies?.accessToken) {
     return req.cookies.accessToken;
   }
 
-  const authHeader = req.headers.authorization || '';
-  if (!authHeader.startsWith('Bearer ')) return null;
-  return authHeader.split(' ')[1];
+  // bearer token fallback
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) return null;
+
+  const parts = authHeader.split(' ');
+
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    return null;
+  }
+
+  return parts[1];
 };
 
+/* ================= PROTECT MIDDLEWARE ================= */
 exports.protect = async (req, res, next) => {
   try {
     const token = getTokenFromRequest(req);
@@ -18,36 +30,78 @@ exports.protect = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({
         success: false,
-        error: 'Not authorized. Token missing',
+        message: 'Authentication required',
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'change_this_secret_in_env');
-    const user = await User.findById(decoded.userId).select('-password');
+    /* ---------- Verify JWT ---------- */
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    /* ---------- Check blacklist ---------- */
+    const isBlacklisted = await TokenBlacklist.exists({ token });
+
+    if (isBlacklisted) {
+      return res.status(401).json({
+        success: false,
+        message: 'Session expired. Please login again',
+      });
+    }
+
+    /* ---------- Fetch user ---------- */
+    const user = await User.findById(decoded.userId)
+      .select('-password')
+      .lean();
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        error: 'Not authorized. User not found',
+        message: 'User no longer exists',
       });
     }
 
     req.user = user;
-    return next();
+
+    next();
   } catch (error) {
-    return res.status(401).json({
-      success: false,
-      error: 'Not authorized. Invalid or expired token',
-    });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired',
+      });
+    }
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token',
+      });
+    }
+
+    return next(error);
   }
 };
 
-exports.authorize = (...roles) => (req, res, next) => {
-  if (!req.user || !roles.includes(req.user.role)) {
-    return res.status(403).json({
-      success: false,
-      error: 'Access denied for this role',
-    });
-  }
-  return next();
+/* ================= ROLE AUTHORIZATION ================= */
+exports.authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required',
+      });
+    }
+
+    const userRole = String(req.user.role).toLowerCase();
+
+    const allowedRoles = roles.map((r) => r.toLowerCase());
+
+    if (!allowedRoles.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Forbidden: insufficient permissions',
+      });
+    }
+
+    next();
+  };
 };
