@@ -1,127 +1,117 @@
 'use client';
 
-import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { 
-  Users, 
-  Star, 
-  Calendar, 
-  Clock, 
-  TrendingUp,
+import {
+  Calendar,
+  ChartNoAxesColumn,
+  Clock3,
+  DollarSign,
   MessageSquare,
-  DollarSign
+  Star,
+  Users,
 } from 'lucide-react';
 
-const MentorDashboard = () => {
-  // Mock data for mentor
-  const stats = [
-    { label: 'Total Mentees', value: '24', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Avg Rating', value: '4.9', icon: Star, iconProps: { fill: 'currentColor' }, color: 'text-amber-500', bg: 'bg-amber-50' },
-    { label: 'Total Sessions', value: '142', icon: Calendar, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Hours Mentored', value: '210', icon: Clock, color: 'text-purple-600', bg: 'bg-purple-50' },
-  ];
+const mentorStats = [
+  { label: 'Total Mentees', value: '24', icon: Users },
+  { label: 'Avg Rating', value: '4.9', icon: Star },
+  { label: 'Sessions', value: '142', icon: Calendar },
+  { label: 'Hours Mentored', value: '210', icon: Clock3 },
+];
 
+const sessions = [
+  { student: 'Maya Rodriguez', goal: 'Product Designer', time: '10:00 AM', status: 'Confirmed' },
+  { student: 'Daniel Park', goal: 'Frontend Engineer', time: '01:30 PM', status: 'Confirmed' },
+  { student: 'Nina Patel', goal: 'Data Analyst', time: '04:00 PM', status: 'Pending' },
+];
+
+export default function MentorDashboard() {
   return (
-    <DashboardLayout>
-      <div className="space-y-8 animate-in fade-in duration-700">
-        {/* Header Hero */}
-        <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-8 text-white shadow-2xl transition-all hover:shadow-primary/10">
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div>
-              <h1 className="text-3xl font-bold font-sora mb-2 tracking-tight">Welcome, Mentor! 👋</h1>
-              <p className="text-slate-400 font-inter max-w-lg">
-                Your expertise is shaping the future. Check your upcoming sessions and mentee progress today.
+    <DashboardLayout userName="Sarah Mentor">
+      <div className="space-y-10 pb-10">
+        <section className="rounded-[1.5rem] p-8 md:p-10 text-on-primary bg-[linear-gradient(135deg,#4e45e2_0%,#6e3bd8_100%)]">
+          <div className="flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
+            <div className="space-y-3 max-w-2xl">
+              <p className="text-xs uppercase tracking-[0.2em] text-on-primary/80 font-semibold">Mentor Mode</p>
+              <h1 className="text-4xl md:text-5xl font-manrope font-extrabold tracking-[-0.02em]">Guide careers with clarity.</h1>
+              <p className="text-on-primary/85 text-base md:text-lg">
+                Your sessions, mentee outcomes, and monthly performance are curated in one calm workspace.
               </p>
             </div>
-            <div className="flex gap-4">
-              <button className="px-6 py-3 bg-white text-slate-900 rounded-xl font-bold font-inter text-sm hover:bg-slate-100 transition-all shadow-lg active:scale-95">
-                My Calendar
-              </button>
-              <button className="px-6 py-3 bg-primary text-white rounded-xl font-bold font-inter text-sm hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95">
-                Create Session
-              </button>
+            <div className="flex gap-3">
+              <button className="rounded-full px-6 py-3 bg-surface-container-lowest text-primary font-semibold">My Calendar</button>
+              <button className="rounded-full px-6 py-3 bg-tertiary text-on-tertiary font-semibold">Create Session</button>
             </div>
           </div>
-          {/* Decorative Elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 rounded-full blur-[100px] -mr-32 -mt-32" />
-        </div>
+        </section>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat) => (
-            <div key={stat.label} className="bg-white p-6 rounded-2xl border border-border shadow-sm hover:shadow-md transition-all group">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 rounded-xl ${stat.bg} ${stat.color} transition-colors group-hover:scale-110 duration-300`}>
-                  <stat.icon size={24} {...(stat.iconProps || {})} />
-                </div>
-                <div className="flex items-center gap-1 text-emerald-500 font-bold text-xs uppercase tracking-wider">
-                  <TrendingUp size={14} /> +12%
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          {mentorStats.map((stat) => (
+            <article key={stat.label} className="rounded-[1.5rem] p-6 bg-surface-container-lowest space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-surface-container-high flex items-center justify-center text-primary">
+                <stat.icon size={22} />
               </div>
-              <p className="text-on-surface-variant font-medium text-sm mb-1">{stat.label}</p>
-              <h3 className="text-2xl font-bold font-sora text-on-surface">{stat.value}</h3>
-            </div>
+              <p className="text-sm text-on-surface-variant font-medium">{stat.label}</p>
+              <h3 className="text-3xl font-manrope font-extrabold tracking-[-0.02em]">{stat.value}</h3>
+            </article>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Upcoming Sessions */}
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+          <section className="xl:col-span-8 rounded-[1.5rem] p-6 md:p-8 bg-surface-container-low space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold font-sora text-on-surface tracking-tight">Today's Sessions</h2>
-              <button className="text-primary text-sm font-bold hover:underline">View All</button>
+              <h2 className="text-2xl font-manrope font-extrabold tracking-[-0.02em]">Today&apos;s Sessions</h2>
+              <button className="text-primary text-sm font-semibold">View all</button>
             </div>
-            
-            <div className="space-y-4">
-              {[1, 2].map((i) => (
-                <div key={i} className="bg-white p-5 rounded-2xl border border-border shadow-sm flex items-center justify-between hover:border-primary/30 transition-all group">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                      <Users size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold font-sora text-on-surface leading-tight">Student Name {i}</h4>
-                      <p className="text-xs font-inter text-on-surface-variant mt-1">Career Goal: Full-Stack Dev</p>
-                    </div>
+
+            <div className="space-y-3">
+              {sessions.map((session) => (
+                <div key={session.student} className="bg-surface-container-lowest rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold">{session.student}</p>
+                    <p className="text-sm text-on-surface-variant">Career Goal: {session.goal}</p>
                   </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <p className="font-bold font-inter text-sm text-on-surface">10:00 AM</p>
-                      <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-0.5">Confirmed</p>
-                    </div>
-                    <button className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:bg-primary/10 hover:text-primary transition-all">
-                      <MessageSquare size={20} />
+                  <div className="flex items-center gap-4">
+                    <p className="text-sm font-semibold">{session.time}</p>
+                    <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-full bg-primary/10 text-primary">{session.status}</span>
+                    <button className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
+                      <MessageSquare size={16} />
                     </button>
                   </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* Earnings / Performance */}
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold font-sora text-on-surface tracking-tight">Monthly Performance</h2>
-            <div className="bg-gradient-to-br from-primary to-indigo-600 p-6 rounded-2xl text-white shadow-xl shadow-primary/20">
-              <div className="flex items-center justify-between mb-8">
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-md">
-                  <DollarSign size={24} />
+          <section className="xl:col-span-4 rounded-[1.5rem] p-6 bg-surface-container-low space-y-6">
+            <h2 className="text-xl font-manrope font-bold">Monthly Performance</h2>
+            <div className="rounded-2xl p-5 text-on-primary bg-[linear-gradient(135deg,#006592_0%,#4e45e2_100%)] space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                  <DollarSign size={22} />
                 </div>
-                <div className="text-[10px] font-bold bg-emerald-500/30 px-2 py-1 rounded-full backdrop-blur-md">
-                  PAID OUT
+                <span className="text-[10px] uppercase tracking-wide font-bold bg-white/20 px-2 py-1 rounded-full">Paid out</span>
+              </div>
+              <div>
+                <p className="text-on-primary/75 text-sm">Total Earnings</p>
+                <h3 className="text-3xl font-manrope font-extrabold">$12,450.00</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="h-1 w-full rounded-full bg-white/20 overflow-hidden">
+                  <div className="h-full w-[75%] rounded-full bg-[linear-gradient(90deg,#61c2ff_0%,#4e45e2_100%)]" />
                 </div>
+                <p className="text-xs text-on-primary/75">75% of monthly target reached</p>
               </div>
-              <p className="text-white/60 text-sm font-medium mb-1">Total Earnings</p>
-              <h3 className="text-3xl font-bold font-sora mb-6">₹12,450.00</h3>
-              <div className="h-2 w-full bg-black/10 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-400 rounded-full" style={{ width: '75%' }} />
-              </div>
-              <p className="text-xs text-white/60 mt-2 font-medium">75% of your target reached</p>
             </div>
-          </div>
+
+            <div className="rounded-2xl bg-surface-container-lowest p-4 space-y-2">
+              <p className="text-sm text-on-surface-variant font-medium flex items-center gap-2">
+                <ChartNoAxesColumn size={16} className="text-tertiary" /> Week-over-week growth
+              </p>
+              <p className="text-2xl font-manrope font-extrabold text-tertiary">+12.4%</p>
+            </div>
+          </section>
         </div>
       </div>
     </DashboardLayout>
   );
-};
-
-export default MentorDashboard;
+}
