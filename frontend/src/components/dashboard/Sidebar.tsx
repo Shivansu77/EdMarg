@@ -44,7 +44,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-border z-40 flex flex-col pt-24 pb-10">
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-surface-container-low z-40 flex flex-col pt-24 pb-10">
       <div className="flex flex-col h-full px-6">
         <nav className="flex-1 space-y-2">
           {navItems.map((item) => {
@@ -53,14 +53,14 @@ const Sidebar = () => {
               <Link 
                 key={item.name} 
                 href={item.href}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-300 group ${
+                className={`flex items-center justify-between px-4 py-3 rounded-full transition-all duration-300 group ${
                   isActive 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20' 
-                    : 'text-on-surface-variant hover:bg-surface-dim hover:text-on-surface'
+                    ? 'bg-primary-container text-on-primary-container' 
+                    : 'text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <item.icon size={20} className={isActive ? 'text-white' : 'group-hover:text-primary transition-colors'} />
+                  <item.icon size={20} strokeWidth={2} className={isActive ? 'text-on-primary-container' : 'group-hover:text-primary transition-colors'} />
                   <span className="text-[14px] font-medium font-inter">{item.name}</span>
                 </div>
                 {isActive && <ChevronRight size={16} />}
@@ -72,7 +72,7 @@ const Sidebar = () => {
         <div className="mt-auto">
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-red-500 rounded-xl hover:bg-red-50 transition-colors font-inter text-[14px] font-medium"
+            className="w-full flex items-center gap-3 px-4 py-3 text-on-surface-variant rounded-full hover:bg-surface-bright transition-colors font-inter text-[14px] font-medium"
           >
             <LogOut size={20} />
             <span>Log out</span>

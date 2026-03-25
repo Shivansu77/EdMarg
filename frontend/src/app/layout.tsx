@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Sora, Inter } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 
-const sora = Sora({
-  variable: "--font-sora-var",
+const manrope = Manrope({
+  variable: "--font-manrope-var",
   subsets: ["latin"],
   weight: ["400", "600", "700", "800"],
 });
@@ -29,7 +29,7 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${sora.variable} ${inter.variable} h-full antialiased`}
+      className={`${manrope.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">{children}</body>
     </html>
