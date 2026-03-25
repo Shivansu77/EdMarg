@@ -1,6 +1,7 @@
 'use client';
 
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import Link from 'next/link';
 import {
   ArrowRight,
   Calendar,
@@ -56,9 +57,9 @@ export default function StudentDashboard() {
                 You haven&apos;t completed your baseline career assessment yet. Discover mentors tailored to your unique profile.
               </p>
             </div>
-            <button className="shrink-0 bg-white text-[#4f46e5] px-10 py-4 rounded-full font-bold text-[20px] inline-flex items-center gap-2">
+            <Link href="/student/assessment" className="shrink-0 bg-white text-[#4f46e5] px-10 py-4 rounded-full font-bold text-[20px] inline-flex items-center gap-2">
               Start Assessment <ArrowRight size={20} />
-            </button>
+            </Link>
           </div>
         </section>
 
