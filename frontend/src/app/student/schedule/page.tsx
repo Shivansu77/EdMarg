@@ -1,8 +1,9 @@
 'use client';
 
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
-export default function SchedulePage() {
+function ScheduleContent() {
   return (
     <DashboardLayout userName="Schedule">
       <section className="rounded-2xl border border-[#e7e9f0] bg-white p-8">
@@ -12,5 +13,13 @@ export default function SchedulePage() {
         </p>
       </section>
     </DashboardLayout>
+  );
+}
+
+export default function SchedulePage() {
+  return (
+    <ProtectedRoute requiredRole="student">
+      <ScheduleContent />
+    </ProtectedRoute>
   );
 }

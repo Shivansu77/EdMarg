@@ -1,16 +1,15 @@
 'use client';
 
 import React, { useState, useSyncExternalStore } from 'react';
-import Sidebar from './Sidebar';
-import DashboardHeader from './DashboardHeader';
+import MentorSidebar from './MentorSidebar';
+import MentorHeader from './MentorHeader';
 
-interface DashboardLayoutProps {
+interface MentorDashboardLayoutProps {
   children: React.ReactNode;
-  userName?: string;
 }
 
-const SIDEBAR_COLLAPSED_STORAGE_KEY = 'edmarg-dashboard-sidebar-collapsed';
-const SIDEBAR_COLLAPSED_EVENT = 'edmarg-dashboard-sidebar-collapsed-change';
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'edmarg-mentor-sidebar-collapsed';
+const SIDEBAR_COLLAPSED_EVENT = 'edmarg-mentor-sidebar-collapsed-change';
 
 const subscribeToSidebarCollapsed = (callback: () => void) => {
   if (typeof window === 'undefined') {
@@ -45,7 +44,7 @@ const getSidebarCollapsedSnapshot = (): boolean => {
   return storedSidebarCollapsed === 'true';
 };
 
-const DashboardLayout = ({ children, userName }: DashboardLayoutProps) => {
+const MentorDashboardLayout = ({ children }: MentorDashboardLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isSidebarCollapsed = useSyncExternalStore(
     subscribeToSidebarCollapsed,
@@ -60,21 +59,17 @@ const DashboardLayout = ({ children, userName }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="min-h-screen bg-gray-50">
       <div className="flex min-h-screen">
-        <Sidebar
+        <MentorSidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
-          side="left"
           isCollapsed={isSidebarCollapsed}
           onToggleCollapsed={toggleSidebarCollapsed}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <DashboardHeader
-            userName={userName}
-            onMenuClick={() => setIsSidebarOpen((currentValue) => !currentValue)}
-          />
-          <main className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-10 lg:pb-10 lg:pt-8">
+          <MentorHeader onMenuClick={() => setIsSidebarOpen((currentValue) => !currentValue)} />
+          <main className="flex-1 px-6 py-8 lg:px-10">
             <div className="mx-auto max-w-7xl">{children}</div>
           </main>
         </div>
@@ -83,4 +78,4 @@ const DashboardLayout = ({ children, userName }: DashboardLayoutProps) => {
   );
 };
 
-export default DashboardLayout;
+export default MentorDashboardLayout;

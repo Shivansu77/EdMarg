@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Compass, MessageSquareText, Target, TrendingUp, Users } from 'lucide-react';
+import { Users, MessageSquareText, Compass, Target } from 'lucide-react';
 
 const STATS = [
   { value: 12000, suffix: '+', label: 'Students Guided', icon: Users },
@@ -12,28 +12,22 @@ const STATS = [
 
 const STEPS = [
   {
-    icon: <MessageSquareText className="w-7 h-7" />,
+    icon: <MessageSquareText className="w-6 h-6" />,
     title: 'Take Assessment',
     description: 'Our AI-driven clarity engine analyzes your strengths, interests, and personality to map your ideal path.',
     step: '01',
-    color: 'text-primary',
-    bg: 'bg-indigo-50',
   },
   {
-    icon: <Users className="w-7 h-7" />,
+    icon: <Users className="w-6 h-6" />,
     title: 'Connect with Mentor',
     description: 'Get paired with industry experts who have walked the path you\'re considering.',
     step: '02',
-    color: 'text-primary',
-    bg: 'bg-indigo-50',
   },
   {
-    icon: <Compass className="w-7 h-7" />,
+    icon: <Compass className="w-6 h-6" />,
     title: 'Get Career Direction',
     description: 'Receive a personalized 5-year roadmap with actionable steps, resources, and milestones.',
     step: '03',
-    color: 'text-primary',
-    bg: 'bg-indigo-50',
   },
 ];
 
@@ -72,14 +66,14 @@ function StatCard({ stat, animate }: { stat: typeof STATS[0]; animate: boolean }
   const Icon = stat.icon;
 
   return (
-    <div className="animate-count-up flex flex-col items-center justify-center rounded-2xl border border-border bg-white p-6 text-center shadow-[0_6px_18px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(15,23,42,0.1)] lg:p-7">
-      <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-indigo-50 text-primary">
+    <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-6 text-center hover:shadow-lg transition-shadow">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
         <Icon className="h-5 w-5" />
       </div>
-      <div className="font-plus-jakarta mb-1 text-[2rem] font-extrabold leading-none tracking-tight text-on-surface lg:text-[2.4rem]">
+      <div className="mb-1 text-3xl font-bold text-gray-900">
         {display}{stat.value >= 1000 ? 'k' : ''}{stat.suffix}
       </div>
-      <div className="font-manrope text-xs font-semibold uppercase tracking-wider text-on-surface-variant">
+      <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
         {stat.label}
       </div>
     </div>
@@ -114,59 +108,47 @@ const ResultsSection = ({ hideIntro = false }: ResultsSectionProps) => {
 
   return (
     <section id="how-it-works" ref={sectionRef} className="relative w-full overflow-hidden bg-white py-20 lg:py-28">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-0 top-0 h-72 w-72 rounded-full bg-slate-200/40 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-indigo-100/50 blur-3xl" />
-      </div>
-
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
-
         {/* Stats Grid */}
-        <div className="mb-20 grid grid-cols-2 gap-4 lg:mb-24 lg:grid-cols-4 lg:gap-5">
+        <div className="mb-20 grid grid-cols-2 gap-4 lg:mb-24 lg:grid-cols-4 lg:gap-6">
           {STATS.map((stat, idx) => <StatCard key={idx} stat={stat} animate={animate} />)}
         </div>
 
         {/* Section Header */}
         {!hideIntro && (
-          <div className="mx-auto mb-14 max-w-2xl text-center lg:mb-16">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-border bg-surface-dim px-4 py-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <span className="font-manrope text-xs font-semibold uppercase tracking-widest text-primary">How It Works</span>
-            </div>
-            <h2 className="font-plus-jakarta mb-4 text-[2.1rem] font-extrabold tracking-tight text-on-surface md:text-[2.9rem]">
-              Your Journey to Career Clarity
+          <div className="mx-auto mb-16 max-w-2xl text-center">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              How It Works
             </h2>
-            <p className="font-manrope text-base text-on-surface-variant lg:text-lg">
-              A simple three-step journey to finding your career North Star.
+            <p className="text-lg text-gray-600">
+              A simple three-step journey to finding your career direction.
             </p>
           </div>
         )}
 
         {/* Steps */}
-        <div className="relative grid grid-cols-1 gap-5 md:grid-cols-3 lg:gap-6">
-          <div className="pointer-events-none absolute left-[16.5%] right-[16.5%] top-6 hidden h-px bg-linear-to-r from-transparent via-indigo-200 to-transparent md:block" />
-
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 lg:gap-8">
           {STEPS.map((step, idx) => (
             <div
               key={idx}
-              className="relative z-10 flex flex-col items-start rounded-2xl border border-border bg-white p-7 shadow-[0_8px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_14px_34px_rgba(15,23,42,0.12)] lg:p-8"
+              className="relative flex flex-col items-start rounded-xl border border-gray-200 bg-white p-8 hover:shadow-lg transition-shadow"
             >
-              {/* Step number */}
-              <div className="font-plus-jakarta absolute right-5 top-4 text-[2.5rem] font-extrabold text-slate-200">{step.step}</div>
+              <div className="absolute right-6 top-6 text-4xl font-bold text-gray-100">
+                {step.step}
+              </div>
 
-              <div className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ${step.bg} ${step.color}`}>
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                 {step.icon}
               </div>
-              <h3 className="font-plus-jakarta mb-3 text-xl font-bold tracking-tight text-on-surface">
+              <h3 className="mb-3 text-xl font-bold text-gray-900">
                 {step.title}
               </h3>
-              <p className="font-manrope text-base leading-relaxed text-on-surface-variant">
+              <p className="text-base leading-relaxed text-gray-600">
                 {step.description}
               </p>
             </div>
           ))}
         </div>
-
       </div>
     </section>
   );

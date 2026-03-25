@@ -4,67 +4,158 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutGrid,
-  ClipboardCheck,
-  BadgeCheck,
-  Users,
-  CalendarCheck,
   CalendarDays,
+  CalendarCheck,
+  ChevronRight,
+  ClipboardCheck,
   History,
+  BadgeCheck,
+  LayoutGrid,
   UserCircle,
+  Users,
+  X,
+  ChevronLeft,
 } from 'lucide-react';
 
-const Sidebar = () => {
-  const pathname = usePathname();
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+  side: 'left' | 'right';
+  isCollapsed?: boolean;
+  onToggleCollapsed?: () => void;
+}
 
-  const navItems = [
-    { name: 'Dashboard', href: '/student/dashboard', icon: LayoutGrid },
-    { name: 'Assessment', href: '/student/assessment', icon: ClipboardCheck },
-    { name: 'Results', href: '/student/results', icon: BadgeCheck },
-    { name: 'Mentors', href: '/student/mentors', icon: Users },
-    { name: 'Booking', href: '/student/booking', icon: CalendarCheck },
-    { name: 'Schedule', href: '/student/schedule', icon: CalendarDays },
-    { name: 'History', href: '/student/history', icon: History },
-    { name: 'Profile', href: '/student/profile', icon: UserCircle },
-  ];
+const navItems = [
+  { name: 'Dashboard', href: '/student/dashboard', icon: LayoutGrid },
+  { name: 'Assessment', href: '/student/assessment', icon: ClipboardCheck },
+  { name: 'Results', href: '/student/results', icon: BadgeCheck },
+  { name: 'Mentors', href: '/student/mentors', icon: Users },
+  { name: 'Booking', href: '/student/booking', icon: CalendarCheck },
+  { name: 'Schedule', href: '/student/schedule', icon: CalendarDays },
+  { name: 'History', href: '/student/history', icon: History },
+  { name: 'Profile', href: '/student/profile', icon: UserCircle },
+];
+
+const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed }: SidebarProps) => {
+  const pathname = usePathname();
+  const isRightSide = side === 'right';
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 bg-[#f3f5f9] border-r border-[#e7e9f0] z-40 flex flex-col">
-      <div className="px-6 pt-7 pb-5 border-b border-[#eceef4]">
-        <p className="text-[34px] leading-none font-extrabold tracking-[-0.03em] text-[#2f3243]">Edmarg</p>
-        <p className="text-[11px] tracking-[0.18em] font-semibold uppercase text-[#71788a]">Career Curator</p>
-      </div>
+    <>
+      <div
+        className={`fixed inset-0 z-40 bg-slate-950/30 transition-opacity duration-300 lg:hidden ${
+          isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+        }`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
-      <div className="flex flex-col h-full px-4 py-6">
-        <nav className="space-y-1.5">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-[15px] font-semibold transition-colors ${
-                  isActive
-                    ? 'bg-[#e8ebff] text-[#4f46e5]'
-                    : 'text-[#586174] hover:bg-[#e8ebff] hover:text-[#4f46e5]'
-                }`}
-              >
-                <item.icon size={18} strokeWidth={2.2} />
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
+      <aside
+        className={`fixed inset-y-0 z-50 flex flex-col bg-white border-r border-gray-200 pb-4 pt-4 shadow-sm backdrop-blur-xl transition-all duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:left-auto lg:right-auto lg:shadow-none ${
+          isRightSide
+            ? `right-0 border-l border-r-0 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`
+            : `left-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`
+        } ${isCollapsed ? 'w-20' : 'w-64'}`}
+      >
+        {/* Header */}
+        <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
+          {!isCollapsed && (
+            <div>
+              <p className="text-lg font-bold text-gray-900">Edmarg</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mt-1">
+                Career Curator
+              </p>
+            </div>
+          )}
+          
+          <div className="flex items-center gap-2">
+            {/* Close button for mobile */}
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 lg:hidden"
+              aria-label="Close navigation"
+            >
+              <X size={16} />
+            </button>
 
-        <div className="mt-auto rounded-xl bg-[#e5ebf3] px-4 py-3 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-[#edc8a6] flex items-center justify-center text-[#7c5b43] font-bold">A</div>
-          <div>
-            <p className="text-[15px] font-semibold text-[#3a3f4d] leading-tight">Alex Johnson</p>
-            <p className="text-[12px] text-[#768095] leading-tight">Student Pro</p>
+            {/* Collapse button for desktop */}
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+              aria-label="Toggle sidebar"
+            >
+              <ChevronLeft size={16} className={`transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+            </button>
           </div>
         </div>
-      </div>
-    </aside>
+
+        {/* Navigation */}
+        <div className="flex h-full flex-col px-2">
+          {!isCollapsed && (
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 px-2 mb-4">
+              Navigation
+            </p>
+          )}
+
+          <nav className="space-y-1 flex-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
+                    isActive
+                      ? 'bg-gray-100 text-gray-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  }`}
+                  title={isCollapsed ? item.name : undefined}
+                >
+                  <span
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 ${
+                      isActive
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
+                    }`}
+                  >
+                    <Icon size={18} strokeWidth={2} />
+                  </span>
+                  {!isCollapsed && (
+                    <>
+                      <span className="flex-1 text-sm font-medium">{item.name}</span>
+                      <ChevronRight
+                        size={14}
+                        className={`text-gray-400 transition-transform ${isActive ? 'text-gray-900' : ''}`}
+                      />
+                    </>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Workspace Tip */}
+          {!isCollapsed && (
+            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 mt-auto">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+                Workspace Tip
+              </p>
+              <p className="mt-2 text-sm font-semibold text-gray-900">
+                Keep your next step visible
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-gray-600">
+                Move between assessments, mentors, bookings, and profile updates without losing your place.
+              </p>
+            </div>
+          )}
+        </div>
+      </aside>
+    </>
   );
 };
 

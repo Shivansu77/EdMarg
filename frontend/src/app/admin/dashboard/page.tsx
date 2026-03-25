@@ -1,5 +1,6 @@
 'use client';
 
+import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { BriefcaseBusiness, GraduationCap, ShieldCheck, UserCog } from 'lucide-react';
 
@@ -10,7 +11,7 @@ const adminStats = [
   { label: 'Admins Online', value: '07', icon: UserCog },
 ];
 
-export default function AdminDashboard() {
+function AdminDashboardContent() {
   return (
     <DashboardLayout userName="Admin Team">
       <div className="space-y-10 pb-10">
@@ -37,5 +38,13 @@ export default function AdminDashboard() {
         </section>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <ProtectedRoute requiredRole="admin">
+      <AdminDashboardContent />
+    </ProtectedRoute>
   );
 }

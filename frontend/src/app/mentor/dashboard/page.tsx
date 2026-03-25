@@ -1,117 +1,349 @@
 'use client';
 
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { useState } from 'react';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
+import Link from 'next/link';
 import {
-  Calendar,
-  ChartNoAxesColumn,
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
   Clock3,
-  DollarSign,
   MessageSquare,
-  Star,
+  Sparkles,
+  Target,
   Users,
 } from 'lucide-react';
 
-const mentorStats = [
-  { label: 'Total Mentees', value: '24', icon: Users },
-  { label: 'Avg Rating', value: '4.9', icon: Star },
-  { label: 'Sessions', value: '142', icon: Calendar },
-  { label: 'Hours Mentored', value: '210', icon: Clock3 },
+const studentRequests = [
+  { name: 'Sarah Johnson', track: 'UX Design', status: 'Pending' },
+  { name: 'Michael Chen', track: 'Product Management', status: 'Accepted' },
 ];
 
-const sessions = [
-  { student: 'Maya Rodriguez', goal: 'Product Designer', time: '10:00 AM', status: 'Confirmed' },
-  { student: 'Daniel Park', goal: 'Frontend Engineer', time: '01:30 PM', status: 'Confirmed' },
-  { student: 'Nina Patel', goal: 'Data Analyst', time: '04:00 PM', status: 'Pending' },
+const updates = [
+  { icon: MessageSquare, title: 'New message from Sarah', text: 'Can we reschedule our session?', date: '2 hours ago' },
+  { icon: Sparkles, title: 'Session feedback received', text: 'Alex left a 5-star review for your mentorship.', date: 'Today' },
+  { icon: Target, title: 'New student request', text: 'Emma Rodriguez applied to be mentored by you.', date: 'This week' },
 ];
 
-export default function MentorDashboard() {
+const history = [
+  { title: 'Session with Alex Thompson', subtitle: 'March 12, 2024 · 1 hour', detail: 'Career guidance and resume review' },
+  { title: 'Session with Jordan Lee', subtitle: 'March 05, 2024 · 45 min', detail: 'Portfolio feedback and next steps' },
+];
+
+const stats = [
+  { label: 'Total sessions', value: '42', sub: 'this month' },
+  { label: 'Pending requests', value: '5', sub: 'awaiting response' },
+  { label: 'Completion rate', value: '92%', sub: 'on schedule' },
+  { label: 'Avg rating', value: '4.9', sub: 'out of 5' },
+];
+
+const upcomingSessions = [
+  { title: 'Session with Sarah Johnson', detail: 'UX Design mentorship and portfolio review', meta: 'Today · 2:00 PM', primary: true },
+  { title: 'Review pending requests', detail: 'Respond to 5 new student applications.', meta: 'This week', primary: false },
+  { title: 'Update availability', detail: 'Set your schedule for next month.', meta: 'Optional', primary: false },
+];
+
+const priorities = [
+  { title: 'Pending requests', description: 'Review and respond to new student applications.', href: '/mentor/requests', icon: Users, meta: '5 new' },
+  { title: 'Upcoming sessions', description: 'View and manage your scheduled mentoring sessions.', href: '/mentor/sessions', icon: CalendarDays, meta: '3 today' },
+  { title: 'Student feedback', description: 'Check reviews and feedback from your mentees.', href: '/mentor/feedback', icon: MessageSquare, meta: '2 new' },
+];
+
+const initials = (name: string) =>
+  name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase();
+
+const statusCls: Record<string, string> = {
+  Pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60',
+  Accepted: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60',
+};
+
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <DashboardLayout userName="Sarah Mentor">
-      <div className="space-y-10 pb-10">
-        <section className="rounded-[1.5rem] p-8 md:p-10 text-on-primary bg-[linear-gradient(135deg,#4e45e2_0%,#6e3bd8_100%)]">
-          <div className="flex flex-col md:flex-row gap-6 md:items-center md:justify-between">
-            <div className="space-y-3 max-w-2xl">
-              <p className="text-xs uppercase tracking-[0.2em] text-on-primary/80 font-semibold">Mentor Mode</p>
-              <h1 className="text-4xl md:text-5xl font-manrope font-extrabold tracking-[-0.02em]">Guide careers with clarity.</h1>
-              <p className="text-on-primary/85 text-base md:text-lg">
-                Your sessions, mentee outcomes, and monthly performance are curated in one calm workspace.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <button className="rounded-full px-6 py-3 bg-surface-container-lowest text-primary font-semibold">My Calendar</button>
-              <button className="rounded-full px-6 py-3 bg-tertiary text-on-tertiary font-semibold">Create Session</button>
-            </div>
-          </div>
-        </section>
+    <div className={`rounded-2xl border border-gray-200 bg-white ${className}`}>
+      {children}
+    </div>
+  );
+}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
-          {mentorStats.map((stat) => (
-            <article key={stat.label} className="rounded-[1.5rem] p-6 bg-surface-container-lowest space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-surface-container-high flex items-center justify-center text-primary">
-                <stat.icon size={22} />
-              </div>
-              <p className="text-sm text-on-surface-variant font-medium">{stat.label}</p>
-              <h3 className="text-3xl font-manrope font-extrabold tracking-[-0.02em]">{stat.value}</h3>
-            </article>
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+      {children}
+    </p>
+  );
+}
+
+function MentorDashboardContent() {
+  return (
+    <div className="min-h-screen bg-gray-50 pb-16">
+      {/* Header */}
+      <div className="border-b border-gray-200 bg-white px-6 pb-8 pt-6 sm:px-8">
+        <Label>Mentor workspace</Label>
+        <h1 className="mt-3 text-4xl font-bold leading-tight tracking-tight text-gray-900 sm:text-5xl">
+          Guide students, track impact, grow together.
+        </h1>
+        <p className="mt-3 max-w-2xl text-lg text-gray-600">
+          Manage your mentoring sessions, respond to requests, and see the difference you're making — all in one place.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link
+            href="/mentor/requests"
+            className="inline-flex items-center gap-2 rounded-lg bg-[#4e45e2] px-6 py-3 text-base font-semibold text-white transition-all hover:bg-[#4139c2] active:scale-95"
+          >
+            Review requests <ArrowRight size={18} strokeWidth={2} />
+          </Link>
+          <Link
+            href="/mentor/sessions"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            View sessions
+          </Link>
+        </div>
+      </div>
+
+      <div className="space-y-6 px-6 pt-8 sm:px-8">
+        {/* Stats */}
+        <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-gray-200 bg-white lg:grid-cols-4">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className={`px-6 py-5 ${i < stats.length - 1 ? 'border-r border-gray-200' : ''}`}
+            >
+              <Label>{s.label}</Label>
+              <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                {s.value}
+              </p>
+              <p className="mt-1 text-sm text-gray-600">{s.sub}</p>
+            </div>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-          <section className="xl:col-span-8 rounded-[1.5rem] p-6 md:p-8 bg-surface-container-low space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-manrope font-extrabold tracking-[-0.02em]">Today&apos;s Sessions</h2>
-              <button className="text-primary text-sm font-semibold">View all</button>
-            </div>
-
-            <div className="space-y-3">
-              {sessions.map((session) => (
-                <div key={session.student} className="bg-surface-container-lowest rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p className="font-semibold">{session.student}</p>
-                    <p className="text-sm text-on-surface-variant">Career Goal: {session.goal}</p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-sm font-semibold">{session.time}</p>
-                    <span className="text-[10px] uppercase font-bold px-2 py-1 rounded-full bg-primary/10 text-primary">{session.status}</span>
-                    <button className="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant">
-                      <MessageSquare size={16} />
-                    </button>
-                  </div>
+        {/* Main 2-col */}
+        <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+          {/* Left */}
+          <div className="space-y-6">
+            {/* Upcoming sessions */}
+            <Card>
+              <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+                <div>
+                  <Label>This week</Label>
+                  <h2 className="mt-2 text-2xl font-bold text-gray-900">
+                    Stay on top of your mentoring impact
+                  </h2>
                 </div>
+                <span className="mt-1 shrink-0 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-semibold text-gray-600">
+                  3 sessions
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 border-b border-gray-200 px-6 py-4">
+                {[
+                  { icon: CalendarDays, label: 'Today' },
+                  { icon: Clock3, label: '2:00 – 2:45 PM' },
+                  { icon: Users, label: '5 pending' },
+                ].map(({ icon: Icon, label }) => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700"
+                  >
+                    <Icon size={16} strokeWidth={2} /> {label}
+                  </span>
+                ))}
+              </div>
+
+              <ul className="divide-y divide-gray-200">
+                {upcomingSessions.map((item) => (
+                  <li key={item.title} className="flex items-start justify-between gap-4 px-6 py-5">
+                    <div className="min-w-0">
+                      <p className="text-base font-semibold text-gray-900">{item.title}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.detail}</p>
+                    </div>
+                    <span
+                      className={`mt-1 shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${
+                        item.primary
+                          ? 'bg-[#4e45e2] text-white'
+                          : 'border border-gray-200 bg-gray-50 text-gray-600'
+                      }`}
+                    >
+                      {item.meta}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+
+            {/* Student requests */}
+            <Card>
+              <div className="border-b border-gray-200 px-6 py-5">
+                <Label>Student requests</Label>
+                <h2 className="mt-2 text-2xl font-bold text-gray-900">
+                  New mentees looking for guidance
+                </h2>
+              </div>
+              <ul className="divide-y divide-gray-200">
+                {studentRequests.map((r) => (
+                  <li key={r.name} className="flex items-center justify-between gap-4 px-6 py-5">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-700">
+                        {initials(r.name)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900">{r.name}</p>
+                        <p className="text-xs text-gray-600">{r.track}</p>
+                      </div>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusCls[r.status]}`}>
+                      {r.status}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </div>
+
+          {/* Right sidebar */}
+          <div className="space-y-6">
+            {/* Today's focus */}
+            <Card>
+              <div className="border-b border-gray-200 px-6 py-5">
+                <Label>Today&apos;s focus</Label>
+                <p className="mt-2 text-lg font-bold text-gray-900">2:00 PM · Sarah Johnson</p>
+                <p className="mt-1 text-sm text-gray-600">UX Design mentorship · portfolio review</p>
+              </div>
+
+              <ul className="divide-y divide-gray-200">
+                {[
+                  { title: 'Review portfolio samples', detail: 'Prepare feedback on recent design work.', meta: 'Must have' },
+                  { title: 'Discuss career goals', detail: 'Explore internship opportunities and next steps.', meta: '5 min' },
+                  { title: 'Share resources', detail: 'Provide relevant articles and design tools.', meta: 'Optional' },
+                ].map((item) => (
+                  <li key={item.title} className="flex items-start gap-3 px-6 py-5">
+                    <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-gray-300" strokeWidth={2} />
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                        <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                          {item.meta}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-gray-600">{item.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="border-t border-gray-200 px-6 py-4">
+                <div className="flex gap-3">
+                  <Link
+                    href="/mentor/sessions"
+                    className="flex-1 rounded-lg bg-[#4e45e2] py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[#4139c2]"
+                  >
+                    View schedule
+                  </Link>
+                  <Link
+                    href="/mentor/sessions"
+                    className="flex-1 rounded-lg border border-gray-300 py-3 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    Reschedule
+                  </Link>
+                </div>
+              </div>
+            </Card>
+
+            {/* Priority actions */}
+            <Card>
+              <div className="border-b border-gray-200 px-6 py-5">
+                <Label>Priority actions</Label>
+              </div>
+              <ul className="divide-y divide-gray-200">
+                {priorities.map((item) => (
+                  <li key={item.title}>
+                    <Link
+                      href={item.href}
+                      className="group flex items-center gap-4 px-6 py-5 transition-colors hover:bg-gray-50"
+                    >
+                      <item.icon size={18} className="shrink-0 text-[#4e45e2]" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                        <p className="mt-1 text-sm text-gray-600">{item.description}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">{item.meta}</span>
+                        <ChevronRight
+                          size={16}
+                          className="text-gray-400 transition-transform group-hover:translate-x-1"
+                        />
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          </div>
+        </div>
+
+        {/* Bottom row */}
+        <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+          {/* Updates */}
+          <Card>
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+              <Label>Latest updates</Label>
+              <span className="rounded-full border border-gray-200 px-3 py-1 text-sm font-semibold text-gray-600">
+                3 new
+              </span>
+            </div>
+            <ul className="divide-y divide-gray-200">
+              {updates.map((u) => (
+                <li key={u.title} className="flex items-start gap-4 px-6 py-5">
+                  <u.icon size={18} className="mt-0.5 shrink-0 text-gray-400" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-gray-900">{u.title}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-gray-600">{u.text}</p>
+                    <p className="mt-2 text-xs uppercase tracking-wider text-gray-500">{u.date}</p>
+                  </div>
+                </li>
               ))}
-            </div>
-          </section>
+            </ul>
+          </Card>
 
-          <section className="xl:col-span-4 rounded-[1.5rem] p-6 bg-surface-container-low space-y-6">
-            <h2 className="text-xl font-manrope font-bold">Monthly Performance</h2>
-            <div className="rounded-2xl p-5 text-on-primary bg-[linear-gradient(135deg,#006592_0%,#4e45e2_100%)] space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
-                  <DollarSign size={22} />
-                </div>
-                <span className="text-[10px] uppercase tracking-wide font-bold bg-white/20 px-2 py-1 rounded-full">Paid out</span>
-              </div>
-              <div>
-                <p className="text-on-primary/75 text-sm">Total Earnings</p>
-                <h3 className="text-3xl font-manrope font-extrabold">$12,450.00</h3>
-              </div>
-              <div className="space-y-2">
-                <div className="h-1 w-full rounded-full bg-white/20 overflow-hidden">
-                  <div className="h-full w-[75%] rounded-full bg-[linear-gradient(90deg,#61c2ff_0%,#4e45e2_100%)]" />
-                </div>
-                <p className="text-xs text-on-primary/75">75% of monthly target reached</p>
-              </div>
+          {/* History */}
+          <Card>
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+              <Label>Recent sessions</Label>
+              <Link
+                href="/mentor/history"
+                className="text-sm font-semibold text-[#4e45e2] transition-colors hover:text-[#4139c2]"
+              >
+                View all
+              </Link>
             </div>
-
-            <div className="rounded-2xl bg-surface-container-lowest p-4 space-y-2">
-              <p className="text-sm text-on-surface-variant font-medium flex items-center gap-2">
-                <ChartNoAxesColumn size={16} className="text-tertiary" /> Week-over-week growth
-              </p>
-              <p className="text-2xl font-manrope font-extrabold text-tertiary">+12.4%</p>
-            </div>
-          </section>
+            <ul className="divide-y divide-gray-200">
+              {history.map((item) => (
+                <li key={item.title} className="flex items-start gap-3 px-6 py-5">
+                  <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-500" strokeWidth={2} />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                    <p className="mt-1 text-xs text-gray-600">{item.subtitle}</p>
+                    <p className="mt-1 text-xs text-gray-600">{item.detail}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
+  );
+}
+
+export default function MentorDashboard() {
+  return (
+    <ProtectedRoute requiredRole="mentor">
+      <MentorDashboardLayout>
+        <MentorDashboardContent />
+      </MentorDashboardLayout>
+    </ProtectedRoute>
   );
 }

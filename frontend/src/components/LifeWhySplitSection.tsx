@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { ArrowRight, Check, Compass, Target, Users, Zap } from 'lucide-react';
+import { Check, Target, Users, Compass, Zap, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 const LIFE_FEATURES = [
   'AI-powered career assessment that maps your strengths',
@@ -12,120 +12,91 @@ const LIFE_FEATURES = [
 ];
 
 const VALUE_FEATURES = [
-  { icon: Target, label: 'Personalized\nGuidance', color: '#10B981', desc: 'Tailored paths' },
-  { icon: Users, label: 'Expert\nMentorship', color: '#7C3AED', desc: 'Professionals' },
-  { icon: Compass, label: 'Career\nClarity', color: '#F59E0B', desc: 'Clear roadmap' },
-  { icon: Zap, label: 'Fast\nTracking', color: '#EC4899', desc: 'Accelerated' },
+  { icon: Target, label: 'Personalized Guidance', color: '#10B981' },
+  { icon: Users, label: 'Expert Mentorship', color: '#7C3AED' },
+  { icon: Compass, label: 'Career Clarity', color: '#F59E0B' },
+  { icon: Zap, label: 'Fast Tracking', color: '#EC4899' },
 ];
 
 const LifeWhySplitSection = () => {
   return (
-    <section className="relative overflow-hidden border-y border-border bg-linear-to-b from-surface via-surface-dim/55 to-surface py-20 lg:py-24">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-20 top-10 h-64 w-64 rounded-full bg-indigo-200/55 blur-3xl" />
-        <div className="absolute -right-24 bottom-10 h-72 w-72 rounded-full bg-cyan-100/70 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-12">
-        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-2 lg:gap-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="w-full rounded-3xl border border-border bg-white p-7 shadow-[0_12px_28px_rgba(15,23,42,0.08)] md:p-8"
-          >
-            <h2 className="font-plus-jakarta mb-4 text-[2rem] font-extrabold leading-[1.08] tracking-tight text-on-surface md:text-[2.8rem]">
-              Life powered by:
-              <span className="block text-primary">Edmarg</span>
+    <section className="relative overflow-hidden bg-white py-20 lg:py-28 border-t border-gray-100">
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-2 lg:gap-12">
+          {/* Left Card */}
+          <div className="w-full rounded-2xl border border-gray-200 bg-white p-8">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Why EdMarg?
             </h2>
-            <p className="font-manrope mb-7 text-base leading-relaxed text-on-surface-variant">
-              Why settle for confusion and guesswork?<br />
-              Get one integrated platform for career clarity.
+            <p className="text-lg text-gray-600 mb-8">
+              Get one integrated platform for career clarity and mentorship.
             </p>
 
-            <div className="mb-7 inline-flex items-center rounded-full border border-border bg-surface-dim p-1">
-              <span className="font-manrope rounded-full px-5 py-2.5 text-sm font-medium text-on-surface-variant">Current Life</span>
-              <span className="font-manrope rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/30">Edmarg</span>
-            </div>
-
-            <div className="flex max-w-xl flex-col gap-3.5">
+            <div className="flex max-w-xl flex-col gap-4 mb-8">
               {LIFE_FEATURES.map((feature, idx) => (
-                <motion.div
+                <div
                   key={idx}
-                  initial={{ opacity: 0, x: 20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.08 * idx }}
-                  className="flex items-start gap-3.5 rounded-2xl border border-border bg-surface-dim p-4 transition-all duration-300 hover:border-primary/35 hover:bg-surface-container"
+                  className="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4 hover:bg-gray-100 transition-colors"
                 >
-                  <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500">
+                  <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500">
                     <Check className="h-4 w-4 text-white" strokeWidth={3} />
                   </div>
-                  <span className="font-manrope text-[15px] font-medium leading-relaxed text-on-surface">{feature}</span>
-                </motion.div>
+                  <span className="text-base font-medium text-gray-900">{feature}</span>
+                </div>
               ))}
             </div>
 
-            <button className="font-manrope mt-7 inline-flex items-center gap-2 rounded-xl bg-on-surface px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-800">
+            <Link
+              href="/assessment"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 hover:bg-blue-700 px-6 py-3 text-base font-semibold text-white transition-colors"
+            >
               Start with Assessment
               <ArrowRight className="h-4 w-4" />
-            </button>
-          </motion.div>
+            </Link>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="w-full rounded-3xl border border-border bg-white p-7 shadow-[0_12px_28px_rgba(15,23,42,0.08)] md:p-8"
-          >
-            <div className="mb-7 space-y-2 text-center md:mb-8">
-              <h2 className="font-plus-jakarta bg-linear-to-r from-primary via-indigo-400 to-cyan-500 bg-clip-text text-3xl font-extrabold text-transparent md:text-4xl">
-                Why EdMarg?
-              </h2>
-              <p className="font-manrope mx-auto max-w-xl text-base font-medium text-on-surface-variant">
-                Seamless Career Clarity Platform for Modern Student Success
-              </p>
-            </div>
+          {/* Right Card */}
+          <div className="w-full rounded-2xl border border-gray-200 bg-white p-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+              Our Approach
+            </h3>
+            <p className="text-center text-gray-600 mb-8">
+              Seamless career clarity platform for modern student success
+            </p>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-4">
               {VALUE_FEATURES.map((feature, idx) => {
                 const Icon = feature.icon;
 
                 return (
-                  <motion.div
+                  <div
                     key={idx}
-                    initial={{ opacity: 0, y: 16 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.1 + idx * 0.06 }}
-                    className="rounded-2xl border border-border bg-surface-dim p-5 shadow-[0_6px_16px_rgba(15,23,42,0.06)]"
+                    className="rounded-lg border border-gray-200 bg-gray-50 p-5 hover:bg-gray-100 transition-colors"
                   >
                     <div
-                      className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
+                      className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg"
                       style={{
                         backgroundColor: `${feature.color}20`,
-                        border: `1px solid ${feature.color}60`,
+                        border: `1px solid ${feature.color}40`,
                       }}
                     >
-                      <Icon className="h-5 w-5" style={{ color: feature.color }} strokeWidth={2.5} />
+                      <Icon className="h-5 w-5" style={{ color: feature.color }} />
                     </div>
 
-                    <p className="font-plus-jakarta whitespace-pre-line text-lg font-bold leading-tight" style={{ color: feature.color }}>
+                    <p className="font-bold text-gray-900" style={{ color: feature.color }}>
                       {feature.label}
                     </p>
-                    <p className="font-manrope mt-2 text-sm font-medium text-on-surface-variant">{feature.desc}</p>
-                  </motion.div>
+                  </div>
                 );
               })}
             </div>
 
-            <div className="mt-6 rounded-xl border border-primary/20 bg-surface-container p-4">
-              <p className="font-manrope text-sm leading-relaxed text-on-surface">
+            <div className="mt-6 rounded-lg border border-gray-200 bg-blue-50 p-4">
+              <p className="text-sm text-gray-700">
                 EdMarg combines assessment, mentoring, and roadmap planning in one place so students move faster with confidence.
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

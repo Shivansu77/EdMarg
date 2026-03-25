@@ -1,6 +1,7 @@
 'use client';
 
 import { type ComponentType, useMemo, useState } from 'react';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import {
   ArrowLeft,
@@ -100,7 +101,7 @@ const questions: Question[] = [
   },
 ];
 
-export default function StudentAssessmentPage() {
+function StudentAssessmentContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
 
@@ -130,81 +131,88 @@ export default function StudentAssessmentPage() {
 
   return (
     <DashboardLayout userName="Assessment">
-      <div className="max-w-5xl space-y-7 pb-8">
-        <section className="space-y-4">
-          <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-[#5a53e8]">Career Exploration Quiz</p>
-          <div className="flex items-end justify-between gap-4">
-            <h2 className="text-[48px] leading-none tracking-[-0.03em] font-extrabold text-[#2f3445]">
-              Step {currentStep + 1} <span className="text-[#8b93a7]">of {questions.length}</span>
-            </h2>
-            <p className="text-[32px] font-extrabold text-[#5a53e8]">{progress}%</p>
+      <div className="max-w-4xl mx-auto pb-12">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-2">Career Assessment</p>
+              <h1 className="text-3xl font-bold text-gray-900">Question {currentStep + 1} of {questions.length}</h1>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-bold text-blue-600">{progress}%</p>
+              <p className="text-sm text-gray-600 mt-1">{completionText}</p>
+            </div>
           </div>
-
-          <div className="h-2.5 rounded-full bg-[#e2e6ee] overflow-hidden">
-            <div className="h-full rounded-full bg-[#5a53e8] transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${progress}%` }} />
           </div>
-          <p className="text-[14px] font-semibold text-[#7f889e]">{completionText}</p>
-        </section>
+        </div>
 
-        <section className="space-y-4">
-          <h3 className="text-[56px] leading-tight tracking-[-0.03em] font-extrabold text-[#343a45]">{currentQuestion.title}</h3>
-          <p className="text-[35px] leading-snug text-[#6d7383] max-w-4xl">{currentQuestion.subtitle}</p>
+        {/* Question */}
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{currentQuestion.title}</h2>
+          <p className="text-gray-600 text-base">{currentQuestion.subtitle}</p>
+        </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 pt-3">
-            {currentQuestion.options.map((option) => {
-              const isSelected = selectedOption === option.id;
-              const Icon = option.icon;
+        {/* Options Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+          {currentQuestion.options.map((option) => {
+            const isSelected = selectedOption === option.id;
+            const Icon = option.icon;
 
-              return (
-                <button
-                  type="button"
-                  key={option.id}
-                  onClick={() => onSelect(option.id)}
-                  className={`rounded-2xl border p-6 text-left transition-all duration-200 bg-white ${
-                    isSelected
-                      ? 'border-[#5a53e8] shadow-[0_10px_30px_rgba(90,83,232,0.14)]'
-                      : 'border-[#eceff5] hover:border-[#d8def0]'
-                  }`}
-                >
-                  <span className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${option.color}`}>
-                    <Icon className="h-6 w-6" />
-                  </span>
-                  <p className="mt-5 text-[38px] leading-none tracking-[-0.02em] font-extrabold text-[#323844]">{option.title}</p>
-                  <p className="mt-3 text-[29px] leading-snug text-[#646c7d]">{option.description}</p>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+            return (
+              <button
+                type="button"
+                key={option.id}
+                onClick={() => onSelect(option.id)}
+                className={`p-5 rounded-lg border-2 text-left transition-all duration-200 ${
+                  isSelected
+                    ? 'border-blue-600 bg-blue-50 shadow-md'
+                    : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
+                }`}
+              >
+                <div className={`inline-flex h-10 w-10 items-center justify-center rounded-lg mb-3 ${
+                  isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600'
+                }`}>
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h3 className="font-semibold text-gray-900 text-base mb-1">{option.title}</h3>
+                <p className="text-sm text-gray-600">{option.description}</p>
+              </button>
+            );
+          })}
+        </div>
 
-        <section className="pt-6 flex items-center justify-between gap-4">
+        {/* Navigation */}
+        <div className="flex items-center justify-between gap-4">
           <button
             type="button"
             onClick={onPrevious}
             disabled={currentStep === 0}
-            className="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#edf1f7] text-[#9aa3b7] text-[24px] font-semibold disabled:opacity-80"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <ArrowLeft className="h-5 w-5" /> Previous
+            <ArrowLeft className="h-4 w-4" /> Previous
           </button>
 
           <button
             type="button"
             onClick={onNext}
             disabled={!selectedOption || currentStep === questions.length - 1}
-            className="inline-flex items-center gap-2 px-10 py-4 rounded-full bg-[#5a53e8] text-white text-[24px] font-semibold disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            Next Question <ArrowRight className="h-5 w-5" />
+            {currentStep === questions.length - 1 ? 'Complete' : 'Next'} <ArrowRight className="h-4 w-4" />
           </button>
-        </section>
-
-        <footer className="pt-10 flex items-center justify-between text-[14px] text-[#8d93a5]">
-          <div className="flex items-center gap-6">
-            <button type="button" className="hover:text-[#5a53e8]">Need Help?</button>
-            <button type="button" className="hover:text-[#5a53e8]">Save for Later</button>
-          </div>
-          <p>Session automatically saved at 14:02 PM</p>
-        </footer>
+        </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function StudentAssessmentPage() {
+  return (
+    <ProtectedRoute requiredRole="student">
+      <StudentAssessmentContent />
+    </ProtectedRoute>
   );
 }

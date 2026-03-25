@@ -1,190 +1,397 @@
 'use client';
 
+import { useState } from 'react';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Link from 'next/link';
 import {
   ArrowRight,
-  Calendar,
-  Check,
-  Circle,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardCheck,
   Clock3,
-  Gem,
-  Mail,
+  MessageSquare,
   Sparkles,
-  Zap,
+  Target,
+  Users,
 } from 'lucide-react';
 
 const requests = [
-  { name: 'Alex Vance', track: 'Product Design', status: 'Pending', dot: 'bg-[#f59e0b]' },
-  { name: 'Emily Chen', track: 'Software Engineering', status: 'Accepted', dot: 'bg-[#22c55e]' },
+  { name: 'Alex Vance', track: 'Product Design', status: 'Pending' },
+  { name: 'Emily Chen', track: 'Software Engineering', status: 'Accepted' },
 ];
 
 const updates = [
-  {
-    icon: Mail,
-    title: 'New message from Sarah',
-    text: '"Looking forward to our session today! Please review the..."',
-    date: '2 hours ago',
-  },
-  {
-    icon: Circle,
-    title: 'Assessment Update',
-    text: "Your 'Soft Skills' profile has been updated with new insights.",
-    date: 'Yesterday',
-  },
-  {
-    icon: Sparkles,
-    title: 'Mentor Match Alert',
-    text: 'We found 3 new mentors matching your profile.',
-    date: '2 days ago',
-  },
+  { icon: MessageSquare, title: 'New message from Sarah', text: "Prep notes are ready for today's session.", date: '2 hours ago' },
+  { icon: Sparkles, title: 'Assessment reminder', text: 'Finish the baseline assessment to unlock stronger matches.', date: 'Today' },
+  { icon: Target, title: 'Next milestone', text: 'Portfolio review unlocks after one more guided session.', date: 'This week' },
 ];
 
 const history = [
-  { title: 'Initial Consulting', subtitle: 'March 12, 2024 with Dr. Michael', badge: 'Completed' },
-  { title: 'Resume Workshop', subtitle: 'March 05, 2024 with Jessica K.', badge: 'Completed' },
+  { title: 'Initial consulting', subtitle: 'March 12, 2024 · Dr. Michael', detail: 'Goal setting and career direction' },
+  { title: 'Resume workshop', subtitle: 'March 05, 2024 · Jessica K.', detail: 'Resume cleanup and positioning' },
 ];
 
-export default function StudentDashboard() {
+const stats = [
+  { label: 'Assessment', value: '2 / 5', sub: 'sections done' },
+  { label: 'Next session', value: '2:00 PM', sub: 'Today · Sarah Wells' },
+  { label: 'Mentor matches', value: '3', sub: 'new this week' },
+  { label: 'Roadmap', value: '46%', sub: 'complete' },
+];
+
+const sessionPrep = [
+  { title: 'Bring your latest resume', detail: "Use one you've already applied with so feedback stays specific.", meta: 'Must have' },
+  { title: 'Choose one internship role', detail: 'Anchor the session around a real target instead of broad advice.', meta: '5 min' },
+  { title: 'Note one portfolio question', detail: 'Turn the call into concrete feedback you can act on right after.', meta: 'Optional' },
+];
+
+const weeklyPlan = [
+  { title: 'Complete baseline assessment', detail: 'Takes 8 minutes. Refreshes your mentor recommendations right away.', badge: 'High impact', primary: true },
+  { title: "Review Sarah's prep note", detail: 'Focus on internship applications and portfolio positioning.', badge: 'Today', primary: false },
+  { title: 'Save two backup mentors', detail: 'Keep follow-up mentors ready before the week gets busy.', badge: 'Optional', primary: false },
+];
+
+const priorities = [
+  { title: 'Complete assessment', description: 'Unlock better matching and a clearer plan.', href: '/student/assessment', icon: ClipboardCheck, meta: '8 min' },
+  { title: 'Review mentor matches', description: 'Compare mentors aligned with your goals.', href: '/student/mentors', icon: Users, meta: '3 new' },
+  { title: 'Plan next session', description: 'Book or adjust a session this week.', href: '/student/booking', icon: CalendarDays, meta: 'Open' },
+];
+
+const milestones = [
+  { title: 'Complete baseline assessment', detail: 'Map your strengths, interests, and work style.', status: 'Current', dot: 'bg-[#4e45e2]', label: 'text-[#4e45e2]' },
+  { title: 'Review mentor shortlist', detail: 'Save mentors that best fit your target path.', status: 'Next', dot: 'bg-emerald-500', label: 'text-emerald-600' },
+  { title: 'Portfolio review session', detail: 'Turn recent work into sharper applications.', status: 'Later', dot: 'bg-gray-300', label: 'text-gray-500' },
+];
+
+const initials = (name: string) =>
+  name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase();
+
+const statusCls: Record<string, string> = {
+  Pending: 'bg-amber-50 text-amber-700 ring-1 ring-amber-200/60',
+  Accepted: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60',
+};
+
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-2xl border border-gray-200 bg-white ${className}`}>
+      {children}
+    </div>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+      {children}
+    </p>
+  );
+}
+
+function StudentDashboardContent() {
   return (
     <DashboardLayout userName="Student Dashboard">
-      <div className="space-y-6 pb-8">
-        <section className="rounded-2xl bg-gradient-to-r from-[#4f46e5] to-[#6d36d8] p-8 shadow-[0_12px_30px_rgba(79,70,229,0.3)]">
-          <div className="flex flex-col md:flex-row gap-5 md:items-center md:justify-between">
-            <div>
-              <h2 className="text-white text-[50px] leading-none tracking-[-0.03em] font-extrabold">Unlock your career path.</h2>
-              <p className="text-[#d8d2ff] text-[29px] leading-tight mt-3 max-w-3xl">
-                You haven&apos;t completed your baseline career assessment yet. Discover mentors tailored to your unique profile.
-              </p>
-            </div>
-            <Link href="/student/assessment" className="shrink-0 bg-white text-[#4f46e5] px-10 py-4 rounded-full font-bold text-[20px] inline-flex items-center gap-2">
-              Start Assessment <ArrowRight size={20} />
+      <div className="min-h-screen bg-gray-50 pb-16">
+        {/* Header */}
+        <div className="border-b border-gray-200 bg-white px-6 pb-8 pt-6 sm:px-8">
+          <Label>Student workspace</Label>
+          <h1 className="mt-3 text-4xl font-bold leading-tight tracking-tight text-gray-900 sm:text-5xl">
+            Your week, organized around the next right move.
+          </h1>
+          <p className="mt-3 max-w-2xl text-lg text-gray-600">
+            See your session, finish the assessment, and keep your plan moving — all in one place.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/student/assessment"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#4e45e2] px-6 py-3 text-base font-semibold text-white transition-all hover:bg-[#4139c2] active:scale-95"
+            >
+              Continue assessment <ArrowRight size={18} strokeWidth={2} />
+            </Link>
+            <Link
+              href="/student/mentors"
+              className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              Browse mentors
             </Link>
           </div>
-        </section>
+        </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-          <div className="xl:col-span-8 space-y-6">
-            <section className="bg-white rounded-2xl border border-[#e7e9f0] p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-3">
-                  <p className="text-[13px] font-bold uppercase tracking-[0.16em] text-[#5a53e8] flex items-center gap-2">
-                    <Calendar size={15} /> Upcoming Session
-                  </p>
-                  <h3 className="text-[42px] leading-none tracking-[-0.03em] font-extrabold text-[#303546]">Career Mentorship with Sarah</h3>
-                  <p className="text-[#6e768b] text-[23px] flex items-center gap-2">
-                    <Clock3 size={15} /> 2:00 PM today • 45 minutes
-                  </p>
-                  <div className="flex gap-3 pt-1">
-                    <button className="px-6 py-2 rounded-full bg-[#5a53e8] text-white text-[18px] font-semibold">Join Meeting</button>
-                    <button className="px-6 py-2 rounded-full bg-[#eef1f6] text-[#5c6479] text-[18px] font-semibold">Reschedule</button>
-                  </div>
-                </div>
-
-                <img
-                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
-                  alt="Mentor Sarah"
-                  className="h-24 w-24 rounded-2xl object-cover border border-[#e7e9f0]"
-                />
+        <div className="space-y-6 px-6 pt-8 sm:px-8">
+          {/* Stats */}
+          <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-gray-200 bg-white lg:grid-cols-4">
+            {stats.map((s, i) => (
+              <div
+                key={s.label}
+                className={`px-6 py-5 ${i < stats.length - 1 ? 'border-r border-gray-200' : ''}`}
+              >
+                <Label>{s.label}</Label>
+                <p className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+                  {s.value}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">{s.sub}</p>
               </div>
-            </section>
-
-            <section className="bg-white rounded-2xl border border-[#e7e9f0] p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[37px] leading-none tracking-[-0.03em] font-extrabold text-[#303546]">Career Progress</h3>
-                <p className="text-[#5a53e8] text-[22px] font-bold">Level 2 / 5</p>
-              </div>
-              <div className="h-3 w-full bg-[#e5e8ef] rounded-full overflow-hidden">
-                <div className="h-full w-[46%] bg-gradient-to-r from-[#49a6ff] to-[#5745e7] rounded-full" />
-              </div>
-              <p className="text-[17px] italic text-[#8a92a7]">Next milestone: Professional Portfolio Review</p>
-            </section>
-
-            <section className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <h3 className="text-[39px] leading-none tracking-[-0.03em] font-extrabold text-[#303546]">Recent History</h3>
-                <button className="text-[#5a53e8] text-[22px] font-bold">View all</button>
-              </div>
-              <div className="bg-white rounded-2xl border border-[#e7e9f0] overflow-hidden">
-                {history.map((item, idx) => (
-                  <div key={item.title} className={`p-4 flex items-center justify-between ${idx !== history.length - 1 ? 'border-b border-[#edf0f5]' : ''}`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`h-11 w-11 rounded-xl ${idx === 0 ? 'bg-[#efe8ff]' : 'bg-[#d9f0ff]'} flex items-center justify-center`}>
-                        {idx === 0 ? <Gem size={18} className="text-[#7d49ea]" /> : <Check size={18} className="text-[#2d86c7]" />}
-                      </div>
-                      <div>
-                        <p className="text-[26px] leading-none tracking-[-0.02em] font-bold text-[#303546]">{item.title}</p>
-                        <p className="text-[18px] text-[#7a8296] mt-1">{item.subtitle}</p>
-                      </div>
-                    </div>
-                    <span className="rounded-full px-3 py-1 bg-[#dcf8e8] text-[#20965a] text-[13px] font-bold uppercase">{item.badge}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            ))}
           </div>
 
-          <div className="xl:col-span-4 space-y-6">
-            <section className="bg-white rounded-2xl border border-[#e7e9f0] p-5 space-y-4">
-              <h3 className="text-[38px] leading-none tracking-[-0.03em] font-extrabold text-[#303546]">Active Requests</h3>
-              {requests.map((request) => (
-                <div key={request.name} className="flex items-center gap-3">
-                  <img
-                    src={`https://ui-avatars.com/api/?background=edeff5&color=4b5265&name=${encodeURIComponent(request.name)}`}
-                    alt={request.name}
-                    className="h-11 w-11 rounded-full border border-[#e7e9f0]"
-                  />
-                  <div className="flex-1">
-                    <p className="text-[24px] leading-none tracking-[-0.02em] font-bold text-[#303546]">{request.name}</p>
-                    <p className="text-[18px] text-[#7a8296] mt-1">{request.track}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2.5 w-2.5 rounded-full ${request.dot}`} />
-                    <span className={`rounded px-2 py-1 text-[11px] uppercase font-bold ${request.status === 'Pending' ? 'bg-[#fff1dd] text-[#d47f0e]' : 'bg-[#e5f8ec] text-[#23985a]'}`}>
-                      {request.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </section>
-
-            <section className="bg-white rounded-2xl border border-[#e7e9f0] p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-[38px] leading-none tracking-[-0.03em] font-extrabold text-[#303546]">Updates</h3>
-                <span className="h-6 min-w-6 px-1 rounded-full bg-[#5a53e8] text-white text-[11px] font-bold inline-flex items-center justify-center">3</span>
-              </div>
-
-              {updates.map((update) => (
-                <div key={update.title} className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-full bg-[#eef0f7] text-[#6e75ca] flex items-center justify-center mt-0.5">
-                    <update.icon size={14} />
-                  </div>
+          {/* Main 2-col */}
+          <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+            {/* Left */}
+            <div className="space-y-6">
+              {/* Weekly plan */}
+              <Card>
+                <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
                   <div>
-                    <p className="text-[21px] leading-none tracking-[-0.02em] font-bold text-[#303546]">{update.title}</p>
-                    <p className="text-[16px] text-[#7a8296] mt-1 leading-snug">{update.text}</p>
-                    <p className="text-[14px] font-semibold text-[#5660da] mt-1">{update.date}</p>
+                    <Label>This week</Label>
+                    <h2 className="mt-2 text-2xl font-bold text-gray-900">
+                      Keep today useful and the rest obvious
+                    </h2>
+                  </div>
+                  <span className="mt-1 shrink-0 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-sm font-semibold text-gray-600">
+                    46% done
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-2 border-b border-gray-200 px-6 py-4">
+                  {[
+                    { icon: CalendarDays, label: 'Today' },
+                    { icon: Clock3, label: '2:00 – 2:45 PM' },
+                    { icon: Users, label: '3 new matches' },
+                  ].map(({ icon: Icon, label }) => (
+                    <span
+                      key={label}
+                      className="inline-flex items-center gap-2 rounded-lg bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700"
+                    >
+                      <Icon size={16} strokeWidth={2} /> {label}
+                    </span>
+                  ))}
+                </div>
+
+                <ul className="divide-y divide-gray-200">
+                  {weeklyPlan.map((item) => (
+                    <li key={item.title} className="flex items-start justify-between gap-4 px-6 py-5">
+                      <div className="min-w-0">
+                        <p className="text-base font-semibold text-gray-900">{item.title}</p>
+                        <p className="mt-2 text-sm leading-relaxed text-gray-600">{item.detail}</p>
+                      </div>
+                      <span
+                        className={`mt-1 shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${
+                          item.primary
+                            ? 'bg-[#4e45e2] text-white'
+                            : 'border border-gray-200 bg-gray-50 text-gray-600'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              {/* Roadmap */}
+              <Card>
+                <div className="border-b border-gray-200 px-6 py-5">
+                  <Label>Career roadmap</Label>
+                  <h2 className="mt-2 text-2xl font-bold text-gray-900">
+                    How today connects to the bigger plan
+                  </h2>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-gray-200">
+                    <div className="h-full w-[46%] rounded-full bg-[#4e45e2]" />
                   </div>
                 </div>
-              ))}
+                <ul className="divide-y divide-gray-200">
+                  {milestones.map((m) => (
+                    <li key={m.title} className="flex items-start gap-4 px-6 py-5">
+                      <span className={`mt-1 h-3 w-3 shrink-0 rounded-full ${m.dot}`} />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-base font-semibold text-gray-900">{m.title}</p>
+                          <span className={`shrink-0 text-sm font-semibold ${m.label}`}>{m.status}</span>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-600">{m.detail}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
 
-              <button className="w-full text-center text-[20px] font-semibold text-[#5f667a] pt-2">Mark all as read</button>
-              <div className="flex justify-end">
-                <button className="h-11 w-11 rounded-full bg-[#5a53e8] text-white flex items-center justify-center">
-                  <Zap size={18} />
-                </button>
+            {/* Right sidebar */}
+            <div className="space-y-6">
+              {/* Today's focus */}
+              <Card>
+                <div className="border-b border-gray-200 px-6 py-5">
+                  <Label>Today&apos;s focus</Label>
+                  <p className="mt-2 text-lg font-bold text-gray-900">2:00 PM · Sarah Wells</p>
+                  <p className="mt-1 text-sm text-gray-600">Career mentorship · product &amp; growth</p>
+                </div>
+
+                <ul className="divide-y divide-gray-200">
+                  {sessionPrep.map((item) => (
+                    <li key={item.title} className="flex items-start gap-3 px-6 py-5">
+                      <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-gray-300" strokeWidth={2} />
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                          <span className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                            {item.meta}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-sm text-gray-600">{item.detail}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="border-t border-gray-200 px-6 py-5">
+                  <div className="flex items-start gap-3">
+                    <MessageSquare size={18} className="mt-0.5 shrink-0 text-gray-400" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">Latest mentor note</p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        Prep notes are ready for today&apos;s session.
+                      </p>
+                      <p className="mt-2 text-xs uppercase tracking-wider text-gray-500">2 hours ago</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 px-6 py-4">
+                  <div className="flex gap-3">
+                    <Link
+                      href="/student/schedule"
+                      className="flex-1 rounded-lg bg-[#4e45e2] py-3 text-center text-sm font-semibold text-white transition-colors hover:bg-[#4139c2]"
+                    >
+                      View schedule
+                    </Link>
+                    <Link
+                      href="/student/booking"
+                      className="flex-1 rounded-lg border border-gray-300 py-3 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                    >
+                      Reschedule
+                    </Link>
+                  </div>
+                </div>
+              </Card>
+
+              {/* Priority actions */}
+              <Card>
+                <div className="border-b border-gray-200 px-6 py-5">
+                  <Label>Priority actions</Label>
+                </div>
+                <ul className="divide-y divide-gray-200">
+                  {priorities.map((item) => (
+                    <li key={item.title}>
+                      <Link
+                        href={item.href}
+                        className="group flex items-center gap-4 px-6 py-5 transition-colors hover:bg-gray-50"
+                      >
+                        <item.icon size={18} className="shrink-0 text-[#4e45e2]" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                          <p className="mt-1 text-sm text-gray-600">{item.description}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600">{item.meta}</span>
+                          <ChevronRight
+                            size={16}
+                            className="text-gray-400 transition-transform group-hover:translate-x-1"
+                          />
+                        </div>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
+          </div>
+
+          {/* Bottom row */}
+          <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
+            {/* Updates */}
+            <Card>
+              <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+                <Label>Latest updates</Label>
+                <span className="rounded-full border border-gray-200 px-3 py-1 text-sm font-semibold text-gray-600">
+                  3 new
+                </span>
               </div>
-            </section>
+              <ul className="divide-y divide-gray-200">
+                {updates.map((u) => (
+                  <li key={u.title} className="flex items-start gap-4 px-6 py-5">
+                    <u.icon size={18} className="mt-0.5 shrink-0 text-gray-400" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900">{u.title}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-gray-600">{u.text}</p>
+                      <p className="mt-2 text-xs uppercase tracking-wider text-gray-500">{u.date}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Card>
 
-            <section className="bg-[#dfd4ff] rounded-2xl p-5 space-y-2">
-              <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-[#6647d8] flex items-center gap-2"><Zap size={13} /> Pro Tip</p>
-              <p className="text-[24px] leading-tight tracking-[-0.02em] font-bold text-[#5f42c9]">
-                Students who complete 3 sessions in their first month are 4x more likely to secure internships.
-              </p>
-              <button className="text-[19px] font-bold text-[#5f42c9]">Explore More Mentors</button>
-            </section>
+            {/* Requests + History */}
+            <div className="space-y-6">
+              <Card>
+                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+                  <Label>Active requests</Label>
+                  <span className="rounded-full border border-gray-200 px-3 py-1 text-sm font-semibold text-gray-600">
+                    {requests.length}
+                  </span>
+                </div>
+                <ul className="divide-y divide-gray-200">
+                  {requests.map((r) => (
+                    <li key={r.name} className="flex items-center gap-4 px-6 py-5">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-700">
+                        {initials(r.name)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-900">{r.name}</p>
+                        <p className="text-xs text-gray-600">{r.track}</p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusCls[r.status]}`}>
+                        {r.status}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+
+              <Card>
+                <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+                  <Label>Recent history</Label>
+                  <Link
+                    href="/student/history"
+                    className="text-sm font-semibold text-[#4e45e2] transition-colors hover:text-[#4139c2]"
+                  >
+                    View all
+                  </Link>
+                </div>
+                <ul className="divide-y divide-gray-200">
+                  {history.map((item) => (
+                    <li key={item.title} className="flex items-start gap-3 px-6 py-5">
+                      <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-emerald-500" strokeWidth={2} />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                        <p className="mt-1 text-xs text-gray-600">{item.subtitle}</p>
+                        <p className="mt-1 text-xs text-gray-600">{item.detail}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            </div>
           </div>
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function StudentDashboard() {
+  return (
+    <ProtectedRoute requiredRole="student">
+      <StudentDashboardContent />
+    </ProtectedRoute>
   );
 }
