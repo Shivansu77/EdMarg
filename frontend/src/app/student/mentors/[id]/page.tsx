@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 
 type Mentor = {
   _id: string;
@@ -77,7 +78,12 @@ function StudentMentorProfileContent() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/api/users/browsementor`);
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/users/browsementor`,
+          createAuthenticatedRequestInit({
+            method: 'GET',
+          })
+        );
         if (!response.ok) throw new Error('Failed to fetch mentors');
 
         const result = await response.json();

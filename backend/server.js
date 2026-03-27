@@ -13,8 +13,15 @@ const DB_NAME = process.env.DB_NAME || 'edmarg_db';
 
 // Security middleware
 app.use(helmet());
+
+const corsOrigins = [
+  'http://localhost:3000',
+  'https://frontend-alpha-nine-92.vercel.app',
+  process.env.FRONTEND_ORIGIN,
+].filter(Boolean);
+
 app.use(cors({
-  origin: FRONTEND_ORIGIN,
+  origin: corsOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -30,17 +37,30 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
   message: 'Too many attempts, please try again later',
+  skip: (req) => !(req.method === 'POST' && req.path === '/login'),
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json({
+      success: false,
+      message: typeof options.message === 'string' ? options.message : 'Too many attempts, please try again later',
+    });
+  },
 });
 
 // Routes
 const userRouteV1 = require('./routes/v1/user.route');
 const adminRouteV1 = require('./routes/v1/admin.route');
+const bookingRouteV1 = require('./routes/v1/booking.route');
+const availabilityRouteV1 = require('./routes/v1/availability.route');
+const mentorRouteV1 = require('./routes/v1/mentor.route');
 const userRouteV2 = require('./routes/v2/user.route');
 const adminRouteV2 = require('./routes/v2/admin.route');
 const errorHandler = require('./middlewares/error.middleware');
 
 app.use('/api/v1/users', authLimiter, userRouteV1);
 app.use('/api/v1/admin', adminRouteV1);
+app.use('/api/v1/bookings', bookingRouteV1);
+app.use('/api/v1/availability', availabilityRouteV1);
+app.use('/api/v1/mentor', mentorRouteV1);
 app.use('/api/v2/users', authLimiter, userRouteV2);
 app.use('/api/v2/admin', adminRouteV2);
 

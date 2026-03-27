@@ -1,7 +1,7 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const User = require('../models/user.model');
+const { User } = require('../models/user.model');
 
 const hashPasswords = async () => {
   try {
@@ -13,7 +13,9 @@ const hashPasswords = async () => {
     let updated = 0;
 
     for (const user of users) {
-      const isHashed = user.password.startsWith('$2a$') || user.password.startsWith('$2b$');
+      const isHashed =
+        typeof user.password === 'string' &&
+        (user.password.startsWith('$2a$') || user.password.startsWith('$2b$') || user.password.startsWith('$2y$'));
       
       if (!isHashed) {
         user.password = await bcrypt.hash(user.password, 12);

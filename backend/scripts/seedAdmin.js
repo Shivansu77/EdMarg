@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const User = require('../models/user.model');
+const { User } = require('../models/user.model');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const DB_NAME = process.env.DB_NAME || 'edmarg_db';
@@ -17,12 +17,12 @@ async function seedAdmin() {
 
   await mongoose.connect(MONGODB_URI, { dbName: DB_NAME });
 
-  let admin = await User.findOne({ email: ADMIN_EMAIL }).select('+password');
+  let admin = await User.findOne({ email: ADMIN_EMAIL.toLowerCase() }).select('+password');
 
   if (!admin) {
     admin = new User({
       name: ADMIN_NAME,
-      email: ADMIN_EMAIL,
+      email: ADMIN_EMAIL.toLowerCase(),
       password: ADMIN_PASSWORD,
       phoneNumber: ADMIN_PHONE,
       role: 'admin',

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Star, Search, X, User, Briefcase, Award } from 'lucide-react';
+import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
+import { Star, Search, X, User, Briefcase } from 'lucide-react';
 
 type Mentor = {
   _id: string;
@@ -44,12 +45,12 @@ function MentorsContent() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/api/users/browsementor`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/users/browsementor`,
+          createAuthenticatedRequestInit({
+            method: 'GET',
+          })
+        );
 
         if (!response.ok) {
           throw new Error(`Failed to load mentors (${response.status})`);
@@ -313,9 +314,9 @@ function MentorsContent() {
                                 View Profile
                               </button>
                             </Link>
-                            <Link href={localStorage.getItem('token') ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
+                            <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
                               <button className="w-full rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors">
-                                {localStorage.getItem('token') ? 'Connect' : 'Sign in'}
+                                {isLoggedIn ? 'Connect' : 'Sign in'}
                               </button>
                             </Link>
                           </div>

@@ -1,8 +1,6 @@
 const { AppError } = require('../utils/errors');
 
 const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
-
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       success: false,
@@ -10,6 +8,8 @@ const errorHandler = (err, req, res, next) => {
       errors: err.errors || null,
     });
   }
+
+  console.error(err.stack);
 
   if (err.name === 'ValidationError') {
     return res.status(400).json({

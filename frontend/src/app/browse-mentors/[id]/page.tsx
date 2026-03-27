@@ -29,8 +29,6 @@ type Review = {
   avatar: string;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-
 export default function PublicMentorProfile() {
   const params = useParams();
   const mentorId = params.id as string;
@@ -82,7 +80,7 @@ export default function PublicMentorProfile() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/api/users/browsementor`);
+        const response = await fetch('/api/mentors');
         if (!response.ok) throw new Error('Failed to fetch mentors');
 
         const result = await response.json();

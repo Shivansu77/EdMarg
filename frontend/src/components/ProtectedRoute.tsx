@@ -1,72 +1,96 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   requiredRole?: 'student' | 'mentor' | 'admin';
 }
 
-export default function ProtectedRoute({ children, requiredRole = 'student' }: ProtectedRouteProps) {
+const AUTH_USER_STORAGE_KEY = 'user';
+const AUTH_TOKEN_STORAGE_KEY = 'token';
+const AUTH_USER_EVENT = 'edmarg-auth-user-change';
+const emptySubscribe = () => () => undefined;
+
+const resolveApiBaseUrl = () => {
+  const baseUrl =
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'http://localhost:5000';
+
+  return baseUrl.replace(/\/$/, '');
+};
+
+const clearStoredAuth = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+  window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  window.dispatchEvent(new Event(AUTH_USER_EVENT));
+};
+
+export default function ProtectedRoute({
+  children,
+  requiredRole = 'student',
+}: ProtectedRouteProps) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
+  const isAuthorized = Boolean(user && user.role === requiredRole);
 
   useEffect(() => {
-    const verifyAuth = async () => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    if (!user || user.role !== requiredRole) {
+      router.replace('/login');
+    }
+  }, [hasHydrated, requiredRole, router, user]);
+
+  useEffect(() => {
+    if (!hasHydrated || !isAuthorized) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const verifySession = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
-
-        if (!token || !user) {
-          router.replace('/login');
-          return;
-        }
-
-        const userData = JSON.parse(user);
-        
-        // Verify token with backend
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/me`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${resolveApiBaseUrl()}/api/v1/users/me`,
+          createAuthenticatedRequestInit({
+            method: 'GET',
+            cache: 'no-store',
+            signal: controller.signal,
+          })
+        );
 
         if (!response.ok) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          clearStoredAuth();
           router.replace('/login');
+        }
+      } catch {
+        if (controller.signal.aborted) {
           return;
         }
-
-        if (requiredRole && userData.role !== requiredRole) {
-          router.replace('/login');
-          return;
-        }
-
-        setIsAuthenticated(true);
-      } catch (e) {
-        router.replace('/login');
-      } finally {
-        setLoading(false);
       }
     };
 
-    verifyAuth();
-  }, [router, requiredRole]);
+    void verifySession();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-gray-600">Loading...</p>
-      </div>
-    );
-  }
+    return () => {
+      controller.abort();
+    };
+  }, [hasHydrated, isAuthorized, router]);
 
-  if (!isAuthenticated) {
+  if (!hasHydrated || !isAuthorized) {
     return null;
   }
 

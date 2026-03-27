@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -29,9 +29,7 @@ type Review = {
   avatar: string;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-
-export default function PublicMentorPage() {
+function PublicMentorPageContent() {
   const searchParams = useSearchParams();
   const mentorId = searchParams.get('id');
   
@@ -76,7 +74,7 @@ export default function PublicMentorPage() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/api/users/browsementor`);
+        const response = await fetch('/api/mentors');
         if (!response.ok) throw new Error('Failed to fetch mentors');
 
         const result = await response.json();
@@ -403,5 +401,21 @@ export default function PublicMentorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function MentorPageFallback() {
+  return (
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <p className="text-gray-600">Loading mentor profile...</p>
+    </div>
+  );
+}
+
+export default function PublicMentorPage() {
+  return (
+    <Suspense fallback={<MentorPageFallback />}>
+      <PublicMentorPageContent />
+    </Suspense>
   );
 }

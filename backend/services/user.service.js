@@ -2,25 +2,67 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/user.repository');
 const { TokenBlacklist } = require('../models/user.model');
+const { UnauthorizedError } = require('../utils/errors');
+
+const isBcryptHash = (value = '') =>
+  typeof value === 'string' &&
+  (value.startsWith('$2a$') || value.startsWith('$2b$') || value.startsWith('$2y$'));
 
 class UserService {
   async createUser(userData) {
-    const existingUser = await userRepository.findByEmail(userData.email);
+    const normalizedEmail = String(userData.email || '').trim().toLowerCase();
+    const existingUser = await userRepository.findByEmail(normalizedEmail);
+    if (existingUser) throw new Error('User already exists');
+
+    return userRepository.create({
+      ...userData,
+      email: normalizedEmail,
+    });
+  }
+
+  async signupUser(userData) {
+    const normalizedEmail = String(userData.email || '').trim().toLowerCase();
+    const existingUser = await userRepository.findByEmail(normalizedEmail);
     if (existingUser) throw new Error('User already exists');
 
     const hashedPassword = await bcrypt.hash(userData.password, 10);
+
     return userRepository.create({
-      ...userData,
+      name: userData.name,
+      email: normalizedEmail,
       password: hashedPassword,
+      phoneNumber: userData.phoneNumber,
+      role: userData.role,
+      studentProfile: userData.studentProfile,
+      mentorProfile: userData.mentorProfile,
     });
   }
 
   async loginUser(email, password) {
-    const user = await userRepository.findByEmail(email);
-    if (!user) throw new Error('Invalid credentials');
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedPassword = String(password || '');
+    const user = await userRepository.findByEmail(normalizedEmail);
 
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) throw new Error('Invalid credentials');
+    if (!user) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
+
+    const storedPassword = String(user.password || '');
+    let isValid = false;
+
+    if (isBcryptHash(storedPassword)) {
+      isValid = await bcrypt.compare(normalizedPassword, storedPassword);
+    } else {
+      isValid = normalizedPassword === storedPassword;
+
+      if (isValid) {
+        await userRepository.updatePassword(user._id, normalizedPassword);
+      }
+    }
+
+    if (!isValid) {
+      throw new UnauthorizedError('Invalid credentials');
+    }
 
     return user;
   }

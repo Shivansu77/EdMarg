@@ -5,11 +5,28 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { BriefcaseBusiness, GraduationCap, ShieldCheck, UserCog, CheckCircle, XCircle } from 'lucide-react';
 
+type DashboardStats = {
+  totalStudents: number;
+  approvedMentors: number;
+  pendingMentors: number;
+  totalUsers: number;
+};
+
+type Mentor = {
+  _id: string;
+  name: string;
+  email: string;
+  mentorProfile?: {
+    approvalStatus?: 'pending' | 'approved' | 'rejected';
+    expertise?: string[];
+  };
+};
+
 function AdminDashboardContent() {
-  const [stats, setStats] = useState(null);
-  const [pendingMentors, setPendingMentors] = useState([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [pendingMentors, setPendingMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,10 +43,10 @@ function AdminDashboardContent() {
 
         setStats(statsData.data);
         setPendingMentors(
-          usersData.data.filter((m) => m.mentorProfile?.approvalStatus === 'pending')
+          usersData.data.filter((mentor: Mentor) => mentor.mentorProfile?.approvalStatus === 'pending')
         );
       } catch (err) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
       } finally {
         setLoading(false);
       }
@@ -45,23 +62,23 @@ function AdminDashboardContent() {
     { label: 'Total Users', value: stats?.totalUsers || '0', icon: BriefcaseBusiness },
   ];
 
-  const handleApproveMentor = async (mentorId) => {
+  const handleApproveMentor = async (mentorId: string) => {
     try {
       const res = await fetch(`/api/admin/mentors/${mentorId}/approve`, { method: 'PUT' });
       if (res.ok) {
-        setPendingMentors(pendingMentors.filter((m) => m._id !== mentorId));
-        setStats((prev) => ({
+        setPendingMentors((current) => current.filter((mentor) => mentor._id !== mentorId));
+        setStats((prev) => prev ? ({
           ...prev,
-          approvedMentors: (prev?.approvedMentors || 0) + 1,
-          pendingMentors: Math.max(0, (prev?.pendingMentors || 0) - 1),
-        }));
+          approvedMentors: prev.approvedMentors + 1,
+          pendingMentors: Math.max(0, prev.pendingMentors - 1),
+        }) : prev);
       }
     } catch (err) {
       console.error('Error approving mentor:', err);
     }
   };
 
-  const handleRejectMentor = async (mentorId) => {
+  const handleRejectMentor = async (mentorId: string) => {
     try {
       const res = await fetch(`/api/admin/mentors/${mentorId}/reject`, {
         method: 'PUT',
@@ -69,11 +86,11 @@ function AdminDashboardContent() {
         body: JSON.stringify({ reason: 'Rejected by admin' }),
       });
       if (res.ok) {
-        setPendingMentors(pendingMentors.filter((m) => m._id !== mentorId));
-        setStats((prev) => ({
+        setPendingMentors((current) => current.filter((mentor) => mentor._id !== mentorId));
+        setStats((prev) => prev ? ({
           ...prev,
-          pendingMentors: Math.max(0, (prev?.pendingMentors || 0) - 1),
-        }));
+          pendingMentors: Math.max(0, prev.pendingMentors - 1),
+        }) : prev);
       }
     } catch (err) {
       console.error('Error rejecting mentor:', err);

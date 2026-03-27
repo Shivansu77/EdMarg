@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLeft, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 
 type Mentor = {
   _id: string;
@@ -84,7 +85,12 @@ function MentorProfileContent() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`${API_BASE_URL}/api/users/browsementor`);
+        const response = await fetch(
+          `${API_BASE_URL}/api/v1/users/browsementor`,
+          createAuthenticatedRequestInit({
+            method: 'GET',
+          })
+        );
         if (!response.ok) throw new Error('Failed to fetch mentors');
 
         const result = await response.json();
@@ -360,10 +366,13 @@ function MentorProfileContent() {
                 <p className="text-sm text-gray-600 mt-1">/session</p>
               </div>
 
-              <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
+              <Link
+                href={`/student/booking?id=${mentor._id}`}
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
+              >
                 <Calendar size={18} />
                 Book a Session
-              </button>
+              </Link>
 
               <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 rounded-lg transition-colors flex items-center justify-center gap-2">
                 <MessageCircle size={18} />
@@ -419,7 +428,15 @@ function MentorProfileContent() {
 export default function MentorProfilePage() {
   return (
     <ProtectedRoute requiredRole="student">
-      <MentorProfileContent />
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-white flex items-center justify-center">
+            <p className="text-gray-600">Loading mentor profile...</p>
+          </div>
+        }
+      >
+        <MentorProfileContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

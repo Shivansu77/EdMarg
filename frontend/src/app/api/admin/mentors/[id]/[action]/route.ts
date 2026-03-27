@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+type RouteContext = {
+  params: Promise<{
+    id: string;
+    action: string;
+  }>;
+};
+
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string; action: string } }
+  context: RouteContext
 ) {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      process.env.NEXT_PUBLIC_API_URL ||
+      'http://localhost:5000';
     const token = request.cookies.get('accessToken')?.value;
-    const { id, action } = params;
+    const { id, action } = await context.params;
 
     if (!token) {
       return NextResponse.json(
@@ -37,7 +48,7 @@ export async function PUT(
 
     const data = await response.json();
     return NextResponse.json(data);
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: 'Internal server error' },
       { status: 500 }

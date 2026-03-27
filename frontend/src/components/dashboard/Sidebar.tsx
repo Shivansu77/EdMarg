@@ -17,6 +17,8 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 
+import { useAuth } from '@/context/AuthContext';
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -25,7 +27,7 @@ interface SidebarProps {
   onToggleCollapsed?: () => void;
 }
 
-const navItems = [
+const studentNavItems = [
   { name: 'Dashboard', href: '/student/dashboard', icon: LayoutGrid },
   { name: 'Assessment', href: '/student/assessment', icon: ClipboardCheck },
   { name: 'Results', href: '/student/results', icon: BadgeCheck },
@@ -36,9 +38,20 @@ const navItems = [
   { name: 'Profile', href: '/student/profile', icon: UserCircle },
 ];
 
+const mentorNavItems = [
+  { name: 'Dashboard', href: '/mentor/dashboard', icon: LayoutGrid },
+  { name: 'Requests', href: '/mentor/requests', icon: CalendarCheck },
+  { name: 'Schedule', href: '/mentor/schedule', icon: CalendarDays },
+  { name: 'Students', href: '/mentor/students', icon: Users },
+  { name: 'Profile', href: '/mentor/profile', icon: UserCircle },
+];
+
 const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed }: SidebarProps) => {
   const pathname = usePathname();
+  const { user } = useAuth();
   const isRightSide = side === 'right';
+  
+  const navItems = user?.role === 'mentor' ? mentorNavItems : studentNavItems;
 
   return (
     <>

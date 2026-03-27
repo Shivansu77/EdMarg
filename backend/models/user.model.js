@@ -1,4 +1,9 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const isBcryptHash = (value = '') =>
+  typeof value === 'string' &&
+  (value.startsWith('$2a$') || value.startsWith('$2b$') || value.startsWith('$2y$'));
 
 const userSchema = new mongoose.Schema(
   {
@@ -10,6 +15,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
     },
     password: {
       type: String,
@@ -21,12 +28,20 @@ const userSchema = new mongoose.Schema(
       default: 'student',
     },
     profileImage: String,
+    studentProfile: {
+      classLevel: String,
+      interests: [String],
+    },
     mentorProfile: {
       expertise: [String],
       bio: String,
       experienceYears: Number,
       pricePerSession: Number,
+      sessionDuration: { type: Number, default: 45, min: 15, max: 180 },
+      autoConfirm: { type: Boolean, default: true },
+      sessionNotes: String,
       rating: { type: Number, default: 0 },
+      totalSessions: { type: Number, default: 0 },
       approvalStatus: {
         type: String,
         enum: ['pending', 'approved', 'rejected'],

@@ -18,51 +18,6 @@ type Mentor = {
   };
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
-
-// Mock data for testing
-const mockMentors: Mentor[] = [
-  {
-    _id: '1',
-    name: 'Sarah Johnson',
-    email: 'sarah@example.com',
-    profileImage: 'https://ui-avatars.com/api/?background=3b82f6&color=ffffff&name=SJ&size=300&bold=true',
-    mentorProfile: {
-      expertise: ['UX Design', 'Product Design', 'Figma'],
-      bio: 'Experienced UX designer with 8+ years in tech startups.',
-      experienceYears: 8,
-      pricePerSession: 75,
-      rating: 4.9,
-    },
-  },
-  {
-    _id: '2',
-    name: 'Michael Chen',
-    email: 'michael@example.com',
-    profileImage: 'https://ui-avatars.com/api/?background=3b82f6&color=ffffff&name=MC&size=300&bold=true',
-    mentorProfile: {
-      expertise: ['Product Management', 'Strategy', 'Analytics'],
-      bio: 'Product leader at Fortune 500 companies.',
-      experienceYears: 10,
-      pricePerSession: 100,
-      rating: 4.8,
-    },
-  },
-  {
-    _id: '3',
-    name: 'Emily Rodriguez',
-    email: 'emily@example.com',
-    profileImage: 'https://ui-avatars.com/api/?background=3b82f6&color=ffffff&name=ER&size=300&bold=true',
-    mentorProfile: {
-      expertise: ['Frontend Engineering', 'React', 'JavaScript'],
-      bio: 'Senior engineer at leading tech companies.',
-      experienceYears: 7,
-      pricePerSession: 85,
-      rating: 4.7,
-    },
-  },
-];
-
 export default function BrowseMentorsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mentors, setMentors] = useState<Mentor[]>([]);
@@ -85,40 +40,27 @@ export default function BrowseMentorsPage() {
         setLoading(true);
         setError(null);
 
-        console.log('Fetching from:', `${API_BASE_URL}/api/users/browsementor`);
-
-        const response = await fetch(`${API_BASE_URL}/api/users/browsementor`, {
+        const response = await fetch('/api/mentors', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
           },
         });
 
-        console.log('Response status:', response.status);
-
         if (!response.ok) {
           throw new Error(`Failed to load mentors (${response.status})`);
         }
 
         const result = await response.json();
-        console.log('API Result:', result);
 
         const mentorData = Array.isArray(result?.data) ? result.data : [];
-        
-        if (mentorData.length === 0) {
-          console.log('No mentors from API, using mock data');
-          setMentors(mockMentors);
-          setFilteredMentors(mockMentors);
-        } else {
-          setMentors(mentorData);
-          setFilteredMentors(mentorData);
-        }
+
+        setMentors(mentorData);
+        setFilteredMentors(mentorData);
       } catch (err) {
-        console.error('Error fetching mentors:', err);
         setError(err instanceof Error ? err.message : 'Unable to fetch mentors right now.');
-        // Use mock data on error
-        setMentors(mockMentors);
-        setFilteredMentors(mockMentors);
+        setMentors([]);
+        setFilteredMentors([]);
       } finally {
         setLoading(false);
       }
@@ -202,7 +144,7 @@ export default function BrowseMentorsPage() {
             <>
               {error && (
                 <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 shadow-sm">
-                  <p className="text-sm text-yellow-800">{error} (Showing sample mentors)</p>
+                  <p className="text-sm text-yellow-800">{error}</p>
                 </div>
               )}
 
@@ -288,8 +230,12 @@ export default function BrowseMentorsPage() {
                   <div className="inline-block p-3 bg-gray-100 rounded-full mb-4">
                     <Search className="h-6 w-6 text-gray-400" />
                   </div>
-                  <p className="text-gray-600 font-medium">No mentors found matching your criteria</p>
-                  <p className="text-gray-500 text-sm mt-2">Try adjusting your filters or search terms</p>
+                  <p className="text-gray-600 font-medium">
+                    {error ? 'Unable to load mentors from the backend' : 'No mentors found matching your criteria'}
+                  </p>
+                  <p className="text-gray-500 text-sm mt-2">
+                    {error ? 'Check that the backend is running and reachable from the frontend.' : 'Try adjusting your filters or search terms'}
+                  </p>
                 </div>
               ) : (
                 <>
