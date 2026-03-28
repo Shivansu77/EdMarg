@@ -59,12 +59,12 @@ const MentorSidebar = ({
         {/* Header */}
         <div className={`flex items-center justify-between px-4 py-6 border-b border-gray-200 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
           {!isCollapsed && (
-            <div>
+            <Link href="/" onClick={onClose} className="block">
               <p className="text-lg font-bold text-gray-900">Edmarg</p>
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mt-1">
                 Career Curator
               </p>
-            </div>
+            </Link>
           )}
 
           <div className="flex items-center gap-2">
@@ -107,7 +107,7 @@ const MentorSidebar = ({
                 title={isCollapsed ? item.name : undefined}
               >
                 <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${
                     isActive
                       ? 'bg-purple-600 text-white'
                       : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
@@ -126,7 +126,7 @@ const MentorSidebar = ({
         {/* Upgrade Card */}
         {!isCollapsed && (
           <div className="px-4 py-4 border-t border-gray-200">
-            <div className="rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 p-4 space-y-3">
+            <div className="rounded-lg bg-linear-to-br from-purple-50 to-purple-100 p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Zap size={16} className="text-purple-600" />
                 <p className="text-xs font-bold uppercase tracking-widest text-purple-900">

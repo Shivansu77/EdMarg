@@ -73,12 +73,12 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
         {/* Header */}
         <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
           {!isCollapsed && (
-            <div>
+            <Link href="/" onClick={onClose} className="block">
               <p className="text-lg font-bold text-gray-900">Edmarg</p>
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mt-1">
                 Career Curator
               </p>
-            </div>
+            </Link>
           )}
           
           <div className="flex items-center gap-2">

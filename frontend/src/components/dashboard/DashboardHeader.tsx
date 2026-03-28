@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Menu, Search, LogOut, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 interface HeaderProps {
   userName?: string;
@@ -19,6 +20,10 @@ const DashboardHeader = ({
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { user } = useAuth();
+
+  const resolvedDisplayName = user?.name?.trim() || userName;
+  const avatarLetter = resolvedDisplayName.charAt(0).toUpperCase() || 'U';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -77,7 +82,15 @@ const DashboardHeader = ({
               className="hidden h-11 w-11 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary hover:bg-primary/90 transition-colors sm:flex"
               aria-label="Profile menu"
             >
-              AJ
+              {user?.profileImage ? (
+                <img
+                  src={user.profileImage}
+                  alt={`${resolvedDisplayName} profile`}
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                avatarLetter
+              )}
             </button>
 
             {isProfileOpen && (

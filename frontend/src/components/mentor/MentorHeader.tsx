@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Menu, LogOut, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 
 interface MentorHeaderProps {
   onMenuClick: () => void;
@@ -12,6 +13,10 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { user } = useAuth();
+
+  const displayName = user?.name?.trim() || 'Mentor';
+  const avatarLetter = displayName.charAt(0).toUpperCase() || 'M';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -48,7 +53,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
               Overview
             </p>
             <h1 className="text-2xl font-bold text-gray-900">
-              Welcome back, Dr. Aris Thorne
+              Welcome back, {displayName}
             </h1>
           </div>
         </div>
@@ -64,8 +69,8 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
 
           <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-semibold text-gray-900">Aris Thorne</p>
-              <p className="text-xs text-gray-500">Senior Mentor</p>
+              <p className="text-sm font-semibold text-gray-900">{displayName}</p>
+              <p className="text-xs text-gray-500">Mentor</p>
             </div>
             <div className="relative" ref={profileRef}>
               <button
@@ -73,7 +78,15 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                 className="h-10 w-10 rounded-full bg-purple-600 text-sm font-bold text-white hover:bg-purple-700 transition-colors flex items-center justify-center"
                 aria-label="Profile menu"
               >
-                AT
+                {user?.profileImage ? (
+                  <img
+                    src={user.profileImage}
+                    alt={`${displayName} profile`}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  avatarLetter
+                )}
               </button>
 
               {isProfileOpen && (

@@ -61,11 +61,14 @@ const Navbar = () => {
         </Link>
 
         <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm font-medium text-gray-600">
+          <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
+          <Link href="/about" className="hover:text-gray-900 transition-colors">About</Link>
+          <Link href="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
           {!isLoggedIn && (
             <>
-              <Link href="#how-it-works" className="hover:text-gray-900 transition-colors">How it Works</Link>
-              <Link href="#mentors" className="hover:text-gray-900 transition-colors">Mentors</Link>
-              <Link href="#success-stories" className="hover:text-gray-900 transition-colors">Success Stories</Link>
+              <Link href="/#how-it-works" className="hover:text-gray-900 transition-colors">How it Works</Link>
+              <Link href="/#mentors" className="hover:text-gray-900 transition-colors">Mentors</Link>
+              <Link href="/#success-stories" className="hover:text-gray-900 transition-colors">Success Stories</Link>
             </>
           )}
         </nav>
@@ -103,13 +106,18 @@ const Navbar = () => {
 
         {isOpen && (
           <div className="fixed inset-0 z-40 lg:hidden bg-white pt-24 px-6">
-            {!isLoggedIn && (
-              <nav className="flex flex-col gap-6 text-lg font-semibold text-gray-900 mb-8">
-                <Link href="#how-it-works" onClick={() => setIsOpen(false)}>How it Works</Link>
-                <Link href="#mentors" onClick={() => setIsOpen(false)}>Mentors</Link>
-                <Link href="#success-stories" onClick={() => setIsOpen(false)}>Success Stories</Link>
-              </nav>
-            )}
+            <nav className="flex flex-col gap-6 text-lg font-semibold text-gray-900 mb-8">
+              <Link href="/" onClick={() => setIsOpen(false)}>Home</Link>
+              <Link href="/about" onClick={() => setIsOpen(false)}>About</Link>
+              <Link href="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
+              {!isLoggedIn && (
+                <>
+                <Link href="/#how-it-works" onClick={() => setIsOpen(false)}>How it Works</Link>
+                <Link href="/#mentors" onClick={() => setIsOpen(false)}>Mentors</Link>
+                <Link href="/#success-stories" onClick={() => setIsOpen(false)}>Success Stories</Link>
+                </>
+              )}
+            </nav>
             <div className="flex flex-col gap-3">
               {isLoggedIn ? (
                 <>

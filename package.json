@@ -2,9 +2,7 @@
   "name": "edmarg",
   "version": "1.0.0",
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2"
+    "frontend": "npm run dev --prefix frontend",
+    "backend": "npm run dev --prefix backend"
   }
 }
