@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
+import Image from 'next/image';
 import { 
   UserCircle, 
   Mail, 
@@ -28,6 +29,20 @@ const PREDEFINED_EXPERTISE = [
   'Mobile Development', 'Cybersecurity', 'Cloud Computing',
   'DevOps', 'System Design', 'Interview Prep', 'Career Guidance'
 ];
+
+interface MentorProfile {
+  name: string;
+  profileImage: string;
+  mentorProfile?: {
+    bio?: string;
+    experienceYears?: number;
+    expertise?: string[];
+    pricePerSession?: number;
+    sessionDuration?: number;
+    autoConfirm?: boolean;
+    sessionNotes?: string;
+  };
+}
 
 function MentorProfileContent() {
   const { user } = useAuth();
@@ -58,7 +73,7 @@ function MentorProfileContent() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get('/api/v1/users/me');
+        const res = await apiClient.get<MentorProfile>('/api/v1/users/me');
         if (res.success && res.data) {
           const userData = res.data;
           
@@ -137,8 +152,8 @@ function MentorProfileContent() {
       } else {
         setErrorMsg(res.message || 'Failed to update profile.');
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An unexpected error occurred.');
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {
       setSaving(false);
     }
@@ -224,7 +239,14 @@ function MentorProfileContent() {
                 />
                 {profileImage && (
                   <div className="mt-4 flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                    <img src={profileImage} alt="Profile Preview" className="w-16 h-16 rounded-full object-cover shadow-sm bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden shadow-sm bg-white border border-gray-100">
+                      <Image 
+                        src={profileImage} 
+                        alt="Profile Preview" 
+                        fill 
+                        className="object-cover"
+                      />
+                    </div>
                     <span className="text-sm text-gray-600 font-medium">Image Preview</span>
                   </div>
                 )}

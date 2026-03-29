@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLeft } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 
 type Mentor = {
@@ -163,11 +164,14 @@ export default function PublicMentorProfile() {
               <div className="h-40 lg:h-48 bg-gradient-to-br from-gray-900 to-gray-700" />
               <div className="px-6 lg:px-8 pb-8">
                 <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-20 mb-6">
-                  <img
-                    src={mentor.profileImage || `https://ui-avatars.com/api/?background=4e45e2&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=140`}
-                    alt={mentor.name}
-                    className="w-32 h-32 lg:w-40 lg:h-40 rounded-2xl border-4 border-white object-cover flex-shrink-0"
-                  />
+                  <div className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-2xl border-4 border-white overflow-hidden shadow-sm bg-gray-50 flex-shrink-0">
+                    <Image
+                      src={mentor.profileImage || `https://ui-avatars.com/api/?background=4e45e2&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=160`}
+                      alt={mentor.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                   <div className="flex-1">
                     <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">{mentor.name}</h1>
                     <div className="flex flex-wrap items-center gap-4 mt-4">
@@ -307,11 +311,14 @@ export default function PublicMentorProfile() {
                       {mockReviews.map((review) => (
                         <div key={review.id} className="pb-6 border-b border-gray-200 last:border-b-0">
                           <div className="flex items-start gap-4">
-                            <img
+                          <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+                            <Image
                               src={review.avatar}
                               alt={review.author}
-                              className="w-12 h-12 rounded-full flex-shrink-0"
+                              fill
+                              className="object-cover"
                             />
+                          </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2 mb-2">
                                 <h4 className="font-semibold text-gray-900">{review.author}</h4>

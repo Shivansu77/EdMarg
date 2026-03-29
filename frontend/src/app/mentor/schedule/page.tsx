@@ -3,16 +3,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Clock, Save, CalendarDays, PlusCircle, Trash2, AlertCircle } from 'lucide-react';
+import { Save, CalendarDays, AlertCircle } from 'lucide-react';
 
 interface DaySchedule {
   dayOfWeek: number;
   isAvailable: boolean;
   startHour: number;
   endHour: number;
+}
+
+interface BackendSchedule {
+  dayOfWeek: number;
+  slots: { startTime: string; endTime: string }[];
 }
 
 const DAYS_OF_WEEK = [
@@ -48,11 +52,11 @@ function MentorScheduleContent() {
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        const res = await apiClient.get('/api/mentor/availability');
+        const res = await apiClient.get<BackendSchedule[]>('/api/mentor/availability');
         if (res.success && res.data) {
           // Map backend data to our state
           const newSchedules = [...schedules];
-          res.data.forEach((backendSched: any) => {
+          res.data.forEach((backendSched: BackendSchedule) => {
             const index = newSchedules.findIndex((s) => s.dayOfWeek === backendSched.dayOfWeek);
             if (index !== -1 && backendSched.slots && backendSched.slots.length > 0) {
               const startHrStr = backendSched.slots[0].startTime.split(':')[0];
@@ -68,8 +72,8 @@ function MentorScheduleContent() {
           });
           setSchedules(newSchedules);
         }
-      } catch (err: any) {
-        setError(err.message || 'Failed to load schedule');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load schedule');
       } finally {
         setLoading(false);
       }
@@ -120,8 +124,8 @@ function MentorScheduleContent() {
       } else {
         throw new Error(res.message || 'Failed to update schedule');
       }
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while saving.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred while saving.');
     } finally {
       setSaving(false);
     }
@@ -147,7 +151,7 @@ function MentorScheduleContent() {
               Manage Schedule
             </h1>
             <p className="mt-2 text-sm text-gray-500">
-              Define your weekly working hours. We'll automatically turn these into bookable slots based on your set session duration.
+              Define your weekly working hours. We&apos;ll automatically turn these into bookable slots based on your set session duration.
             </p>
           </div>
           <button

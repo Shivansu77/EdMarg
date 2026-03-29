@@ -8,11 +8,11 @@ interface UseApiState<T> {
 }
 
 interface UseApiReturn<T> extends UseApiState<T> {
-  execute: (endpoint: string, options?: any) => Promise<T | null>;
+  execute: (endpoint: string, options?: RequestInit & { params?: Record<string, string | number | boolean> }) => Promise<T | null>;
   reset: () => void;
 }
 
-export const useApi = <T = any>(): UseApiReturn<T> => {
+export const useApi = <T>(): UseApiReturn<T> => {
   const [state, setState] = useState<UseApiState<T>>({
     data: null,
     loading: false,
@@ -20,7 +20,7 @@ export const useApi = <T = any>(): UseApiReturn<T> => {
   });
 
   const execute = useCallback(
-    async (endpoint: string, options?: any): Promise<T | null> => {
+    async (endpoint: string, options?: RequestInit & { params?: Record<string, string | number | boolean> }): Promise<T | null> => {
       setState({ data: null, loading: true, error: null });
 
       try {

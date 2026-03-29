@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import {
@@ -54,14 +53,14 @@ function ScheduleContent() {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/api/bookings/my-bookings?limit=50');
-      if (response.success && (response as any).bookings) {
-        setBookings((response as any).bookings);
+      const response = await apiClient.get<{ bookings: Booking[] }>('/api/bookings/my-bookings?limit=50');
+      if (response.success && response.data?.bookings) {
+        setBookings(response.data.bookings);
       } else {
         setError(response.message || 'Failed to load bookings');
       }
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }

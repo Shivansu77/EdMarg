@@ -5,6 +5,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
+import Image from 'next/image';
 import { 
   UserCircle, 
   Mail, 
@@ -32,6 +33,15 @@ const PREDEFINED_INTERESTS = [
   'Mobile Development', 'Cybersecurity', 'Cloud Computing'
 ];
 
+interface UserProfile {
+  name: string;
+  profileImage: string;
+  studentProfile?: {
+    classLevel: string;
+    interests: string[];
+  };
+}
+
 function ProfileContent() {
   const { user } = useAuth();
   
@@ -52,7 +62,7 @@ function ProfileContent() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get('/api/v1/users/me');
+        const res = await apiClient.get<UserProfile>('/api/v1/users/me');
         if (res.success && res.data) {
           const userData = res.data;
           setName(userData.name || '');
@@ -118,8 +128,8 @@ function ProfileContent() {
       } else {
         setErrorMsg(res.message || 'Failed to update profile.');
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An unexpected error occurred.');
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'An unexpected error occurred.');
     } finally {
       setSaving(false);
     }
@@ -206,7 +216,15 @@ function ProfileContent() {
                 />
                 {profileImage && (
                   <div className="mt-4 flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                    <img src={profileImage} alt="Profile Preview" className="w-16 h-16 rounded-full object-cover shadow-sm bg-white" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden shadow-sm bg-white border border-gray-100">
+                      <Image 
+                        src={profileImage} 
+                        alt="Profile Preview" 
+                        fill 
+                        className="object-cover"
+                        unoptimized={!profileImage.includes('images.unsplash.com') && !profileImage.includes('i.pravatar.cc')}
+                      />
+                    </div>
                     <span className="text-sm text-gray-600 font-medium">Image Preview</span>
                   </div>
                 )}

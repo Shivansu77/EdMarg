@@ -28,7 +28,7 @@ const Navbar = () => {
           setIsLoggedIn(true);
           setUserName(userData.name || 'User');
           setUserRole(userData.role || 'student');
-        } catch (e) {
+        } catch {
           setIsLoggedIn(false);
         }
       } else {

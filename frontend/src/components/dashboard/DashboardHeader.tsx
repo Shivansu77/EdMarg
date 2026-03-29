@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Menu, Search, LogOut, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Image from 'next/image';
 
 interface HeaderProps {
   userName?: string;
@@ -82,12 +83,15 @@ const DashboardHeader = ({
               className="hidden h-11 w-11 items-center justify-center rounded-full bg-primary text-sm font-bold text-on-primary hover:bg-primary/90 transition-colors sm:flex"
               aria-label="Profile menu"
             >
-              {user?.profileImage ? (
-                <img
-                  src={user.profileImage}
-                  alt={`${resolvedDisplayName} profile`}
-                  className="h-full w-full rounded-full object-cover"
-                />
+               {user?.profileImage ? (
+                <div className="relative h-full w-full rounded-full overflow-hidden">
+                  <Image
+                    src={user.profileImage}
+                    alt={`${resolvedDisplayName} profile`}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
               ) : (
                 avatarLetter
               )}

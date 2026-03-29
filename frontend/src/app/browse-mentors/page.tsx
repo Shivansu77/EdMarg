@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Star, Search, X } from 'lucide-react';
+import Image from 'next/image';
 
 type Mentor = {
   _id: string;
@@ -255,9 +256,10 @@ export default function BrowseMentorsPage() {
                         >
                           {/* Image Section with Overlay */}
                           <div className="relative h-48 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 overflow-hidden">
-                            <img
+                            <Image
                               src={mentor.profileImage || `https://ui-avatars.com/api/?background=3b82f6&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
                               alt={mentor.name}
+                              fill
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                             />
                             {/* Rating Badge */}

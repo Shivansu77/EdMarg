@@ -5,7 +5,7 @@ interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
 }
 
-interface ApiResponse<T = any> {
+interface ApiResponse<T> {
   success: boolean;
   data?: T;
   message?: string;
@@ -35,7 +35,7 @@ class ApiClient {
     return url.toString();
   }
 
-  async request<T = any>(
+  async request<T>(
     endpoint: string,
     options: RequestOptions = {}
   ): Promise<ApiResponse<T>> {
@@ -67,11 +67,11 @@ class ApiClient {
     }
   }
 
-  get<T = any>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+  get<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...options, method: 'GET' });
   }
 
-  post<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  post<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
@@ -79,7 +79,7 @@ class ApiClient {
     });
   }
 
-  put<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  put<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',
@@ -87,7 +87,7 @@ class ApiClient {
     });
   }
 
-  patch<T = any>(endpoint: string, body?: any, options?: RequestOptions): Promise<ApiResponse<T>> {
+  patch<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PATCH',
@@ -95,7 +95,7 @@ class ApiClient {
     });
   }
 
-  delete<T = any>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
+  delete<T>(endpoint: string, options?: RequestOptions): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { ...options, method: 'DELETE' });
   }
 }

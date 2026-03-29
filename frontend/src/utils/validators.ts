@@ -65,8 +65,8 @@ export const validators = {
 };
 
 export const validateForm = (
-  data: Record<string, any>,
-  rules: Record<string, (value: any) => boolean | { valid: boolean; errors: string[] }>
+  data: Record<string, unknown>,
+  rules: Record<string, (value: unknown) => boolean | { valid: boolean; errors: string[] }>
 ): { valid: boolean; errors: Record<string, string[]> } => {
   const errors: Record<string, string[]> = {};
 

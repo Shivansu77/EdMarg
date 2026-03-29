@@ -14,6 +14,14 @@ const DB_NAME = process.env.DB_NAME || 'edmarg_db';
 // Security middleware
 app.use(helmet());
 
+// Critical environment checks
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+}
+if (!process.env.MONGODB_URI) {
+  console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
+}
+
 const corsOrigins = [
   'http://localhost:3000',
   'https://frontend-alpha-nine-92.vercel.app',
@@ -21,10 +29,30 @@ const corsOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: corsOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (corsOrigins.indexOf(origin) !== -1 || corsOrigins.includes('*')) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'X-CSRF-Token', 
+    'X-Requested-With', 
+    'Accept', 
+    'Accept-Version', 
+    'Content-Length', 
+    'Content-MD5', 
+    'Content-Type', 
+    'Date', 
+    'X-Api-Version', 
+    'Authorization'
+  ],
 }));
 
 // Body parsing
@@ -80,11 +108,12 @@ app.use(errorHandler);
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/edmarg_db', {
   dbName: DB_NAME,
+  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
 })
-  .then(() => console.log('Connected to MongoDB'))
+  .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch((err) => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
+    console.error('❌ Critical Error: MongoDB connection failed.', err.message);
+    console.error('Verify your MONGODB_URI and ensuring it is accessible from your current environment.');
   });
 
 if (require.main === module) {

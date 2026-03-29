@@ -1,6 +1,13 @@
 const { AppError } = require('../utils/errors');
 
 const errorHandler = (err, req, res, next) => {
+  // Ensure CORS headers are present even on errors
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       success: false,
@@ -9,7 +16,8 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  console.error(err.stack);
+  // Log error for server-side debugging
+  console.error('ERROR 💥:', err);
 
   if (err.name === 'ValidationError') {
     return res.status(400).json({
@@ -33,9 +41,17 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  res.status(err.statusCode || 500).json({
+  // General 500 error
+  const statusCode = err.statusCode || 500;
+  const message = err.message || 'Internal server error';
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? message : 'Internal server error',
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+    // Include hint for the user if it looks like a JWT or DB error
+    ...(message.includes('secretOrPrivateKey') && { hint: 'Check JWT_SECRET environment variable' }),
+    ...(message.includes('buffering timed out') && { hint: 'Check MONGODB_URI connectivity' }),
   });
 };
 

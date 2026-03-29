@@ -12,7 +12,7 @@ const JoinSection = () => {
               Still confused about your career?
             </h2>
             <p className="text-lg text-gray-600 mb-8">
-              Don't navigate the complex world of professional choices alone. Get the clarity you deserve today.
+              Don&apos;t navigate the complex world of professional choices alone. Get the clarity you deserve today.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">

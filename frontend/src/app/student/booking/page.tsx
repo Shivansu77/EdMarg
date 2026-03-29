@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import Image from 'next/image';
 
 /* ================================================================
    TYPES
@@ -211,7 +212,7 @@ function BookingContent() {
     };
 
     fetchMentor();
-  }, [mentorId]);
+  }, [mentorId, router]);
 
   /* -------- Fetch Slots When Date Changes -------- */
   useEffect(() => {
@@ -422,16 +423,19 @@ function BookingContent() {
             <div className="lg:col-span-2">
               <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
                 <div className="flex flex-col sm:flex-row gap-6 p-8">
-                  <img
-                    src={
-                      mentor.profileImage ||
-                      `https://ui-avatars.com/api/?background=1f2937&color=ffffff&name=${encodeURIComponent(
-                        mentor.name
-                      )}&size=160&bold=true`
-                    }
-                    alt={mentor.name}
-                    className="h-40 w-40 rounded-xl object-cover flex-shrink-0"
-                  />
+                  <div className="relative h-40 w-40 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 flex-shrink-0">
+                    <Image
+                      src={
+                        mentor.profileImage ||
+                        `https://ui-avatars.com/api/?background=1f2937&color=ffffff&name=${encodeURIComponent(
+                          mentor.name
+                        )}&size=320&bold=true`
+                      }
+                      alt={mentor.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-start justify-between gap-4 mb-4">
                       <div>
@@ -770,7 +774,7 @@ function BookingContent() {
                   Session Notes
                 </h2>
                 <p className="text-sm text-gray-500 mb-6">
-                  Share what you'd like to discuss so {mentor.name} can prepare
+                  Share what you&apos;d like to discuss so {mentor.name} can prepare
                 </p>
                 <textarea
                   value={notes}
@@ -794,16 +798,19 @@ function BookingContent() {
 
                 <div className="space-y-5">
                   <div className="flex items-center gap-4">
-                    <img
-                      src={
-                        mentor.profileImage ||
-                        `https://ui-avatars.com/api/?background=1f2937&color=ffffff&name=${encodeURIComponent(
-                          mentor.name
-                        )}&size=48&bold=true`
-                      }
-                      alt={mentor.name}
-                      className="w-12 h-12 rounded-lg object-cover"
-                    />
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-gray-100 bg-gray-50 flex-shrink-0">
+                      <Image
+                        src={
+                          mentor.profileImage ||
+                          `https://ui-avatars.com/api/?background=1f2937&color=ffffff&name=${encodeURIComponent(
+                            mentor.name
+                          )}&size=96&bold=true`
+                        }
+                        alt={mentor.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
                     <div>
                       <p className="text-sm font-bold text-gray-900">
                         {mentor.name}

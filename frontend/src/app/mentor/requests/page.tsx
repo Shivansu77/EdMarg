@@ -9,8 +9,6 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import {
   CalendarClock,
   Video,
-  Clock,
-  Calendar,
   User as UserIcon,
   MessageSquare,
   PlayCircle,
@@ -18,9 +16,7 @@ import {
   Check,
   ExternalLink,
   RefreshCw,
-  AlertTriangle,
-  ArrowRight,
-  MoreHorizontal
+  AlertTriangle
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -71,16 +67,14 @@ function MentorRequestsContent() {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/api/mentor/bookings?limit=50');
+      const response = await apiClient.get<{ bookings: Booking[] }>('/api/mentor/bookings?limit=50');
       if (response.success && response.data?.bookings) {
         setBookings(response.data.bookings);
-      } else if (response.success && (response as any).bookings) {
-        setBookings((response as any).bookings);
       } else {
         setError(response.message || 'Failed to load bookings');
       }
-    } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -96,7 +90,7 @@ function MentorRequestsContent() {
     setActionLoading(bookingId);
     try {
       const payload = reason ? { reason } : undefined;
-      const res = await apiClient.put(`/api/mentor/bookings/${bookingId}/${action}`, payload);
+      const res = await apiClient.put<{ startUrl?: string }>(`/api/mentor/bookings/${bookingId}/${action}`, payload);
       if (res.success) {
         if ((action === 'start' || action === 'accept') && res.data?.startUrl) {
           window.open(res.data.startUrl, '_blank');
@@ -105,8 +99,8 @@ function MentorRequestsContent() {
       } else {
         alert(res.message || `Failed to ${action} booking`);
       }
-    } catch (err: any) {
-      alert(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setActionLoading(null);
     }
@@ -115,7 +109,7 @@ function MentorRequestsContent() {
   const handleRetryZoom = async (bookingId: string) => {
     setActionLoading(bookingId);
     try {
-      const res = await apiClient.put(`/api/mentor/bookings/${bookingId}/start`);
+      const res = await apiClient.put<{ startUrl?: string }>(`/api/mentor/bookings/${bookingId}/start`);
       if (res.success) {
         if (res.data?.startUrl) {
           window.open(res.data.startUrl, '_blank');
@@ -124,8 +118,8 @@ function MentorRequestsContent() {
       } else {
         alert(res.message || 'Failed to generate Zoom link');
       }
-    } catch (err: any) {
-      alert(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setActionLoading(null);
     }
@@ -236,7 +230,7 @@ function MentorRequestsContent() {
                    <CalendarClock className="h-5 w-5 text-zinc-400" />
                 </div>
                 <h3 className="text-base font-bold text-zinc-900">No {activeTab} sessions</h3>
-                <p className="mt-1 text-sm text-zinc-500">You don't have any {activeTab} bookings actively scheduled.</p>
+                <p className="mt-1 text-sm text-zinc-500">You don&apos;t have any {activeTab} bookings actively scheduled.</p>
               </div>
             ) : (
               filteredBookings.map((booking) => (
@@ -290,7 +284,7 @@ function MentorRequestsContent() {
                     {booking.notes && (
                       <div className="mt-5 pt-5 border-t border-zinc-100">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">Student Note</p>
-                        <p className="text-sm text-zinc-600 italic">"{booking.notes}"</p>
+                        <p className="text-sm text-zinc-600 italic">&quot;{booking.notes}&quot;</p>
                       </div>
                     )}
                   </div>

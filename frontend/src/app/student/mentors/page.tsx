@@ -5,7 +5,8 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
-import { Star, Search, User, Briefcase, ChevronRight, SlidersHorizontal, ChevronDown, Check, X } from 'lucide-react';
+import { Star, Search, User, Briefcase, ChevronRight, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
+import Image from 'next/image';
 
 type Mentor = {
   _id: string;
@@ -389,11 +390,12 @@ function MentorsContent() {
                           {/* Image Header with Gradient Overlay */}
                           <div className="relative h-44 bg-gray-100 overflow-hidden">
                              {hasImage ? (
-                              <img
-                                src={mentor.profileImage}
-                                alt={mentor.name}
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                              />
+                                <Image
+                                  src={mentor.profileImage!}
+                                  alt={mentor.name}
+                                  fill
+                                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                                />
                             ) : (
                               <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center">
                                 <User className="w-16 h-16 text-indigo-300/50" strokeWidth={1.5} />

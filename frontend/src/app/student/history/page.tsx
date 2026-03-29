@@ -6,12 +6,10 @@ import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import {
-  CalendarClock,
   Video,
   Clock,
   Calendar,
   User as UserIcon,
-  MessageSquare,
   AlertCircle,
   CheckCircle2
 } from 'lucide-react';
@@ -49,14 +47,14 @@ function HistoryContent() {
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get('/api/bookings/my-bookings?limit=50&status=completed');
-        if (response.success && (response as any).bookings) {
-          setBookings((response as any).bookings);
+        const response = await apiClient.get<{ bookings: Booking[] }>('/api/bookings/my-bookings?limit=50&status=completed');
+        if (response.success && response.data?.bookings) {
+          setBookings(response.data.bookings);
         } else {
           setError(response.message || 'Failed to load session history');
         }
-      } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred');
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       } finally {
         setLoading(false);
       }

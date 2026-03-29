@@ -25,7 +25,7 @@ const TopMentorsSection = () => {
               Learn from the Best
             </h2>
             <p className="text-lg text-gray-600">
-              Get direct access to mentors from the world's most innovative companies.
+              Get direct access to mentors from the world&apos;s most innovative companies.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">

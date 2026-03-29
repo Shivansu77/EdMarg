@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import Link from 'next/link';
@@ -90,7 +90,7 @@ function MentorDashboardContent() {
             Guide students, track impact, grow together.
           </h1>
           <p className="mt-3 max-w-2xl text-lg text-gray-600/90 leading-relaxed tracking-wide">
-            Manage your mentoring sessions, respond to requests, and see the difference you're making — all in one beautifully connected space.
+            Manage your mentoring sessions, respond to requests, and see the difference you&apos;re making — all in one beautifully connected space.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link

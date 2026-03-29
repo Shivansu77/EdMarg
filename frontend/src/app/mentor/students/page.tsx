@@ -3,10 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { Users, Mail, Calendar, Video, Clock } from 'lucide-react';
+import { Users, Mail, Calendar } from 'lucide-react';
 import Image from 'next/image';
 
 interface Student {
@@ -30,14 +28,18 @@ export default function MentorStudentsPage() {
     const fetchStudentsData = async () => {
       try {
         // Fetch up to 200 bookings to extract unique students
-        const res = await apiClient.get('/api/mentor/bookings?limit=200');
-        if (res.success && (res.data?.bookings || (res as any).bookings)) {
-          const bookings = res.data?.bookings || (res as any).bookings;
+        const res = await apiClient.get<{ bookings: { student: { _id: string; name: string; email: string; profileImage?: string }; status: string; date: string }[] }>('/api/mentor/bookings?limit=200');
+        if (res.success && res.data?.bookings) {
+          const bookings = res.data.bookings;
           
           // Process bookings to extract unique students
           const studentsMap = new Map<string, Student>();
           
-          bookings.forEach((booking: any) => {
+          bookings.forEach((booking: { 
+            student: { _id: string; name: string; email: string; profileImage?: string }; 
+            status: string; 
+            date: string 
+          }) => {
             const studentId = booking.student._id;
             
             if (!studentsMap.has(studentId)) {
@@ -75,8 +77,8 @@ export default function MentorStudentsPage() {
         } else {
           setError(res.message || 'Failed to load student data');
         }
-      } catch (err: any) {
-        setError(err.message || 'An error occurred while loading students.');
+    } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred while loading students.');
       } finally {
         setLoading(false);
       }

@@ -38,7 +38,7 @@ export default function SignupPage() {
       return;
     }
 
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       name,
       email,
       password,

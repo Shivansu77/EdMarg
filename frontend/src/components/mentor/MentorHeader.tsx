@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Menu, LogOut, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import Image from 'next/image';
 
 interface MentorHeaderProps {
   onMenuClick: () => void;
@@ -79,11 +80,14 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                 aria-label="Profile menu"
               >
                 {user?.profileImage ? (
-                  <img
-                    src={user.profileImage}
-                    alt={`${displayName} profile`}
-                    className="h-full w-full rounded-full object-cover"
-                  />
+                  <div className="relative h-full w-full rounded-full overflow-hidden">
+                    <Image
+                      src={user.profileImage}
+                      alt={`${displayName} profile`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   avatarLetter
                 )}

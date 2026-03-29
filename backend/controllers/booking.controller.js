@@ -48,7 +48,7 @@ exports.getMyBookings = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      ...result,
+      data: result,
     });
   } catch (err) {
     next(err);
