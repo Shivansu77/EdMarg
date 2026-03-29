@@ -93,6 +93,14 @@ class UserService {
       expiresAt: new Date(decoded.exp * 1000),
     });
   }
+
+  async updateUserProfile(userId, data) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    return userRepository.updateUserProfile(userId, data);
+  }
 }
 
 module.exports = new UserService();

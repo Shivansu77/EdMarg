@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import { useRouter } from 'next/navigation';
+import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import {
   CalendarClock,
-  CheckCircle2,
-  XCircle,
   Video,
   Clock,
   Calendar,
@@ -15,7 +15,12 @@ import {
   MessageSquare,
   PlayCircle,
   AlertCircle,
-  Check
+  Check,
+  ExternalLink,
+  RefreshCw,
+  AlertTriangle,
+  ArrowRight,
+  MoreHorizontal
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -38,9 +43,14 @@ interface Booking {
   notes: string;
   price: number;
   createdAt: string;
+  zoomMeetingId?: string;
+  joinUrl?: string;
+  startUrl?: string;
+  recordingUrl?: string;
+  zoomError?: string;
 }
 
-export default function MentorRequestsPage() {
+function MentorRequestsContent() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
@@ -48,7 +58,7 @@ export default function MentorRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'pending' | 'upcoming' | 'past'>('pending');
-  const [actionLoading, setActionLoading] = useState<string | null>(null); // bookingId
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -58,15 +68,14 @@ export default function MentorRequestsPage() {
     }
   }, [user, authLoading, router]);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
       const response = await apiClient.get('/api/mentor/bookings?limit=50');
       if (response.success && response.data?.bookings) {
         setBookings(response.data.bookings);
-      } else if (response.success && response.bookings) {
-        // Fallback in case the controller sends bookings at root
-        setBookings(response.bookings);
+      } else if (response.success && (response as any).bookings) {
+        setBookings((response as any).bookings);
       } else {
         setError(response.message || 'Failed to load bookings');
       }
@@ -75,13 +84,13 @@ export default function MentorRequestsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (user?.role === 'mentor') {
       fetchBookings();
     }
-  }, [user]);
+  }, [user, fetchBookings]);
 
   const handleAction = async (bookingId: string, action: 'accept' | 'reject' | 'start' | 'complete', reason?: string) => {
     setActionLoading(bookingId);
@@ -89,10 +98,31 @@ export default function MentorRequestsPage() {
       const payload = reason ? { reason } : undefined;
       const res = await apiClient.put(`/api/mentor/bookings/${bookingId}/${action}`, payload);
       if (res.success) {
-        // Refresh bookings
+        if ((action === 'start' || action === 'accept') && res.data?.startUrl) {
+          window.open(res.data.startUrl, '_blank');
+        }
         fetchBookings();
       } else {
         alert(res.message || `Failed to ${action} booking`);
+      }
+    } catch (err: any) {
+      alert(err.message || 'An error occurred');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleRetryZoom = async (bookingId: string) => {
+    setActionLoading(bookingId);
+    try {
+      const res = await apiClient.put(`/api/mentor/bookings/${bookingId}/start`);
+      if (res.success) {
+        if (res.data?.startUrl) {
+          window.open(res.data.startUrl, '_blank');
+        }
+        fetchBookings();
+      } else {
+        alert(res.message || 'Failed to generate Zoom link');
       }
     } catch (err: any) {
       alert(err.message || 'An error occurred');
@@ -113,186 +143,272 @@ export default function MentorRequestsPage() {
       weekday: 'short',
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
     }).format(new Date(dateStr));
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusIndicator = (status: string) => {
     switch (status) {
       case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
+        return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-amber-400"></span> Pending</div>;
       case 'confirmed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Confirmed</span>;
+        return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Confirmed</div>;
       case 'in-progress':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 animate-pulse"><PlayCircle className="w-3 h-3 mr-1" /> In Progress</span>;
+        return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span> In Progress</div>;
       case 'completed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200"><Check className="w-3 h-3 mr-1" /> Completed</span>;
+        return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-zinc-300"></span> Completed</div>;
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200"><XCircle className="w-3 h-3 mr-1" /> {status.charAt(0).toUpperCase() + status.slice(1)}</span>;
+        return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-red-500"></span> {status}</div>;
     }
   };
 
   if (authLoading || loading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
+      <MentorDashboardLayout>
+        <div className="flex justify-center items-center min-h-[60vh] bg-[#fafafa]">
+          <div className="w-8 h-8 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin"></div>
+        </div>
+      </MentorDashboardLayout>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Session Requests</h1>
-          <p className="mt-2 text-sm text-gray-500">Manage your incoming booking requests and upcoming sessions.</p>
-        </div>
-      </div>
+    <MentorDashboardLayout>
+      <div className="min-h-screen bg-[#fafafa] pb-24 font-sans selection:bg-zinc-900 selection:text-white">
+        
+        {/* Minimalist Header */}
+        <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
+           <div className="max-w-5xl mx-auto px-6 py-10 lg:px-8">
+             <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Mentor Workspace</p>
+             <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Session Requests</h1>
+             <p className="mt-2 text-sm text-zinc-500 max-w-2xl">
+               Manage incoming applications, scheduled sessions, and review your past engagements.
+             </p>
+           </div>
+           
+           {/* Linear Border-Bottom Tabs */}
+           <div className="max-w-5xl mx-auto px-6 lg:px-8 flex space-x-8 mt-2 overflow-x-auto no-scrollbar">
+              {(['pending', 'upcoming', 'past'] as const).map((tab) => {
+                 const isActive = activeTab === tab;
+                 const count = bookings.filter(b => {
+                    if (tab === 'pending') return b.status === 'pending';
+                    if (tab === 'upcoming') return b.status === 'confirmed' || b.status === 'in-progress';
+                    return b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected';
+                  }).length;
 
-      {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start">
-          <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
-          <p className="text-sm text-red-800">{error}</p>
-        </div>
-      )}
-
-      {/* Tabs */}
-      <div className="mb-8 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          {(['pending', 'upcoming', 'past'] as const).map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`
-                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
-                ${activeTab === tab
-                  ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }
-              `}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              <span className={`ml-2 py-0.5 px-2.5 rounded-full text-xs font-medium ${
-                activeTab === tab ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-900'
-              }`}>
-                {bookings.filter(b => {
-                  if (tab === 'pending') return b.status === 'pending';
-                  if (tab === 'upcoming') return b.status === 'confirmed' || b.status === 'in-progress';
-                  return b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected';
-                }).length}
-              </span>
-            </button>
-          ))}
-        </nav>
-      </div>
-
-      {/* Bookings List */}
-      <div className="space-y-6">
-        {filteredBookings.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 border-dashed">
-            <CalendarClock className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-sm font-semibold text-gray-900">No {activeTab} sessions</h3>
-            <p className="mt-1 text-sm text-gray-500">You don't have any {activeTab} sessions at the moment.</p>
-          </div>
-        ) : (
-          filteredBookings.map((booking) => (
-            <div key={booking._id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-              <div className="p-6">
-                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                  
-                  {/* Student Info */}
-                  <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {booking.student.profileImage ? (
-                        <Image src={booking.student.profileImage} alt={booking.student.name} width={48} height={48} className="object-cover" />
-                      ) : (
-                        <UserIcon className="h-6 w-6 text-indigo-600" />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{booking.student.name}</h3>
-                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        {booking.student.email}
-                      </p>
-                      {booking.notes && (
-                        <div className="mt-3 text-sm text-gray-600 bg-gray-50 rounded-lg p-3 border border-gray-100">
-                          <span className="font-medium text-gray-900 block mb-1">Note from student:</span>
-                          "{booking.notes}"
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Session Details */}
-                  <div className="flex flex-col gap-3 min-w-[200px]">
-                    {getStatusBadge(booking.status)}
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      {formatDate(booking.date)}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <Clock className="w-4 h-4 text-gray-400" />
-                      {booking.startTime} - {booking.endTime} ({booking.sessionDuration} min)
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-700">
-                      <Video className="w-4 h-4 text-gray-400" />
-                      {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1)} Session
-                    </div>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                {activeTab !== 'past' && (
-                  <div className="mt-6 pt-6 border-t border-gray-100 flex items-center justify-end gap-3">
-                    {booking.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => handleAction(booking._id, 'reject')}
-                          disabled={actionLoading === booking._id}
-                          className="px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded-lg transition-colors border border-red-200 disabled:opacity-50"
-                        >
-                          Decline
-                        </button>
-                        <button
-                          onClick={() => handleAction(booking._id, 'accept')}
-                          disabled={actionLoading === booking._id}
-                          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          {actionLoading === booking._id ? <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : <CheckCircle2 className="w-4 h-4 mr-2" />}
-                          Accept Request
-                        </button>
-                      </>
+                 return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`
+                      relative py-4 text-sm font-semibold transition-colors flex items-center gap-2 whitespace-nowrap
+                      ${isActive ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-800'}
+                    `}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isActive ? 'bg-zinc-100 text-zinc-900' : 'bg-zinc-100 text-zinc-500'}`}>
+                      {count}
+                    </span>
+                    {isActive && (
+                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-zinc-900 rounded-t-full layout-indicator" />
                     )}
-                    
-                    {booking.status === 'confirmed' && (
-                      <button
-                        onClick={() => handleAction(booking._id, 'start')}
-                        disabled={actionLoading === booking._id}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 shadow-sm"
-                      >
-                       {actionLoading === booking._id ? <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : <PlayCircle className="w-4 h-4 mr-2" />}
-                        Start Session
-                      </button>
-                    )}
+                  </button>
+                )
+              })}
+           </div>
+        </header>
 
-                    {booking.status === 'in-progress' && (
-                      <button
-                        onClick={() => handleAction(booking._id, 'complete')}
-                        disabled={actionLoading === booking._id}
-                        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors disabled:opacity-50 shadow-sm"
-                      >
-                        {actionLoading === booking._id ? <span className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full" /> : <Check className="w-4 h-4 mr-2" />}
-                        Mark Completed
-                      </button>
-                    )}
-                  </div>
-                )}
+        <main className="max-w-5xl mx-auto px-6 lg:px-8 pt-8">
+          {error && (
+            <div className="mb-8 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+              <div>
+                 <p className="font-semibold text-sm text-red-900">Unable to synchronize bookings</p>
+                 <p className="text-xs text-red-700 mt-1">{error}</p>
               </div>
             </div>
-          ))
-        )}
+          )}
+
+          {/* Bookings List */}
+          <div className="space-y-4">
+            {filteredBookings.length === 0 ? (
+              <div className="text-center py-24 bg-white rounded-2xl border border-zinc-200">
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-50 mb-4 border border-zinc-100">
+                   <CalendarClock className="h-5 w-5 text-zinc-400" />
+                </div>
+                <h3 className="text-base font-bold text-zinc-900">No {activeTab} sessions</h3>
+                <p className="mt-1 text-sm text-zinc-500">You don't have any {activeTab} bookings actively scheduled.</p>
+              </div>
+            ) : (
+              filteredBookings.map((booking) => (
+                <article key={booking._id} className="group bg-white rounded-2xl border border-zinc-200 p-6 flex flex-col md:flex-row gap-6 md:gap-10 transition-shadow hover:shadow-sm">
+                  
+                  {/* Left Column: Student & Time */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between mb-4">
+                        {getStatusIndicator(booking.status)}
+                        
+                        {/* Display Zoom meeting details seamlessly attached to status area if present */}
+                        {booking.status === 'confirmed' || booking.status === 'in-progress' ? (
+                          <div className="md:hidden text-xs font-mono text-zinc-400 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-100">
+                             ID: {booking.zoomMeetingId || 'Generating...'}
+                          </div>
+                        ) : null}
+                    </div>
+                    
+                    <div className="flex items-start gap-4 mb-5">
+                       <div className="h-12 w-12 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                          {booking.student.profileImage ? (
+                            <Image src={booking.student.profileImage} alt={booking.student.name} width={48} height={48} className="object-cover" />
+                          ) : (
+                            <UserIcon className="h-5 w-5 text-zinc-400" />
+                          )}
+                        </div>
+                        <div>
+                           <h3 className="text-lg font-bold text-zinc-900">{booking.student.name}</h3>
+                           <p className="text-sm text-zinc-500 mt-0.5">{booking.student.email}</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                        <div>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Date</p>
+                           <p className="text-sm font-semibold text-zinc-900">{formatDate(booking.date)}</p>
+                        </div>
+                        <div>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Time</p>
+                           <p className="text-sm font-semibold text-zinc-900">{booking.startTime} - {booking.endTime}</p>
+                        </div>
+                        <div>
+                           <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Type</p>
+                           <p className="text-sm font-semibold text-zinc-900 flex items-center gap-1.5">
+                              {booking.sessionType === 'video' ? <Video size={14} className="text-zinc-400"/> : <MessageSquare size={14} className="text-zinc-400"/>}
+                              {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1)}
+                           </p>
+                        </div>
+                    </div>
+
+                    {booking.notes && (
+                      <div className="mt-5 pt-5 border-t border-zinc-100">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">Student Note</p>
+                        <p className="text-sm text-zinc-600 italic">"{booking.notes}"</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column: Dynamic Actions & Zoom Details */}
+                  <div className="md:w-[280px] flex flex-col justify-between border-t md:border-t-0 md:border-l border-zinc-100 pt-6 md:pt-0 md:pl-8">
+                     <div className="mb-6">
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Session Rate</p>
+                        <p className="text-2xl font-bold tracking-tight text-zinc-900">
+                           {booking.price ? `₹${booking.price}` : 'Free'}
+                        </p>
+                        
+                        {(booking.status === 'confirmed' || booking.status === 'in-progress') && booking.sessionType !== 'chat' && (
+                           <div className="mt-4 p-3 bg-zinc-50 rounded-lg border border-zinc-100 space-y-2">
+                              {booking.startUrl ? (
+                                <>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Zoom Credentials</p>
+                                  <p className="text-xs font-mono text-zinc-600 truncate bg-white px-2 py-1 rounded border border-zinc-200">{booking.zoomMeetingId}</p>
+                                  <a href={booking.startUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 w-full mt-1">
+                                    Open App <ExternalLink size={10} />
+                                  </a>
+                                </>
+                              ) : booking.zoomError ? (
+                                <>
+                                  <p className="text-xs font-semibold text-red-800 flex items-center gap-1.5"><AlertTriangle size={12}/> Linking Failed</p>
+                                  <button onClick={() => handleRetryZoom(booking._id)} disabled={actionLoading === booking._id} className="text-[11px] font-bold text-zinc-600 hover:text-zinc-900 border border-zinc-200 bg-white px-2 py-1 rounded w-fit flex items-center gap-1.5 transition-colors disabled:opacity-50">
+                                    {actionLoading === booking._id ? <RefreshCw size={10} className="animate-spin" /> : <RefreshCw size={10} />} Retry Link
+                                  </button>
+                                </>
+                              ) : (
+                                <p className="text-[11px] font-medium text-zinc-500 leading-relaxed">Zoom link will generate upon session init.</p>
+                              )}
+                           </div>
+                        )}
+                     </div>
+
+                     <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 mt-auto">
+                        {booking.status === 'pending' && (
+                          <>
+                             <button
+                               onClick={() => handleAction(booking._id, 'accept')}
+                               disabled={actionLoading === booking._id}
+                               className="w-full flex items-center justify-center py-2.5 text-sm font-bold text-white bg-zinc-900 rounded-lg shadow-sm hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                             >
+                               {actionLoading === booking._id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : 'Accept Request'}
+                             </button>
+                             <button
+                               onClick={() => handleAction(booking._id, 'reject')}
+                               disabled={actionLoading === booking._id}
+                               className="w-full flex items-center justify-center py-2.5 text-sm font-bold text-zinc-700 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                             >
+                               Decline
+                             </button>
+                          </>
+                        )}
+                        
+                        {booking.status === 'confirmed' && (
+                          <button
+                            onClick={() => handleAction(booking._id, 'start')}
+                            disabled={actionLoading === booking._id}
+                            className="w-full flex items-center justify-center py-2.5 text-sm font-bold text-white bg-zinc-900 rounded-lg shadow-sm hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                          >
+                           {actionLoading === booking._id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <PlayCircle className="w-4 h-4 mr-2" />}
+                            Start Session
+                          </button>
+                        )}
+
+                        {booking.status === 'in-progress' && (
+                          <>
+                            {booking.startUrl && (
+                               <a
+                                 href={booking.startUrl}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 className="w-full flex items-center justify-center py-2 text-sm font-bold text-zinc-700 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-all"
+                               >
+                                 <PlayCircle className="w-4 h-4 mr-2" />
+                                 Return to Zoom
+                               </a>
+                            )}
+                            <button
+                              onClick={() => handleAction(booking._id, 'complete')}
+                              disabled={actionLoading === booking._id}
+                              className="w-full flex items-center justify-center py-2.5 text-sm font-bold text-white bg-zinc-900 rounded-lg shadow-sm hover:bg-zinc-800 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                            >
+                              {actionLoading === booking._id ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+                              Complete
+                            </button>
+                          </>
+                        )}
+
+                        {activeTab === 'past' && booking.recordingUrl && (
+                          <a
+                            href={booking.recordingUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center py-2.5 text-sm font-bold text-zinc-700 bg-white border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-all"
+                          >
+                            <Video size={16} className="mr-2" />
+                            Recording
+                          </a>
+                        )}
+                     </div>
+                  </div>
+                </article>
+              ))
+            )}
+          </div>
+        </main>
       </div>
-    </div>
+    </MentorDashboardLayout>
+  );
+}
+
+export default function MentorRequestsPage() {
+  return (
+    <ProtectedRoute requiredRole="mentor">
+      <MentorRequestsContent />
+    </ProtectedRoute>
   );
 }

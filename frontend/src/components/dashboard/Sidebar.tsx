@@ -32,7 +32,7 @@ const studentNavItems = [
   { name: 'Assessment', href: '/student/assessment', icon: ClipboardCheck },
   { name: 'Results', href: '/student/results', icon: BadgeCheck },
   { name: 'Mentors', href: '/student/mentors', icon: Users },
-  { name: 'Booking', href: '/student/booking', icon: CalendarCheck },
+  { name: 'Book Session', href: '/student/mentors', icon: CalendarCheck },
   { name: 'Schedule', href: '/student/schedule', icon: CalendarDays },
   { name: 'History', href: '/student/history', icon: History },
   { name: 'Profile', href: '/student/profile', icon: UserCircle },

@@ -76,7 +76,7 @@ const HeroSection = () => {
           <div className="relative mx-auto w-full max-w-lg">
             <div className="relative aspect-square overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 shadow-lg">
               <Image
-                src="/hero-student.svg"
+                src="/hero-student.png"
                 alt="Student getting career mentorship"
                 fill
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 40vw"

@@ -109,6 +109,40 @@ class UserRepository {
       { new: true }
     ).select('-password');
   }
+
+  async updateUserProfile(id, profileData) {
+    const updateObj = {};
+    if (profileData.name !== undefined) updateObj.name = profileData.name;
+    if (profileData.profileImage !== undefined) updateObj.profileImage = profileData.profileImage;
+    
+    // Manage nested studentProfile fields
+    if (profileData.studentProfile) {
+      if (profileData.studentProfile.classLevel !== undefined) {
+        updateObj['studentProfile.classLevel'] = profileData.studentProfile.classLevel;
+      }
+      if (profileData.studentProfile.interests !== undefined) {
+        updateObj['studentProfile.interests'] = profileData.studentProfile.interests;
+      }
+    }
+
+    // Manage nested mentorProfile fields
+    if (profileData.mentorProfile) {
+      const mentorFields = [
+        'expertise', 'bio', 'experienceYears', 'pricePerSession',
+        'sessionDuration', 'autoConfirm', 'sessionNotes'
+      ];
+      
+      for (const field of mentorFields) {
+        if (profileData.mentorProfile[field] !== undefined) {
+          updateObj[`mentorProfile.${field}`] = profileData.mentorProfile[field];
+        }
+      }
+    }
+
+    return User.findByIdAndUpdate(id, { $set: updateObj }, { new: true })
+      .select('-password')
+      .lean();
+  }
 }
 
 module.exports = new UserRepository();

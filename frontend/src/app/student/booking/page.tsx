@@ -19,6 +19,8 @@ import {
   ArrowRight,
   Loader2,
   AlertCircle,
+  ExternalLink,
+  AlertTriangle,
 } from 'lucide-react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -54,6 +56,10 @@ type BookingResult = {
   endTime: string;
   price: number;
   status: string;
+  joinUrl?: string;
+  startUrl?: string;
+  zoomMeetingId?: string;
+  zoomError?: string;
 };
 
 /* ================================================================
@@ -177,8 +183,8 @@ function BookingContent() {
   /* -------- Fetch Mentor -------- */
   useEffect(() => {
     if (!mentorId) {
-      setError('No mentor selected. Please go back and choose a mentor.');
-      setLoadingMentor(false);
+      // No mentor selected — redirect to mentors page so user can pick one
+      router.replace('/student/mentors');
       return;
     }
 
@@ -323,7 +329,7 @@ function BookingContent() {
             <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
             <p className="text-red-600 font-semibold mb-4">{error}</p>
             <Link
-              href="/browse-mentors"
+              href="/student/mentors"
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-colors"
             >
               <ArrowLeft size={16} />
@@ -909,6 +915,58 @@ function BookingContent() {
               <p className="text-gray-600 mb-8">
                 Your session with {mentor.name} has been booked successfully.
               </p>
+
+              {/* Zoom Meeting Link */}
+              {sessionType === 'video' && (
+                <div className="mb-8">
+                  {bookingResult.joinUrl ? (
+                    <div className="rounded-xl bg-blue-50 border border-blue-200 p-5 text-left">
+                      <div className="flex items-start gap-4">
+                        <div className="rounded-lg bg-blue-100 p-2.5 flex-shrink-0">
+                          <Video className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-blue-900">Zoom Meeting Ready</p>
+                          <p className="text-xs text-blue-700 mt-1">Your video session link has been generated. You can join at the scheduled time.</p>
+                          {bookingResult.zoomMeetingId && (
+                            <p className="text-xs text-blue-600 mt-1">Meeting ID: {bookingResult.zoomMeetingId}</p>
+                          )}
+                        </div>
+                      </div>
+                      <a
+                        href={bookingResult.joinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
+                      >
+                        <ExternalLink size={16} />
+                        Join Zoom Meeting
+                      </a>
+                    </div>
+                  ) : bookingResult.zoomError ? (
+                    <div className="rounded-xl bg-amber-50 border border-amber-200 p-5 text-left">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-amber-900">Zoom link could not be generated</p>
+                          <p className="text-xs text-amber-700 mt-1">{bookingResult.zoomError}</p>
+                          <p className="text-xs text-amber-600 mt-2">Don&apos;t worry — your mentor will share the meeting link before the session.</p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-gray-50 border border-gray-200 p-5 text-left">
+                      <div className="flex items-start gap-3">
+                        <Video className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-semibold text-gray-700">Zoom link pending</p>
+                          <p className="text-xs text-gray-500 mt-1">The meeting link will be available once your mentor confirms the session.</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="rounded-xl bg-gray-50 p-6 space-y-4 text-left mb-8">
                 <div className="flex justify-between items-center">

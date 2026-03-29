@@ -111,6 +111,46 @@ exports.getCurrentUser = async (req, res, next) => {
   }
 };
 
+/* ================= UPDATE PROFILE ================= */
+exports.updateUserProfile = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { 
+      name, profileImage, 
+      classLevel, interests,
+      expertise, bio, experienceYears, pricePerSession, sessionDuration, autoConfirm, sessionNotes
+    } = req.body;
+
+    const profileData = {
+      name,
+      profileImage,
+      studentProfile: {
+        classLevel,
+        interests,
+      },
+      mentorProfile: {
+        expertise,
+        bio,
+        experienceYears,
+        pricePerSession,
+        sessionDuration,
+        autoConfirm,
+        sessionNotes
+      }
+    };
+
+    const updatedUser = await userService.updateUserProfile(userId, profileData);
+
+    return res.status(200).json({
+      success: true,
+      data: updatedUser,
+      message: 'Profile updated successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 /* ================= BROWSE MENTORS ================= */
 exports.getBrowseMentors = async (req, res, next) => {
   try {

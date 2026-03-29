@@ -3,6 +3,66 @@ const availabilityRepository = require('../repositories/availability.repository'
 const userRepository = require('../repositories/user.repository');
 const { ValidationError, NotFoundError } = require('../utils/errors');
 
+/**
+ * Build a proper ISO 8601 date-time string for Zoom API.
+ * Zoom requires format like: 2026-03-30T14:00:00
+ * with a timezone field set separately in the meeting payload.
+ *
+ * @param {Date} date - The booking date
+ * @param {string} time - Time in HH:MM format (e.g., "14:00")
+ * @returns {string} ISO 8601 formatted date-time
+ */
+function buildZoomStartTime(date, time) {
+  // Ensure we use the date portion only (YYYY-MM-DD)
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+
+  // Ensure time has seconds
+  const timeParts = time.split(':');
+  const hours = String(timeParts[0]).padStart(2, '0');
+  const minutes = String(timeParts[1] || '00').padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:00`;
+}
+
+/**
+ * Attempt to create a Zoom meeting for a booking.
+ * Returns { zoomData, zoomError } — zoomData contains the Zoom fields if successful,
+ * zoomError contains the error message if it failed.
+ */
+async function attemptZoomMeetingCreation({ mentorName, date, startTime, sessionDuration }) {
+  const zoomService = require('./zoom.service');
+
+  try {
+    const topic = `EdMarg Mentorship: ${mentorName}`;
+    const zoomStartTime = buildZoomStartTime(date, startTime);
+
+    console.log('[Booking] Attempting Zoom meeting creation:', {
+      topic,
+      zoomStartTime,
+      duration: sessionDuration,
+    });
+
+    const zoomMeeting = await zoomService.createZoomMeeting({
+      topic,
+      startTime: zoomStartTime,
+      duration: sessionDuration,
+    });
+
+    console.log('[Booking] Zoom meeting created successfully:', {
+      zoomMeetingId: zoomMeeting.zoomMeetingId,
+      hasJoinUrl: !!zoomMeeting.joinUrl,
+      hasStartUrl: !!zoomMeeting.startUrl,
+    });
+
+    return { zoomData: zoomMeeting, zoomError: null };
+  } catch (err) {
+    console.error('[Booking] Zoom meeting creation failed:', err.message);
+    return { zoomData: {}, zoomError: err.message };
+  }
+}
+
 class BookingService {
   /**
    * Create a new booking for a student with a mentor.
@@ -61,6 +121,21 @@ class BookingService {
     const autoConfirm = mentor.mentorProfile?.autoConfirm !== false; // default true
     const status = autoConfirm ? 'confirmed' : 'pending';
 
+    let zoomData = {};
+    let zoomError = null;
+
+    // Only create Zoom meeting for auto-confirmed video sessions
+    if (autoConfirm && (!sessionType || sessionType === 'video')) {
+      const result = await attemptZoomMeetingCreation({
+        mentorName: mentor.name,
+        date: bookingDate,
+        startTime,
+        sessionDuration,
+      });
+      zoomData = result.zoomData;
+      zoomError = result.zoomError;
+    }
+
     return bookingRepository.create({
       student: studentId,
       mentor: mentorId,
@@ -72,6 +147,8 @@ class BookingService {
       status,
       notes: notes || '',
       price,
+      ...zoomData,
+      ...(zoomError ? { zoomError } : {}),
     });
   }
 
@@ -125,6 +202,7 @@ class BookingService {
 
   /**
    * Mentor accepts a pending booking.
+   * Creates a Zoom meeting for video sessions.
    */
   async acceptBooking(bookingId, mentorId) {
     const booking = await bookingRepository.findById(bookingId);
@@ -140,7 +218,23 @@ class BookingService {
       throw new ValidationError(`Cannot accept a booking with status "${booking.status}"`);
     }
 
-    return bookingRepository.updateStatus(bookingId, 'confirmed');
+    let zoomUpdateData = {};
+
+    if (!booking.sessionType || booking.sessionType === 'video') {
+      const result = await attemptZoomMeetingCreation({
+        mentorName: booking.mentor.name || 'Mentor',
+        date: new Date(booking.date),
+        startTime: booking.startTime,
+        sessionDuration: booking.sessionDuration || 45,
+      });
+
+      zoomUpdateData = {
+        ...result.zoomData,
+        ...(result.zoomError ? { zoomError: result.zoomError } : { zoomError: null }),
+      };
+    }
+
+    return bookingRepository.updateStatus(bookingId, 'confirmed', zoomUpdateData);
   }
 
   /**
@@ -167,6 +261,7 @@ class BookingService {
 
   /**
    * Mentor starts a session (marks booking as in-progress).
+   * If Zoom links are missing, attempts to create them now.
    */
   async startSession(bookingId, mentorId) {
     const booking = await bookingRepository.findById(bookingId);
@@ -182,8 +277,26 @@ class BookingService {
       throw new ValidationError(`Cannot start a session with status "${booking.status}"`);
     }
 
+    let zoomUpdateData = {};
+
+    // If the booking is a video session and missing Zoom links, generate them now
+    if ((!booking.sessionType || booking.sessionType === 'video') && !booking.startUrl) {
+      const result = await attemptZoomMeetingCreation({
+        mentorName: booking.mentor.name || 'Mentor',
+        date: new Date(booking.date),
+        startTime: booking.startTime,
+        sessionDuration: booking.sessionDuration || 45,
+      });
+
+      zoomUpdateData = {
+        ...result.zoomData,
+        ...(result.zoomError ? { zoomError: result.zoomError } : { zoomError: null }),
+      };
+    }
+
     return bookingRepository.updateStatus(bookingId, 'in-progress', {
       conductedAt: new Date(),
+      ...zoomUpdateData,
     });
   }
 

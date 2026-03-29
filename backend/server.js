@@ -35,7 +35,7 @@ app.use(cookieParser());
 // Rate limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 100, // Increased for development convenience
   message: 'Too many attempts, please try again later',
   skip: (req) => !(req.method === 'POST' && req.path === '/login'),
   handler: (req, res, next, options) => {
@@ -52,6 +52,7 @@ const adminRouteV1 = require('./routes/v1/admin.route');
 const bookingRouteV1 = require('./routes/v1/booking.route');
 const availabilityRouteV1 = require('./routes/v1/availability.route');
 const mentorRouteV1 = require('./routes/v1/mentor.route');
+const zoomRouteV1 = require('./routes/v1/zoom.route');
 const userRouteV2 = require('./routes/v2/user.route');
 const adminRouteV2 = require('./routes/v2/admin.route');
 const errorHandler = require('./middlewares/error.middleware');
@@ -61,6 +62,7 @@ app.use('/api/v1/admin', adminRouteV1);
 app.use('/api/v1/bookings', bookingRouteV1);
 app.use('/api/v1/availability', availabilityRouteV1);
 app.use('/api/v1/mentor', mentorRouteV1);
+app.use('/api/v1/zoom', zoomRouteV1);
 app.use('/api/v2/users', authLimiter, userRouteV2);
 app.use('/api/v2/admin', adminRouteV2);
 

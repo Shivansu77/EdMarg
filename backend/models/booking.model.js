@@ -59,6 +59,11 @@ const bookingSchema = new mongoose.Schema(
     },
     conductedAt: Date,
     completedAt: Date,
+    zoomMeetingId: String,
+    joinUrl: String,
+    startUrl: String,
+    recordingUrl: String,
+    zoomError: String,
   },
   { timestamps: true }
 );

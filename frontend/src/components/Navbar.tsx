@@ -10,6 +10,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('student');
   const router = useRouter();
 
   useEffect(() => {
@@ -26,6 +27,7 @@ const Navbar = () => {
           const userData = JSON.parse(user);
           setIsLoggedIn(true);
           setUserName(userData.name || 'User');
+          setUserRole(userData.role || 'student');
         } catch (e) {
           setIsLoggedIn(false);
         }
@@ -77,6 +79,12 @@ const Navbar = () => {
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600">Welcome, {userName}</span>
+              <Link
+                href={`/${userRole}/dashboard`}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 text-sm font-medium rounded-lg transition-colors"
+              >
+                Dashboard
+              </Link>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
@@ -124,6 +132,13 @@ const Navbar = () => {
                   <div className="py-3 px-4 bg-gray-50 rounded-lg text-center">
                     <p className="text-sm text-gray-600">Welcome, {userName}</p>
                   </div>
+                  <Link
+                    href={`/${userRole}/dashboard`}
+                    onClick={() => setIsOpen(false)}
+                    className="w-full py-3 text-center bg-gray-100 text-gray-900 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                  >
+                    Go to Dashboard
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="w-full py-3 text-center bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
