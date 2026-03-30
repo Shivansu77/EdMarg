@@ -20,34 +20,16 @@ const corsOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    
-    // Check if origin is in our list or is a vercel subdomain
-    const isAllowed = corsOrigins.indexOf(origin) !== -1 || 
-                      origin.endsWith('.vercel.app') || 
-                      origin.includes('localhost');
-                      
-    if (isAllowed) {
-      callback(null, true);
+    // Reflect the request origin back to the browser if it's trusted
+    if (!origin || corsOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
+      callback(null, true); 
     } else {
       callback(null, false);
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: [
-    'X-CSRF-Token', 
-    'X-Requested-With', 
-    'Accept', 
-    'Accept-Version', 
-    'Content-Length', 
-    'Content-MD5', 
-    'Content-Type', 
-    'Date', 
-    'X-Api-Version', 
-    'Authorization'
-  ],
+  allowedHeaders: ['X-CSRF-Token', 'X-Requested-With', 'Accept', 'Accept-Version', 'Content-Length', 'Content-MD5', 'Content-Type', 'Date', 'X-Api-Version', 'Authorization'],
   optionsSuccessStatus: 200
 }));
 

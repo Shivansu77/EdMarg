@@ -1,16 +1,7 @@
 const { AppError } = require('../utils/errors');
 
 const errorHandler = (err, req, res, next) => {
-  // Ensure CORS headers are present even on errors
-  if (!res.headersSent) {
-    const origin = req.headers.origin;
-    if (origin) {
-      res.setHeader('Access-Control-Allow-Origin', origin);
-      res.setHeader('Access-Control-Allow-Credentials', 'true');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization');
-    }
-  }
+  // Let global CORS middleware handle headers (removed manual setHeader to avoid conflicts)
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
