@@ -53,7 +53,6 @@ const corsOptions = {
 };
 
 // Handle preflight for all routes
-app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
 // Manual CORS fallback for errors/edge cases
