@@ -146,10 +146,15 @@ app.get('/api/status', (req, res) => {
 app.use(errorHandler);
 
 // Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/edmarg_db', {
+const connectionOptions = {
   dbName: DB_NAME,
-  serverSelectionTimeoutMS: 5000,
-})
+  serverSelectionTimeoutMS: 10000, // Increased to 10s for Atlas
+  connectTimeoutMS: 10000,        // 10s timeout for initial connection
+  socketTimeoutMS: 45000,         // Close sockets after 45s of inactivity
+  family: 4                       // Force IPv4 if needed
+};
+
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/edmarg_db', connectionOptions)
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch((err) => {
     console.error('❌ Critical Error: MongoDB connection failed.', err.message);
