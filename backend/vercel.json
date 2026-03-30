@@ -1,13 +1,9 @@
 {
   "version": 2,
-  "buildCommand": "npm install",
   "builds": [
     {
       "src": "server.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+      "use": "@vercel/node"
     }
   ],
   "routes": [
