@@ -48,8 +48,8 @@ const upcomingSessions = [
 
 const priorities = [
   { title: 'Pending requests', description: 'Review and respond to new student applications.', href: '/mentor/requests', icon: Users, meta: '5 new' },
-  { title: 'Upcoming sessions', description: 'View and manage your scheduled mentoring sessions.', href: '/mentor/sessions', icon: CalendarDays, meta: '3 today' },
-  { title: 'Student feedback', description: 'Check reviews and feedback from your mentees.', href: '/mentor/feedback', icon: MessageSquare, meta: '2 new' },
+  { title: 'Upcoming sessions', description: 'View and manage your scheduled mentoring sessions.', href: '/mentor/schedule', icon: CalendarDays, meta: '3 today' },
+  { title: 'Student feedback', description: 'Check reviews and feedback from your mentees.', href: '/mentor/results', icon: MessageSquare, meta: '2 new' },
 ];
 
 const initials = (name: string) =>
@@ -100,7 +100,7 @@ function MentorDashboardContent() {
               Review requests <ArrowRight size={18} strokeWidth={2.5} className="transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
-              href="/mentor/sessions"
+              href="/mentor/schedule"
               className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-base font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
             >
               View sessions
@@ -251,13 +251,13 @@ function MentorDashboardContent() {
               <div className="px-6 pb-6 pt-5 bg-gray-50/30 border-t border-gray-50">
                 <div className="flex gap-3">
                   <Link
-                    href="/mentor/sessions"
+                    href="/mentor/schedule"
                     className="flex-1 rounded-xl bg-gray-900 py-3 text-center text-sm font-bold text-white shadow-md transition-all hover:bg-gray-800 hover:shadow-lg hover:-translate-y-0.5"
                   >
                     View schedule
                   </Link>
                   <Link
-                    href="/mentor/sessions"
+                    href="/mentor/schedule"
                     className="flex-1 rounded-xl border border-gray-200 bg-white shadow-sm py-3 text-center text-sm font-bold text-gray-700 transition-all hover:bg-gray-50 hover:border-gray-300 hover:shadow-md hover:-translate-y-0.5"
                   >
                     Reschedule
@@ -334,7 +334,7 @@ function MentorDashboardContent() {
             <div className="flex items-center justify-between border-b border-gray-50 px-6 py-5 bg-gray-50/30">
               <Label>Recent sessions</Label>
               <Link
-                href="/mentor/history"
+                href="/mentor/requests?tab=past"
                  className="group flex flex-row items-center gap-1 text-xs font-bold uppercase tracking-wider text-indigo-600 transition-colors hover:text-indigo-800"
               >
                 View all <ChevronRight size={14} className="transition-transform group-hover:translate-x-0.5" />

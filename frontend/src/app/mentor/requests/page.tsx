@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import {
@@ -46,14 +46,25 @@ interface Booking {
   zoomError?: string;
 }
 
+type BookingTab = 'pending' | 'upcoming' | 'past';
+
+const resolveActiveTab = (value: string | null): BookingTab => {
+  if (value === 'upcoming' || value === 'past') {
+    return value;
+  }
+
+  return 'pending';
+};
+
 function MentorRequestsContent() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'pending' | 'upcoming' | 'past'>('pending');
+  const [activeTab, setActiveTab] = useState<BookingTab>(() => resolveActiveTab(searchParams.get('tab')));
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -85,6 +96,10 @@ function MentorRequestsContent() {
       fetchBookings();
     }
   }, [user, fetchBookings]);
+
+  useEffect(() => {
+    setActiveTab(resolveActiveTab(searchParams.get('tab')));
+  }, [searchParams]);
 
   const handleAction = async (bookingId: string, action: 'accept' | 'reject' | 'start' | 'complete', reason?: string) => {
     setActionLoading(bookingId);

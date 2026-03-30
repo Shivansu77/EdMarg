@@ -49,6 +49,14 @@ const emitAuthChange = () => {
   }
 };
 
+const getStoredToken = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
+};
+
 const clearAuthStorage = () => {
   if (typeof window === 'undefined') {
     return;
@@ -178,9 +186,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      const token = getStoredToken();
       const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/logout`, {
         method: 'POST',
         credentials: 'include',
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
 
       if (!response.ok) {

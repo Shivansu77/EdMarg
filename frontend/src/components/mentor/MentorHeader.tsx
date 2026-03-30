@@ -14,7 +14,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const displayName = user?.name?.trim() || 'Mentor';
   const avatarLetter = displayName.charAt(0).toUpperCase() || 'M';
@@ -30,9 +30,8 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  const handleLogout = async () => {
+    await logout();
     router.push('/login');
   };
 

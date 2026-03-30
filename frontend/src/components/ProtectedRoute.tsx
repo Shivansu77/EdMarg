@@ -72,7 +72,10 @@ export default function ProtectedRoute({
           })
         );
 
-        if (!response.ok) {
+        const result = response.ok ? await response.json().catch(() => null) : null;
+        const serverRole = result?.data?.role;
+
+        if (!response.ok || serverRole !== requiredRole) {
           clearStoredAuth();
           router.replace('/login');
         }
@@ -88,7 +91,7 @@ export default function ProtectedRoute({
     return () => {
       controller.abort();
     };
-  }, [hasHydrated, isAuthorized, router]);
+  }, [hasHydrated, isAuthorized, requiredRole, router]);
 
   if (!hasHydrated || !isAuthorized) {
     return null;

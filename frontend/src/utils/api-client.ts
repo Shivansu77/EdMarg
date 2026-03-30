@@ -1,5 +1,14 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 const API_VERSION = 'v1';
+const VERSIONED_API_PATTERN = /^\/api\/v\d+\//;
+
+const getStoredToken = () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.localStorage.getItem('token');
+};
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
@@ -22,7 +31,7 @@ class ApiClient {
   }
 
   private buildUrl(endpoint: string, params?: Record<string, string | number | boolean>): string {
-    const versionedEndpoint = endpoint.startsWith('/api/') 
+    const versionedEndpoint = endpoint.startsWith('/api/') && !VERSIONED_API_PATTERN.test(endpoint)
       ? endpoint.replace('/api/', `/api/${this.version}/`)
       : endpoint;
     
@@ -43,13 +52,21 @@ class ApiClient {
     const url = this.buildUrl(endpoint, params);
 
     try {
+      const headers = new Headers(fetchOptions.headers);
+      const token = getStoredToken();
+
+      if (!headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+      }
+
+      if (token && !headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+
       const response = await fetch(url, {
         credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          ...fetchOptions.headers,
-        },
         ...fetchOptions,
+        headers,
       });
 
       const data = await response.json();

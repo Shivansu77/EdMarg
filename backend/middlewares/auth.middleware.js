@@ -3,23 +3,23 @@ const { User, TokenBlacklist } = require('../models/user.model');
 
 /* ================= TOKEN EXTRACTOR ================= */
 const getTokenFromRequest = (req) => {
-  // cookie priority
+  // Explicit Authorization headers should win over cookies so the active
+  // frontend session token is not shadowed by a stale cross-site cookie.
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+    const parts = authHeader.split(' ');
+
+    if (parts.length === 2 && parts[0] === 'Bearer') {
+      return parts[1];
+    }
+  }
+
   if (req.cookies?.accessToken) {
     return req.cookies.accessToken;
   }
 
-  // bearer token fallback
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) return null;
-
-  const parts = authHeader.split(' ');
-
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    return null;
-  }
-
-  return parts[1];
+  return null;
 };
 
 /* ================= PROTECT MIDDLEWARE ================= */
@@ -96,6 +96,7 @@ exports.authorize = (...roles) => {
     const allowedRoles = roles.map((r) => r.toLowerCase());
 
     if (!allowedRoles.includes(userRole)) {
+      console.warn(`[AUTH] 403 Forbidden for User ${req.user._id}: role '${userRole}' not in allowed roles [${roles.join(', ')}]`);
       return res.status(403).json({
         success: false,
         message: 'Forbidden: insufficient permissions',
