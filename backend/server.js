@@ -116,27 +116,19 @@ app.get('/api/status', (req, res) => {
 // Error handling
 app.use(errorHandler);
 
-// Database connection
-const connectionOptions = {
-  dbName: DB_NAME,
-  serverSelectionTimeoutMS: 10000, // Increased to 10s for Atlas
-  connectTimeoutMS: 10000,        // 10s timeout for initial connection
-  socketTimeoutMS: 45000,         // Close sockets after 45s of inactivity
-  family: 4                       // Force IPv4 if needed
-};
-
+// Database connection - connect asynchronously without blocking app startup
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/edmarg_db', connectionOptions)
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch((err) => {
-    console.error('❌ Critical Error: MongoDB connection failed.', err.message);
-    console.error('Verify your MONGODB_URI and ensuring it is accessible from your current environment.');
+    console.error('❌ MongoDB connection failed.', err.message);
   });
 
+// Export app immediately for Vercel
+module.exports = app;
+
+// Only listen if running locally
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }
-
-// Export for Vercel serverless
-module.exports = app;
