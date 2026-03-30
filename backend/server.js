@@ -11,17 +11,7 @@ const PORT = process.env.PORT || 5000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
 const DB_NAME = process.env.DB_NAME || 'edmarg_db';
 
-// Security middleware
-app.use(helmet());
-
-// Critical environment checks
-if (!process.env.JWT_SECRET) {
-  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
-}
-if (!process.env.MONGODB_URI) {
-  console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
-}
-
+// 1. CORS Configuration (MOST IMPORTANT - MUST BE FIRST)
 const corsOrigins = [
   'http://localhost:3000',
   'https://frontend-alpha-nine-92.vercel.app',
@@ -29,7 +19,21 @@ const corsOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: corsOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in our list or is a vercel subdomain
+    const isAllowed = corsOrigins.indexOf(origin) !== -1 || 
+                      origin.endsWith('.vercel.app') || 
+                      origin.includes('localhost');
+                      
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: [
@@ -46,6 +50,25 @@ app.use(cors({
   ],
   optionsSuccessStatus: 200
 }));
+
+// 2. Explicit OPTIONS handling (Vercel Preflight Safety Net)
+app.options('*', cors());
+
+// 3. Security middleware (Configure after CORS)
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
+
+// Critical environment checks
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+}
+if (!process.env.MONGODB_URI) {
+  console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
+}
+
+// Body parsing (already moved CORS above)
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
