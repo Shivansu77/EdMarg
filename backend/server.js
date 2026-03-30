@@ -27,6 +27,7 @@ const ALLOWED_ORIGINS = [
 ].filter(Boolean);
 
 console.log('✅ CORS Allowed Origins:', ALLOWED_ORIGINS);
+console.log('🚀 Vercel Deployment: CORS Fix v1.0');
 
 // 1. CORS Middleware - Layer 3 (Fallback)
 app.use((req, res, next) => {
