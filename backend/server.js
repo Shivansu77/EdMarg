@@ -1,7 +1,6 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
@@ -11,32 +10,21 @@ const PORT = process.env.PORT || 5000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:3000';
 const DB_NAME = process.env.DB_NAME || 'edmarg_db';
 
-// 1. CORS Configuration (MOST IMPORTANT - MUST BE FIRST)
-const corsOrigins = [
-  'http://localhost:3000',
-  'https://frontend-alpha-nine-92.vercel.app',
-  process.env.FRONTEND_ORIGIN,
-].filter(Boolean);
+// 1. CORS Headers Middleware - Must be first
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  res.header('Access-Control-Allow-Origin', origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Reflect the request origin back to the browser if it's trusted
-    if (!origin || corsOrigins.indexOf(origin) !== -1 || origin.endsWith('.vercel.app') || origin.includes('localhost')) {
-      callback(null, true); 
-    } else {
-      callback(null, false);
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['X-CSRF-Token', 'X-Requested-With', 'Accept', 'Accept-Version', 'Content-Length', 'Content-MD5', 'Content-Type', 'Date', 'X-Api-Version', 'Authorization'],
-  optionsSuccessStatus: 200
-}));
-
-// 2. Explicit OPTIONS handling (Vercel Preflight Safety Net)
-app.options('*', cors());
-
-// 3. Security middleware (Configure after CORS)
+// 2. Security middleware
 app.use(helmet({
   crossOriginResourcePolicy: false,
   crossOriginEmbedderPolicy: false
@@ -50,8 +38,6 @@ if (!process.env.MONGODB_URI) {
   console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
 }
 
-// Body parsing (already moved CORS above)
-
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -60,7 +46,7 @@ app.use(cookieParser());
 // Rate limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100, // Increased for development convenience
+  max: 100,
   message: 'Too many attempts, please try again later',
   skip: (req) => !(req.method === 'POST' && req.path === '/login'),
   handler: (req, res, next, options) => {
@@ -105,7 +91,7 @@ app.use(errorHandler);
 // Database connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/edmarg_db', {
   dbName: DB_NAME,
-  serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+  serverSelectionTimeoutMS: 5000,
 })
   .then(() => console.log('✅ Connected to MongoDB Atlas'))
   .catch((err) => {
