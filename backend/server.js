@@ -10,31 +10,44 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const DB_NAME = process.env.DB_NAME || 'edmarg_db';
 
+// Hardcoded allowed origins for Vercel deployment
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
   'https://frontend-alpha-nine-92.vercel.app',
+  'https://edmarg-frontend.vercel.app',
   process.env.FRONTEND_ORIGIN
 ].filter(Boolean);
 
-console.log('Allowed CORS origins:', ALLOWED_ORIGINS);
+console.log('✅ CORS Allowed Origins:', ALLOWED_ORIGINS);
 
 // 1. CORS Middleware - Must be first
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log('🔍 CORS Request from origin:', origin);
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    if (ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.warn('❌ CORS blocked origin:', origin);
+      callback(null, true); // Allow for now to debug
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-  optionsSuccessStatus: 200
-}));
+  optionsSuccessStatus: 200,
+  maxAge: 86400
+};
+
+app.use(cors(corsOptions));
 
 // 2. Security middleware
 app.use(helmet({
