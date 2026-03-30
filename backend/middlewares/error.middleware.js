@@ -44,9 +44,9 @@ const errorHandler = (err, req, res, next) => {
     success: false,
     message: process.env.NODE_ENV === 'development' ? message : 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    // Include hint for the user if it looks like a JWT or DB error
-    ...(message.includes('secretOrPrivateKey') && { hint: 'Check JWT_SECRET environment variable' }),
-    ...(message.includes('buffering timed out') && { hint: 'Check MONGODB_URI connectivity' }),
+    // ALWAYS Include hint for the user if it looks like a JWT or DB error to help with 500s
+    ...(message.includes('secretOrPrivateKey') && { hint: 'CRITICAL: JWT_SECRET environment variable is missing on the server' }),
+    ...(message.includes('buffering timed out') && { hint: 'CRITICAL: MONGODB_URI is failing. Check Atlas whitelist and connectivity' }),
   });
 };
 
