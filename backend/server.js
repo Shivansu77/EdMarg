@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
+const { setCorsHeaders } = require('./lib/withCors');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,43 +28,12 @@ const ALLOWED_ORIGINS = [
 
 console.log('✅ CORS Allowed Origins:', ALLOWED_ORIGINS);
 
-// 1. CORS Middleware - Must be truly first
-const corsOptions = {
-  origin: function (origin, callback) {
-    console.log('🔍 CORS Request from origin:', origin);
-    
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) {
-      return callback(null, true);
-    }
-    
-    if (ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.warn('❌ CORS blocked origin:', origin);
-      // Still allow for now to prevent blocking during transition, but log it
-      callback(null, true); 
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
-  optionsSuccessStatus: 200,
-  maxAge: 86400
-};
-
-// Handle preflight for all routes
-app.use(cors(corsOptions));
-
-// Manual CORS fallback for errors/edge cases
+// 1. CORS Middleware - Layer 3 (Fallback)
 app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else if (!origin) {
-    // If no origin, don't set the header unless you want to allow *
+  setCorsHeaders(req, res);
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
   }
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   next();
 });
 
