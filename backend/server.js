@@ -10,6 +10,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const DB_NAME = process.env.DB_NAME || 'edmarg_db';
 
+// 0. Base Configuration - Root level fixes for Vercel
+app.set('trust proxy', 1);
+app.disable('x-powered-by');
+
 // Hardcoded allowed origins for Vercel deployment
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
@@ -23,7 +27,7 @@ const ALLOWED_ORIGINS = [
 
 console.log('✅ CORS Allowed Origins:', ALLOWED_ORIGINS);
 
-// 1. CORS Middleware - Must be first
+// 1. CORS Middleware - Must be truly first
 const corsOptions = {
   origin: function (origin, callback) {
     console.log('🔍 CORS Request from origin:', origin);
@@ -37,7 +41,8 @@ const corsOptions = {
       callback(null, true);
     } else {
       console.warn('❌ CORS blocked origin:', origin);
-      callback(null, true); // Allow for now to debug
+      // Still allow for now to prevent blocking during transition, but log it
+      callback(null, true); 
     }
   },
   credentials: true,
@@ -47,7 +52,21 @@ const corsOptions = {
   maxAge: 86400
 };
 
+// Handle preflight for all routes
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
+
+// Manual CORS fallback for errors/edge cases
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    // If no origin, don't set the header unless you want to allow *
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  next();
+});
 
 // 2. Security middleware
 app.use(helmet({
