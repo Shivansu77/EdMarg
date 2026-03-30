@@ -44,9 +44,10 @@ const errorHandler = (err, req, res, next) => {
     success: false,
     message: process.env.NODE_ENV === 'development' ? message : 'Internal server error',
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    // ALWAYS Include hint for the user if it looks like a JWT or DB error to help with 500s
+    // ALWAYS Include hint for the user if it looks like a JWT or DB or Zoom error to help with 500s
     ...(message.includes('secretOrPrivateKey') && { hint: 'CRITICAL: JWT_SECRET environment variable is missing on the server' }),
     ...(message.includes('buffering timed out') && { hint: 'CRITICAL: MONGODB_URI is failing. Check Atlas whitelist and connectivity' }),
+    ...(message.includes('Zoom environment variables') && { hint: 'CRITICAL: Zoom Credentials (ID/Secret) are missing on the server' }),
   });
 };
 
