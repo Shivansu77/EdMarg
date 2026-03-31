@@ -404,7 +404,7 @@ function MentorsContent() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {shownMentors.map((mentor) => {
                       const tags = mentor.mentorProfile?.expertise?.slice(0, 3) || [];
                       const rating = mentor.mentorProfile?.rating ?? 0;
@@ -435,10 +435,13 @@ function MentorsContent() {
 
                           <div className="p-5 flex flex-col flex-1">
                             <div className="mb-3">
-                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{mentor.name}</h3>
-                              <p className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
-                                <Briefcase size={12} />
-                                {experience > 0 ? `${experience} ${experience === 1 ? 'year' : 'years'} of experience` : 'Industry Expert'}
+                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                {mentor.name}
+                              </h3>
+                              <p className="text-xs text-gray-500 font-medium mt-1">
+                                {experience > 0
+                                  ? `${experience} ${experience === 1 ? 'year' : 'years'} of experience`
+                                  : 'Industry Expert'}
                               </p>
                             </div>
 
@@ -447,7 +450,7 @@ function MentorsContent() {
                                 tags.map((tag) => (
                                   <span
                                     key={`${mentor._id}-${tag}`}
-                                    className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200 truncate max-w-[130px]"
+                                    className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200"
                                     title={tag}
                                   >
                                     {tag}
@@ -477,8 +480,8 @@ function MentorsContent() {
                                 </button>
                               </Link>
                               <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
-                                <button className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1">
-                                  {isLoggedIn ? 'Connect' : 'Sign in'} <ChevronRight size={14} />
+                                <button className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg">
+                                  {isLoggedIn ? 'Connect' : 'Sign in'}
                                 </button>
                               </Link>
                             </div>
@@ -493,7 +496,7 @@ function MentorsContent() {
                     <button
                       onClick={loadMoreMentors}
                       disabled={!canLoadMore}
-                      className="px-7 py-3 rounded-xl text-sm font-extrabold shadow-md transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-lg"
+                      className="px-7 py-3 rounded-xl text-sm font-extrabold shadow-md transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 bg-gray-900 text-white hover:bg-black hover:shadow-lg"
                     >
                       {loadingMore
                         ? 'Loading more...'
