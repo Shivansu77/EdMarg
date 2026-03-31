@@ -34,7 +34,6 @@ function TakeAssessmentContent() {
 
   const [assignment, setAssignment] = useState<Assignment | null>(null);
   const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -261,12 +260,11 @@ function TakeAssessmentContent() {
     );
   }
 
-  const currentQuestion = assignment.template.questions[currentStep];
-  const progress = Math.round(((currentStep + 1) / assignment.template.questions.length) * 100);
   const answeredCount = Object.keys(answers).filter(key => {
     const val = answers[key];
     return val !== undefined && val !== '' && !(Array.isArray(val) && val.length === 0);
   }).length;
+  const progress = Math.round((answeredCount / assignment.template.questions.length) * 100);
 
   return (
     <DashboardLayout userName="Student">
@@ -274,12 +272,10 @@ function TakeAssessmentContent() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mb-2">
-                {assignment.template.title}
-              </p>
               <h1 className="text-3xl font-bold text-gray-900">
-                Question {currentStep + 1} of {assignment.template.questions.length}
+                {assignment.template.title}
               </h1>
+              <p className="text-gray-600 mt-2">{assignment.template.description}</p>
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold text-blue-600">{progress}%</p>
@@ -296,41 +292,42 @@ function TakeAssessmentContent() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 mb-6">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              {currentQuestion.question}
-              {currentQuestion.required && <span className="text-red-500 ml-1">*</span>}
-            </h2>
-            <p className="text-sm text-gray-500">
-              {currentQuestion.required ? 'Required' : 'Optional'}
-            </p>
-          </div>
+        <div className="space-y-6 mb-6">
+          {assignment.template.questions.map((question, idx) => (
+            <div key={question.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
+              <div className="mb-6">
+                <div className="flex items-start gap-3">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-black text-white flex items-center justify-center font-bold text-sm">
+                    {idx + 1}
+                  </span>
+                  <div className="flex-1">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      {question.question}
+                      {question.required && <span className="text-red-500 ml-1">*</span>}
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {question.required ? 'Required' : 'Optional'}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-          {renderQuestion(currentQuestion)}
+              <div className="ml-11">
+                {renderQuestion(question)}
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => router.push('/student/assessments')}
-              className="flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold"
-            >
-              <ArrowLeft size={18} />
-              Exit
-            </button>
-            
-            {currentStep > 0 && (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(prev => prev - 1)}
-                className="flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold"
-              >
-                Previous
-              </button>
-            )}
-          </div>
+        <div className="flex items-center justify-between gap-4 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <button
+            type="button"
+            onClick={() => router.push('/student/assessments')}
+            className="flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold"
+          >
+            <ArrowLeft size={18} />
+            Back
+          </button>
 
           <div className="flex gap-2">
             <button
@@ -343,26 +340,15 @@ function TakeAssessmentContent() {
               {saving ? 'Saving...' : 'Save Progress'}
             </button>
 
-            {currentStep < assignment.template.questions.length - 1 ? (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(prev => prev + 1)}
-                className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-900 font-semibold"
-              >
-                Next
-                <ArrowRight size={18} />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={submitting}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:opacity-50"
-              >
-                <CheckCircle size={18} />
-                {submitting ? 'Submitting...' : 'Submit Assessment'}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={submitting}
+              className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-semibold disabled:opacity-50"
+            >
+              <CheckCircle size={18} />
+              {submitting ? 'Submitting...' : 'Submit Assessment'}
+            </button>
           </div>
         </div>
       </div>

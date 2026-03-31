@@ -48,8 +48,8 @@ const mentorNavItems = [
 
 const adminNavItems = [
   { name: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
+  { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Assessments', href: '/admin/assessments', icon: ClipboardCheck },
-  { name: 'Mentor Approvals', href: '/admin/dashboard', icon: Users },
   { name: 'Platform Stats', href: '/admin/dashboard', icon: BadgeCheck },
 ];
 

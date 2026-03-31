@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -181,9 +182,10 @@ function AdminDashboardContent() {
             <section className="rounded-2xl border border-gray-200 bg-white shadow-sm p-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
                 {adminStats.map((stat) => (
-                  <article
+                  <Link
                     key={stat.label}
-                    className="rounded-xl border border-gray-100 bg-gray-50 p-5"
+                    href="/admin/users"
+                    className="rounded-xl border border-gray-100 bg-gray-50 p-5 hover:bg-gray-100 transition-colors cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-lg bg-black text-white flex items-center justify-center">
@@ -198,7 +200,7 @@ function AdminDashboardContent() {
                         </h2>
                       </div>
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
             </section>

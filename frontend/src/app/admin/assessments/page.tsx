@@ -131,9 +131,10 @@ function AdminAssessmentsContent() {
       console.log('Loading students...');
       const res = await apiClient.get<{ users: Student[] }>('/api/admin/users', { params: { role: 'student' } });
       console.log('Students response:', res);
-      if (res.success && res.data?.users) {
-        console.log('Students loaded:', res.data.users.length);
-        setStudents(res.data.users);
+      if (res.success && res.data) {
+        const studentsList = Array.isArray(res.data) ? res.data : res.data.users || [];
+        console.log('Students loaded:', studentsList.length);
+        setStudents(studentsList);
       } else {
         console.error('Failed to load students:', res.error);
       }
@@ -455,7 +456,7 @@ function AdminAssessmentsContent() {
                   <div key={assignment._id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold">{assignment.template.title}</h3>
+                        <h3 className="text-lg font-bold">{assignment.template?.title || 'Template Deleted'}</h3>
                         <p className="text-sm text-gray-600 mt-1">
                           Assigned to {assignment.assignedTo.length} student{assignment.assignedTo.length !== 1 ? 's' : ''}
                         </p>
@@ -509,7 +510,7 @@ function AdminAssessmentsContent() {
                           <div className="font-semibold">{response.student.name}</div>
                           <div className="text-sm text-gray-600">{response.student.email}</div>
                         </td>
-                        <td className="py-3 px-4">{response.assignment.template.title}</td>
+                        <td className="py-3 px-4">{response.assignment?.template?.title || 'Template Deleted'}</td>
                         <td className="py-3 px-4">
                           <span className={`px-2 py-1 rounded text-xs font-semibold ${
                             response.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
@@ -752,39 +753,39 @@ function AdminAssessmentsContent() {
                     </span>
                   </div>
 
-                  {!assignmentForm.assignToAll && (
+                  {!assignmentForm.assignToAll && students.length > 0 && (
                     <>
                       <label className="block text-sm font-semibold mb-2">Or Select Specific Students</label>
                       <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
-                        {students.length === 0 ? (
-                          <p className="text-sm text-gray-500">No students available</p>
-                        ) : (
-                          students.map((student) => (
-                            <label key={student._id} className="flex items-center gap-2 py-2 hover:bg-gray-50 px-2 rounded cursor-pointer">
-                              <input
-                                type="checkbox"
-                                checked={assignmentForm.studentIds.includes(student._id)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setAssignmentForm({
-                                      ...assignmentForm,
-                                      studentIds: [...assignmentForm.studentIds, student._id]
-                                    });
-                                  } else {
-                                    setAssignmentForm({
-                                      ...assignmentForm,
-                                      studentIds: assignmentForm.studentIds.filter(id => id !== student._id)
-                                    });
-                                  }
-                                }}
-                                className="w-4 h-4 text-blue-600"
-                              />
-                              <span className="text-sm">{student.name} ({student.email})</span>
-                            </label>
-                          ))
-                        )}
+                        {students.map((student) => (
+                          <label key={student._id} className="flex items-center gap-2 py-2 hover:bg-gray-50 px-2 rounded cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={assignmentForm.studentIds.includes(student._id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setAssignmentForm({
+                                    ...assignmentForm,
+                                    studentIds: [...assignmentForm.studentIds, student._id]
+                                  });
+                                } else {
+                                  setAssignmentForm({
+                                    ...assignmentForm,
+                                    studentIds: assignmentForm.studentIds.filter(id => id !== student._id)
+                                  });
+                                }
+                              }}
+                              className="w-4 h-4 text-blue-600"
+                            />
+                            <span className="text-sm">{student.name} ({student.email})</span>
+                          </label>
+                        ))}
                       </div>
                     </>
+                  )}
+
+                  {!assignmentForm.assignToAll && students.length === 0 && (
+                    <p className="text-sm text-gray-500">No students available</p>
                   )}
                 </div>
 
@@ -857,7 +858,7 @@ function AdminAssessmentsContent() {
 
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <p className="text-sm text-gray-600">Assessment</p>
-                  <p className="font-semibold">{selectedResponse.assignment.template.title}</p>
+                  <p className="font-semibold">{selectedResponse.assignment?.template?.title || 'Template Deleted'}</p>
                 </div>
 
                 <div>
