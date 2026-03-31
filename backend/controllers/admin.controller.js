@@ -21,6 +21,26 @@ exports.getAllUsers = async (req, res, next) => {
   }
 };
 
+exports.getPendingMentors = async (req, res, next) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+
+    const result = await adminService.getPendingMentors(page, limit);
+
+    res.status(200).json({
+      success: true,
+      count: result.mentors.length,
+      total: result.total,
+      page: result.page,
+      pages: result.pages,
+      data: result.mentors,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.approveMentor = async (req, res, next) => {
   try {
     const { id } = req.params;

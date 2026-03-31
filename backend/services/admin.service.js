@@ -60,8 +60,18 @@ class AdminService {
     };
   }
 
-  async getPendingMentors(limit = 10) {
-    return userRepository.findPendingMentors(limit);
+  async getPendingMentors(page = 1, limit = 20) {
+    const [mentors, total] = await Promise.all([
+      userRepository.findPendingMentors(page, limit),
+      userRepository.countPendingMentors(),
+    ]);
+
+    return {
+      mentors,
+      total,
+      page,
+      pages: Math.ceil(total / Math.max(1, limit)),
+    };
   }
 }
 

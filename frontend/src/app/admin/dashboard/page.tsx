@@ -25,26 +25,35 @@ type Mentor = {
 function AdminDashboardContent() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pendingMentors, setPendingMentors] = useState<Mentor[]>([]);
+  const [pendingPage, setPendingPage] = useState(1);
+  const [pendingPages, setPendingPages] = useState(1);
+  const [pendingTotal, setPendingTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const fetchStats = async () => {
+      const statsRes = await fetch('/api/admin/stats');
+      if (!statsRes.ok) throw new Error('Failed to fetch stats');
+      const statsData = await statsRes.json();
+      setStats(statsData.data);
+    };
+
+    const fetchPending = async (page: number) => {
+      const pendingRes = await fetch(`/api/admin/mentors/pending?page=${page}`);
+      if (!pendingRes.ok) throw new Error('Failed to fetch pending mentors');
+      const pendingData = await pendingRes.json();
+      setPendingMentors(pendingData.data || []);
+      setPendingPage(pendingData.page || page);
+      setPendingPages(pendingData.pages || 1);
+      setPendingTotal(pendingData.total || 0);
+    };
+
     const fetchData = async () => {
       try {
-        const [statsRes, usersRes] = await Promise.all([
-          fetch('/api/admin/stats'),
-          fetch('/api/admin/users?role=mentor&limit=5'),
-        ]);
-
-        if (!statsRes.ok || !usersRes.ok) throw new Error('Failed to fetch data');
-
-        const statsData = await statsRes.json();
-        const usersData = await usersRes.json();
-
-        setStats(statsData.data);
-        setPendingMentors(
-          usersData.data.filter((mentor: Mentor) => mentor.mentorProfile?.approvalStatus === 'pending')
-        );
+        setLoading(true);
+        setError(null);
+        await Promise.all([fetchStats(), fetchPending(pendingPage)]);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch data');
       } finally {
@@ -52,8 +61,24 @@ function AdminDashboardContent() {
       }
     };
 
-    fetchData();
+    void fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const fetchPending = async (page: number) => {
+      const pendingRes = await fetch(`/api/admin/mentors/pending?page=${page}`);
+      if (!pendingRes.ok) throw new Error('Failed to fetch pending mentors');
+      const pendingData = await pendingRes.json();
+      setPendingMentors(pendingData.data || []);
+      setPendingPages(pendingData.pages || 1);
+      setPendingTotal(pendingData.total || 0);
+    };
+
+    void fetchPending(pendingPage).catch((err) => {
+      setError(err instanceof Error ? err.message : 'Failed to fetch pending mentors');
+    });
+  }, [pendingPage]);
 
   const adminStats = [
     { label: 'Students Active', value: stats?.totalStudents || '0', icon: GraduationCap },
@@ -66,12 +91,13 @@ function AdminDashboardContent() {
     try {
       const res = await fetch(`/api/admin/mentors/${mentorId}/approve`, { method: 'PUT' });
       if (res.ok) {
-        setPendingMentors((current) => current.filter((mentor) => mentor._id !== mentorId));
-        setStats((prev) => prev ? ({
-          ...prev,
-          approvedMentors: prev.approvedMentors + 1,
-          pendingMentors: Math.max(0, prev.pendingMentors - 1),
-        }) : prev);
+        // Reload both stats and current pending page to keep counts correct.
+        setPendingPage(1);
+        const statsRes = await fetch('/api/admin/stats');
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData.data);
+        }
       }
     } catch (err) {
       console.error('Error approving mentor:', err);
@@ -86,11 +112,12 @@ function AdminDashboardContent() {
         body: JSON.stringify({ reason: 'Rejected by admin' }),
       });
       if (res.ok) {
-        setPendingMentors((current) => current.filter((mentor) => mentor._id !== mentorId));
-        setStats((prev) => prev ? ({
-          ...prev,
-          pendingMentors: Math.max(0, prev.pendingMentors - 1),
-        }) : prev);
+        setPendingPage(1);
+        const statsRes = await fetch('/api/admin/stats');
+        if (statsRes.ok) {
+          const statsData = await statsRes.json();
+          setStats(statsData.data);
+        }
       }
     } catch (err) {
       console.error('Error rejecting mentor:', err);
@@ -137,6 +164,9 @@ function AdminDashboardContent() {
             {pendingMentors.length > 0 && (
               <section className="bg-surface-container-low rounded-[1.5rem] p-8">
                 <h2 className="text-2xl font-bold mb-6">Pending Mentor Approvals</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Showing page <span className="font-bold">{pendingPage}</span> of <span className="font-bold">{pendingPages}</span> (total pending: <span className="font-bold">{pendingTotal}</span>)
+                </p>
                 <div className="space-y-4">
                   {pendingMentors.map((mentor) => (
                     <div key={mentor._id} className="rounded-lg border border-gray-200 p-4 flex items-center justify-between bg-white">
@@ -166,6 +196,32 @@ function AdminDashboardContent() {
                     </div>
                   ))}
                 </div>
+
+                <div className="flex items-center justify-center gap-3 mt-8">
+                  <button
+                    onClick={() => setPendingPage((p) => Math.max(1, p - 1))}
+                    disabled={pendingPage <= 1}
+                    className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => setPendingPage((p) => Math.min(pendingPages, p + 1))}
+                    disabled={pendingPage >= pendingPages}
+                    className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </section>
+            )}
+
+            {pendingMentors.length === 0 && (
+              <section className="bg-surface-container-low rounded-[1.5rem] p-8">
+                <h2 className="text-2xl font-bold mb-2">Pending Mentor Approvals</h2>
+                <p className="text-gray-600">
+                  No pending mentors found at the moment.
+                </p>
               </section>
             )}
           </>

@@ -57,14 +57,26 @@ class UserRepository {
     return User.countDocuments({ role });
   }
 
-  async findPendingMentors(limit) {
+  async findPendingMentors(page = 1, limit = 20) {
+    const safePage = Math.max(1, Number(page) || 1);
+    const safeLimit = Math.max(1, Math.min(50, Number(limit) || 20));
+    const skip = (safePage - 1) * safeLimit;
+
     return User.find({
       role: 'mentor',
       'mentorProfile.approvalStatus': 'pending',
     })
       .select('-password')
-      .limit(limit)
+      .skip(skip)
+      .limit(safeLimit)
       .lean();
+  }
+
+  async countPendingMentors() {
+    return User.countDocuments({
+      role: 'mentor',
+      'mentorProfile.approvalStatus': 'pending',
+    });
   }
 
   async updateMentorStatus(id, status, metadata = {}) {

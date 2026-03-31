@@ -46,12 +46,19 @@ const mentorNavItems = [
   { name: 'Profile', href: '/mentor/profile', icon: UserCircle },
 ];
 
+const adminNavItems = [
+  { name: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
+  { name: 'Mentor Approvals', href: '/admin/dashboard', icon: Users },
+  { name: 'Platform Stats', href: '/admin/dashboard', icon: BadgeCheck },
+];
+
 const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed }: SidebarProps) => {
   const pathname = usePathname();
   const { user } = useAuth();
   const isRightSide = side === 'right';
   
-  const navItems = user?.role === 'mentor' ? mentorNavItems : studentNavItems;
+  const navItems =
+    user?.role === 'admin' ? adminNavItems : user?.role === 'mentor' ? mentorNavItems : studentNavItems;
 
   return (
     <>
