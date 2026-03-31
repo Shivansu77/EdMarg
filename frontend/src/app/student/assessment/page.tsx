@@ -1,8 +1,10 @@
 'use client';
 
 import { type ComponentType, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,6 +29,8 @@ type Question = {
   subtitle: string;
   options: Option[];
 };
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
 
 const questions: Question[] = [
   {
@@ -104,6 +108,8 @@ const questions: Question[] = [
 function StudentAssessmentContent() {
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
 
   const currentQuestion = questions[currentStep];
   const selectedOption = answers[currentQuestion.id];
@@ -122,6 +128,34 @@ function StudentAssessmentContent() {
     if (!selectedOption) return;
     if (currentStep < questions.length - 1) {
       setCurrentStep((step) => step + 1);
+    }
+  };
+
+  const submitAssessment = async () => {
+    if (!selectedOption) return;
+
+    try {
+      setSubmitting(true);
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/v1/users/assessment`,
+        createAuthenticatedRequestInit({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answers }),
+        })
+      );
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result?.message || result?.error || 'Unable to submit assessment');
+      }
+
+      router.push('/student/results');
+    } catch (err) {
+      console.error('Assessment submit failed:', err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -197,11 +231,12 @@ function StudentAssessmentContent() {
 
           <button
             type="button"
-            onClick={onNext}
-            disabled={!selectedOption || currentStep === questions.length - 1}
+            onClick={currentStep === questions.length - 1 ? submitAssessment : onNext}
+            disabled={!selectedOption || submitting}
             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {currentStep === questions.length - 1 ? 'Complete' : 'Next'} <ArrowRight className="h-4 w-4" />
+            {submitting ? 'Submitting...' : currentStep === questions.length - 1 ? 'Complete' : 'Next'}{' '}
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>

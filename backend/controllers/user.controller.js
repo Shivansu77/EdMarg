@@ -151,6 +151,24 @@ exports.updateUserProfile = async (req, res, next) => {
   }
 };
 
+/* ================= SUBMIT ASSESSMENT ================= */
+exports.submitAssessment = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { answers } = req.body;
+
+    const submission = await userService.submitAssessment(userId, answers);
+
+    return res.status(200).json({
+      success: true,
+      data: submission,
+      message: 'Assessment submitted successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 /* ================= BROWSE MENTORS ================= */
 exports.getBrowseMentors = async (req, res, next) => {
   try {

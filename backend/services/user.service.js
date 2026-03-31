@@ -2,7 +2,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/user.repository');
 const { TokenBlacklist } = require('../models/user.model');
-const { UnauthorizedError } = require('../utils/errors');
+const { UnauthorizedError, ValidationError } = require('../utils/errors');
+const studentAssessmentRepository = require('../repositories/studentAssessment.repository');
 
 const isBcryptHash = (value = '') =>
   typeof value === 'string' &&
@@ -103,6 +104,19 @@ class UserService {
       throw new Error('User not found');
     }
     return userRepository.updateUserProfile(userId, data);
+  }
+
+  async submitAssessment(userId, answers) {
+    if (!answers || typeof answers !== 'object' || Array.isArray(answers)) {
+      throw new ValidationError('Invalid assessment payload');
+    }
+
+    const answerKeys = Object.keys(answers);
+    if (answerKeys.length === 0) {
+      throw new ValidationError('Assessment answers cannot be empty');
+    }
+
+    return studentAssessmentRepository.upsertAssessment(userId, answers);
   }
 }
 

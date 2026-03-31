@@ -1,4 +1,5 @@
 const userRepository = require('../repositories/user.repository');
+const studentAssessmentRepository = require('../repositories/studentAssessment.repository');
 
 class AdminService {
   async getAllUsers(page = 1, limit = 20, role = null) {
@@ -70,6 +71,20 @@ class AdminService {
       mentors,
       total,
       page,
+      pages: Math.ceil(total / Math.max(1, limit)),
+    };
+  }
+
+  async getAssessmentSubmissions(page = 1, limit = 20) {
+    const [assessments, total] = await Promise.all([
+      studentAssessmentRepository.findRecent({ page, limit }),
+      studentAssessmentRepository.countAll(),
+    ]);
+
+    return {
+      assessments,
+      total,
+      page: Math.max(1, Number(page) || 1),
       pages: Math.ceil(total / Math.max(1, limit)),
     };
   }
