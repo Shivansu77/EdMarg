@@ -54,11 +54,11 @@ function MentorsContent() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Pagination
+  const LOAD_MORE_STEP = 5;
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const [hasMoreMentors, setHasMoreMentors] = useState(true);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,32 +75,55 @@ function MentorsContent() {
     setIsLoggedIn(!!token);
   }, []);
 
+  const fetchMentorsPage = async (page: number, append = false) => {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/users/browsementor?page=${page}&limit=${LOAD_MORE_STEP}`,
+      createAuthenticatedRequestInit({ method: 'GET' })
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to load mentors (${response.status})`);
+    }
+
+    const result = await response.json();
+    const pageData: Mentor[] = Array.isArray(result?.data) ? result.data : [];
+
+    setMentors((prev) => {
+      if (!append) {
+        return pageData;
+      }
+
+      const byId = new Map(prev.map((m) => [m._id, m]));
+      for (const mentor of pageData) {
+        byId.set(mentor._id, mentor);
+      }
+      return Array.from(byId.values());
+    });
+
+    if (typeof result?.pages === 'number') {
+      setHasMoreMentors(page < result.pages);
+    } else {
+      setHasMoreMentors(pageData.length === LOAD_MORE_STEP);
+    }
+  };
+
   useEffect(() => {
-    const fetchMentors = async () => {
+    const fetchInitialMentors = async () => {
       try {
         setLoading(true);
         setError(null);
-
-        const response = await fetch(
-          `${API_BASE_URL}/api/v1/users/browsementor`,
-          createAuthenticatedRequestInit({ method: 'GET' })
-        );
-
-        if (!response.ok) {
-          throw new Error(`Failed to load mentors (${response.status})`);
-        }
-
-        const result = await response.json();
-        setMentors(Array.isArray(result?.data) ? result.data : []);
-        setFilteredMentors(Array.isArray(result?.data) ? result.data : []);
+        await fetchMentorsPage(1, false);
+        setCurrentPage(1);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unable to fetch mentors right now.');
+        setMentors([]);
+        setFilteredMentors([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchMentors();
+    fetchInitialMentors();
   }, []);
 
   // Filtering Logic
@@ -147,15 +170,10 @@ function MentorsContent() {
     });
 
     setFilteredMentors(filtered);
-    setCurrentPage(1);
   }, [searchQuery, careerDomain, experienceMax, minRating, priceMax, mentors]);
 
-  const paginatedMentors = filteredMentors.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  const totalPages = Math.ceil(filteredMentors.length / itemsPerPage);
+  const shownMentors = filteredMentors;
+  const canLoadMore = hasMoreMentors && !loadingMore;
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -163,6 +181,21 @@ function MentorsContent() {
     setExperienceMax(30);
     setMinRating(0);
     setPriceMax(10000);
+  };
+
+  const loadMoreMentors = async () => {
+    if (!hasMoreMentors || loadingMore) return;
+    const nextPage = currentPage + 1;
+
+    try {
+      setLoadingMore(true);
+      await fetchMentorsPage(nextPage, true);
+      setCurrentPage(nextPage);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load more mentors.');
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   const activeFilterCount = (careerDomain !== 'All Domains' ? 1 : 0) + (minRating > 0 ? 1 : 0) + (experienceMax < 30 ? 1 : 0) + (priceMax < 10000 ? 1 : 0);
@@ -196,26 +229,24 @@ function MentorsContent() {
         }
       `}} />
 
-      <div className="space-y-8 pb-16 bg-gray-50/50 min-h-screen">
+      <div className="space-y-8 pb-16 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
         
         {/* Dynamic Header */}
-        <div className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/40 px-6 pb-12 pt-10 sm:px-8">
-            <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-indigo-100/40 rounded-full blur-3xl opacity-60"></div>
-            <div className="absolute bottom-0 left-10 w-60 h-60 bg-blue-100/40 rounded-full blur-3xl opacity-60"></div>
-            
-            <div className="relative z-10 max-w-4xl">
-              <p className="text-xs font-bold uppercase tracking-widest text-indigo-500/80 mb-2">Mentor Directory</p>
-              <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight sm:text-5xl">Connect with Industry Experts</h1>
-              <p className="mt-3 text-lg text-gray-600/90 leading-relaxed tracking-wide">
-                Build your perfect career trajectory by learning directly from professionals exactly where you want to be.
-              </p>
-            </div>
+        <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
+          <div className="max-w-4xl">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+              Find Your Mentor
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Connect with industry experts curated for your career goals.
+            </p>
+          </div>
         </div>
 
         <div className="px-6 sm:px-8 max-w-[1500px] mx-auto space-y-8">
           
           {/* HORIZONTAL FILTER BAR */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 relative z-20">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 relative z-20">
              
              {/* Primary Row */}
              <div className="flex flex-col lg:flex-row gap-4 items-center">
@@ -228,7 +259,7 @@ function MentorsContent() {
                     placeholder="Search by name, role, or skill..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 bg-gray-50 border-none rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/50 focus:bg-white transition-all outline-none"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
                   />
                 </div>
 
@@ -240,7 +271,7 @@ function MentorsContent() {
                   <select
                     value={careerDomain}
                     onChange={(e) => setCareerDomain(e.target.value)}
-                    className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500/50 focus:bg-white transition-all outline-none appearance-none cursor-pointer"
+                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
                   >
                     {DOMAIN_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
@@ -255,7 +286,7 @@ function MentorsContent() {
                   <select
                     value={minRating}
                     onChange={(e) => setMinRating(Number(e.target.value))}
-                    className="w-full pl-11 pr-10 py-3 bg-gray-50 border-none rounded-xl text-sm font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500/50 focus:bg-white transition-all outline-none appearance-none cursor-pointer"
+                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
                   >
                     {RATING_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
@@ -268,8 +299,8 @@ function MentorsContent() {
                      onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                      className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
                        showAdvancedFilters || activeFilterCount > 0
-                       ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                       : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-50'
+                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                       : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                      }`}
                    >
                      <SlidersHorizontal size={16} />
@@ -353,7 +384,7 @@ function MentorsContent() {
               {/* Results Count Header */}
               <div className="flex items-center justify-between mb-2 px-2">
                 <div className="text-gray-500 font-medium text-sm">
-                  Showing <span className="font-black text-gray-900">{paginatedMentors.length}</span> of <span className="font-black text-gray-900">{filteredMentors.length}</span> mentors
+                  Showing <span className="font-black text-gray-900">{shownMentors.length}</span> of <span className="font-black text-gray-900">{filteredMentors.length}</span> mentors
                 </div>
               </div>
 
@@ -374,103 +405,80 @@ function MentorsContent() {
               ) : (
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {paginatedMentors.map((mentor) => {
+                    {shownMentors.map((mentor) => {
                       const tags = mentor.mentorProfile?.expertise?.slice(0, 3) || [];
-                      const rating = mentor.mentorProfile?.rating ?? 4.9;
-                      const bio = mentor.mentorProfile?.bio || 'Career mentor available for highly personalized growth sessions.';
+                      const rating = mentor.mentorProfile?.rating ?? 0;
+                      const bio = mentor.mentorProfile?.bio || 'Career mentor available for personalized sessions.';
                       const experience = mentor.mentorProfile?.experienceYears ?? 0;
                       const price = mentor.mentorProfile?.pricePerSession;
-                      const hasImage = mentor.profileImage && mentor.profileImage.trim() !== '';
 
                       return (
                         <div
                           key={mentor._id}
-                          className="group flex flex-col rounded-3xl border border-gray-100 bg-white overflow-hidden hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 transition-all duration-300"
+                          className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col"
                         >
-                          {/* Image Header with Gradient Overlay */}
-                          <div className="relative h-44 bg-gray-100 overflow-hidden">
-                             {hasImage ? (
-                                <Image
-                                  src={mentor.profileImage!}
-                                  alt={mentor.name}
-                                  fill
-                                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                                />
-                            ) : (
-                              <div className="absolute inset-0 bg-gradient-to-br from-indigo-100 to-blue-50 flex items-center justify-center">
-                                <User className="w-16 h-16 text-indigo-300/50" strokeWidth={1.5} />
-                              </div>
-                            )}
-                            
-                            {/* Absolute Rating Badge */}
+                          <div className="relative h-48 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 overflow-hidden">
+                            <Image
+                              src={mentor.profileImage || `https://ui-avatars.com/api/?background=3b82f6&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
+                              alt={mentor.name}
+                              fill
+                              sizes="(max-width: 1024px) 100vw, 25vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
                             {rating > 0 && (
-                              <div className="absolute top-4 right-4 flex items-center gap-1 bg-white/95 backdrop-blur-sm px-2.5 py-1.5 rounded-lg shadow-sm">
-                                <Star size={14} className="fill-amber-400 text-amber-500" />
-                                <span className="text-xs font-black text-gray-900">{Number(rating).toFixed(1)}</span>
+                              <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1.5 shadow-lg flex items-center gap-1">
+                                <Star size={16} className="fill-yellow-400 text-yellow-400" />
+                                <span className="text-sm font-bold text-gray-900">{Number(rating).toFixed(1)}</span>
                               </div>
                             )}
-                            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-gray-900/60 to-transparent"></div>
-                            
-                            {/* Name & Title over image */}
-                            <div className="absolute bottom-4 left-4 right-4">
-                                <h3 className="text-xl font-black text-white tracking-tight truncate drop-shadow-md">{mentor.name}</h3>
-                                <p className="text-xs font-bold text-white/90 flex items-center gap-1.5 mt-1 drop-shadow-md">
-                                  <Briefcase size={12} className="opacity-80"/>
-                                  {experience > 0 ? `${experience} ${experience === 1 ? 'yr' : 'yrs'} exp` : 'Industry Expert'}
-                                </p>
-                            </div>
                           </div>
 
-                          {/* Body Content */}
-                          <div className="flex flex-col flex-1 p-6">
-                            <p className="text-sm text-gray-500 font-medium line-clamp-2 leading-relaxed flex-1">
-                              &quot;{bio}&quot;
-                            </p>
+                          <div className="p-5 flex flex-col flex-1">
+                            <div className="mb-3">
+                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors truncate">{mentor.name}</h3>
+                              <p className="text-xs text-gray-500 font-medium mt-1 flex items-center gap-1.5">
+                                <Briefcase size={12} />
+                                {experience > 0 ? `${experience} ${experience === 1 ? 'year' : 'years'} of experience` : 'Industry Expert'}
+                              </p>
+                            </div>
 
-                            {/* Tags */}
-                            <div className="mt-4 flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-2 mb-4">
                               {tags.length > 0 ? (
                                 tags.map((tag) => (
                                   <span
                                     key={`${mentor._id}-${tag}`}
-                                    className="inline-block rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-1 text-[10px] font-bold text-gray-600 truncate max-w-[120px]"
+                                    className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200 truncate max-w-[130px]"
                                     title={tag}
                                   >
                                     {tag}
                                   </span>
                                 ))
                               ) : (
-                                <span className="inline-block rounded-lg bg-gray-50 border border-gray-100 px-2.5 py-1 text-[10px] font-bold text-gray-500">
+                                <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 border border-gray-200">
                                   General
                                 </span>
                               )}
                             </div>
 
-                            <div className="h-px bg-gray-100 my-5" />
+                            <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1">{bio}</p>
 
-                            {/* Footer Pricing & Actions */}
-                            <div className="flex items-center justify-between mb-5">
-                               <div>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Rate</p>
-                                  <p className="text-lg font-black text-gray-900 tracking-tighter mt-0.5">
-                                    {price ? `₹${price}` : 'Free'}
-                                  </p>
-                               </div>
-                               <div className="text-right">
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Length</p>
-                                  <p className="text-sm font-bold text-gray-600 mt-0.5">45 min</p>
-                               </div>
+                            <div className="border-t border-gray-200 pt-4 mb-4">
+                              <p className="text-xs text-gray-500 font-medium mb-1">Starting from</p>
+                              <p className="text-xl font-bold text-gray-900">
+                                {price ? `₹${price}` : 'Free'}
+                                <span className="text-sm font-medium text-gray-600">/session</span>
+                              </p>
                             </div>
-                            
-                            <div className="flex gap-2.5 mt-auto">
-                              <Link href={`/student/mentors/${mentor._id}`} className="flex-[0.4]">
-                                <button className="w-full rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 p-2.5 flex justify-center items-center transition-all group-btn group-hover:bg-indigo-50 group-hover:border-indigo-100">
-                                  <User size={18} className="text-gray-600 group-hover:text-indigo-600" />
+
+                            <div className="flex gap-3">
+                              <Link href={`/student/mentors/${mentor._id}`} className="flex-1">
+                                <button className="w-full rounded-lg bg-gray-100 hover:bg-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 transition-all duration-200 border border-gray-200">
+                                  View Profile
                                 </button>
                               </Link>
-                              <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-[0.6]">
-                                <button className="w-full rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-bold text-white shadow-md hover:bg-black hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 group-hover:bg-indigo-600 group-hover:shadow-indigo-500/25">
-                                  {isLoggedIn ? 'Book' : 'Sign in'} <ChevronRight size={16} />
+                              <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
+                                <button className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg flex items-center justify-center gap-1">
+                                  {isLoggedIn ? 'Connect' : 'Sign in'} <ChevronRight size={14} />
                                 </button>
                               </Link>
                             </div>
@@ -480,49 +488,20 @@ function MentorsContent() {
                     })}
                   </div>
 
-                  {/* Pagination */}
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-3 mt-12 py-6">
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1}
-                        className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm text-sm font-bold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:shadow transition-all"
-                      >
-                        Prev
-                      </button>
-                      <div className="flex gap-2">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          let page;
-                          if (totalPages <= 5) page = i + 1;
-                          else if (currentPage <= 3) page = i + 1;
-                          else if (currentPage >= totalPages - 2) page = totalPages - 4 + i;
-                          else page = currentPage - 2 + i;
-                          
-                          const isActive = currentPage === page;
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => setCurrentPage(page)}
-                              className={`w-10 h-10 flex items-center justify-center rounded-xl text-sm font-bold shadow-sm flex-shrink-0 transition-all ${
-                                isActive
-                                  ? 'bg-gray-900 text-white border-transparent'
-                                  : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-300'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <button
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages}
-                        className="px-5 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm text-sm font-bold text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 hover:shadow transition-all"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
+                  {/* Browse more mentors */}
+                  <div className="flex items-center justify-center mt-12 py-6">
+                    <button
+                      onClick={loadMoreMentors}
+                      disabled={!canLoadMore}
+                      className="px-7 py-3 rounded-xl text-sm font-extrabold shadow-md transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:shadow-lg"
+                    >
+                      {loadingMore
+                        ? 'Loading more...'
+                        : canLoadMore
+                          ? `Browse more mentors (+${LOAD_MORE_STEP})`
+                          : 'Browse more mentors (No more)'}
+                    </button>
+                  </div>
                 </>
               )}
             </>
