@@ -104,6 +104,7 @@ const mentorRouteV1 = require('./routes/v1/mentor.route');
 const zoomRouteV1 = require('./routes/v1/zoom.route');
 const userRouteV2 = require('./routes/v2/user.route');
 const adminRouteV2 = require('./routes/v2/admin.route');
+const assessmentRoute = require('./routes/assessment.route');
 const errorHandler = require('./middlewares/error.middleware');
 
 app.use('/api/v1/users', authLimiter, userRouteV1);
@@ -112,6 +113,7 @@ app.use('/api/v1/bookings', bookingRouteV1);
 app.use('/api/v1/availability', availabilityRouteV1);
 app.use('/api/v1/mentor', mentorRouteV1);
 app.use('/api/v1/zoom', zoomRouteV1);
+app.use('/api/v1/assessments', assessmentRoute);
 app.use('/api/v2/users', authLimiter, userRouteV2);
 app.use('/api/v2/admin', adminRouteV2);
 

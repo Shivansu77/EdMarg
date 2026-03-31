@@ -29,7 +29,7 @@ interface SidebarProps {
 
 const studentNavItems = [
   { name: 'Dashboard', href: '/student/dashboard', icon: LayoutGrid },
-  { name: 'Assessment', href: '/student/assessment', icon: ClipboardCheck },
+  { name: 'Assessments', href: '/student/assessments', icon: ClipboardCheck },
   { name: 'Results', href: '/student/results', icon: BadgeCheck },
   { name: 'Mentors', href: '/student/mentors', icon: Users },
   { name: 'Book Session', href: '/student/mentors', icon: CalendarCheck },
@@ -48,6 +48,7 @@ const mentorNavItems = [
 
 const adminNavItems = [
   { name: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
+  { name: 'Assessments', href: '/admin/assessments', icon: ClipboardCheck },
   { name: 'Mentor Approvals', href: '/admin/dashboard', icon: Users },
   { name: 'Platform Stats', href: '/admin/dashboard', icon: BadgeCheck },
 ];
