@@ -12,7 +12,12 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // Log error for server-side debugging
-  console.error('ERROR 💥:', err);
+  console.error(`ERROR 🔥 [${req.method} ${req.url}]:`, {
+    message: err.message,
+    name: err.name,
+    code: err.code,
+    stack: err.stack,
+  });
 
   if (err.name === 'ValidationError') {
     return res.status(400).json({

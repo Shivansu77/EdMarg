@@ -44,6 +44,7 @@ class UserService {
     const user = await userRepository.findByEmail(normalizedEmail);
 
     if (!user) {
+      console.warn(`[AUTH_FAILURE] User not found: ${normalizedEmail}`);
       throw new UnauthorizedError('Invalid credentials');
     }
 
@@ -61,9 +62,11 @@ class UserService {
     }
 
     if (!isValid) {
+      console.warn(`[AUTH_FAILURE] Invalid password for user: ${normalizedEmail}`);
       throw new UnauthorizedError('Invalid credentials');
     }
 
+    console.log(`[AUTH_SUCCESS] User logged in: ${normalizedEmail}`);
     return user;
   }
 

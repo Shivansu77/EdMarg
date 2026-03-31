@@ -1,15 +1,13 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const cors = require('cors');
 const { setCorsHeaders } = require('./lib/withCors');
+const connectDB = require('./lib/db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const DB_NAME = process.env.DB_NAME || 'edmarg_db';
 
 // 0. Base Configuration - Root level fixes for Vercel
 app.set('trust proxy', 1);
@@ -56,9 +54,21 @@ if (!process.env.JWT_SECRET) {
 if (!process.env.MONGODB_URI) {
   console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
 }
-if (!process.env.ZOOM_ACCOUNT_ID || !process.env.ZOOM_CLIENT_ID || !process.env.ZOOM_CLIENT_SECRET) {
-  console.warn('WARNING: Zoom environment variables are missing. Meeting generation will fail.');
-}
+
+// 1.5 Database Connection Middleware - Root level fix for serverless
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('DB_CONNECTION_FAILURE:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Initial server connection failure. Please try again in 5 seconds.',
+      hint: 'MONGODB_URI connectivity issue'
+    });
+  }
+});
 
 // Request logger middleware
 app.use((req, res, next) => {
@@ -116,12 +126,8 @@ app.get('/api/status', (req, res) => {
 // Error handling
 app.use(errorHandler);
 
-// Database connection - connect asynchronously without blocking app startup
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/edmarg_db', connectionOptions)
-  .then(() => console.log('✅ Connected to MongoDB Atlas'))
-  .catch((err) => {
-    console.error('❌ MongoDB connection failed.', err.message);
-  });
+// Database connection - NO LONGER NEEDED HERE as it is handled by connectDB middleware
+// connectionOptions moved to lib/db.js
 
 // Export app immediately for Vercel
 module.exports = app;

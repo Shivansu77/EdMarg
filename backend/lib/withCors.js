@@ -14,12 +14,24 @@ const ALLOWED_ORIGINS = [
 
 function setCorsHeaders(req, res) {
   const origin = req.headers.origin;
-  if (ALLOWED_ORIGINS.includes(origin)) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  const isLocalOrigin =
+    typeof origin === 'string' &&
+    (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
+
+  // In production we enforce an allow-list; in dev we allow local origins.
+  if (origin && (!isProduction ? isLocalOrigin || ALLOWED_ORIGINS.includes(origin) : ALLOWED_ORIGINS.includes(origin))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
   }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  const requestedHeaders = req.headers['access-control-request-headers'];
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    requestedHeaders || 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
   res.setHeader('Access-Control-Max-Age', '86400');
 }
 

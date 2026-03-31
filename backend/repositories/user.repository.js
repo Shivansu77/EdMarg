@@ -2,8 +2,10 @@ const { User } = require('../models/user.model');
 
 const buildPublicMentorQuery = () => ({
   role: 'mentor',
+  // Include approved, pending, and legacy mentors (missing status).
+  // Only hide explicitly rejected mentors from student browse.
   $or: [
-    { 'mentorProfile.approvalStatus': 'approved' },
+    { 'mentorProfile.approvalStatus': { $ne: 'rejected' } },
     { 'mentorProfile.approvalStatus': { $exists: false } },
   ],
 });
