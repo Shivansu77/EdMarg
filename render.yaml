@@ -1,0 +1,43 @@
+services:
+  # Backend Service
+  - type: web
+    name: edmarg-backend
+    runtime: node
+    env: node
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: FRONTEND_ORIGIN
+        value: https://edmarg.onrender.com
+      - key: LOG_LEVEL
+        value: info
+    healthCheckPath: /api/v1/health
+
+  # Frontend Service
+  - type: web
+    name: edmarg-frontend
+    runtime: node
+    env: node
+    buildCommand: cd frontend && npm install && npm run build
+    startCommand: cd frontend && npm start
+    envVars:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://edmarg-backend.onrender.com/api/v1
+      - key: NEXT_PUBLIC_BACKEND_URL
+        value: https://edmarg-backend.onrender.com
+      - key: NEXT_PUBLIC_APP_NAME
+        value: EdMarg
+      - key: NEXT_PUBLIC_ENVIRONMENT
+        value: production
+      - key: NODE_ENV
+        value: production
