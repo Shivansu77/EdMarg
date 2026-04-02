@@ -3,12 +3,11 @@
  */
 
 const ALLOWED_ORIGINS = [
+  'https://edmarg.com',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
-  'https://frontend-alpha-nine-92.vercel.app',
-  'https://edmarg-frontend.vercel.app',
   process.env.FRONTEND_ORIGIN,
 ].filter(Boolean);
 

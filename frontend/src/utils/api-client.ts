@@ -1,12 +1,9 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-const API_VERSION = 'v1';
-const VERSIONED_API_PATTERN = /^\/api\/v\d+\//;
 
 const getStoredToken = () => {
   if (typeof window === 'undefined') {
     return null;
   }
-
   return window.localStorage.getItem('token');
 };
 
@@ -23,19 +20,13 @@ interface ApiResponse<T> {
 
 class ApiClient {
   private baseUrl: string;
-  private version: string;
 
-  constructor(baseUrl: string = API_BASE_URL, version: string = API_VERSION) {
+  constructor(baseUrl: string = API_BASE_URL) {
     this.baseUrl = baseUrl;
-    this.version = version;
   }
 
   private buildUrl(endpoint: string, params?: Record<string, string | number | boolean>): string {
-    const versionedEndpoint = endpoint.startsWith('/api/') && !VERSIONED_API_PATTERN.test(endpoint)
-      ? endpoint.replace('/api/', `/api/${this.version}/`)
-      : endpoint;
-    
-    const url = new URL(`${this.baseUrl}${versionedEndpoint}`);
+    const url = new URL(`${this.baseUrl}${endpoint}`);
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         url.searchParams.append(key, String(value));

@@ -13,14 +13,13 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
-// Hardcoded allowed origins for Vercel deployment
+// Hardcoded allowed origins for production deployment
 const ALLOWED_ORIGINS = [
+  'https://edmarg.com',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
-  'https://frontend-alpha-nine-92.vercel.app',
-  'https://edmarg-frontend.vercel.app',
   process.env.FRONTEND_ORIGIN
 ].filter(Boolean);
 
