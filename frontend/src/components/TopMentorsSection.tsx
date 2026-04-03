@@ -1,19 +1,63 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 
-const MENTORS = [
-  { name: 'Dr. Aris V.', role: 'Senior Product Designer', company: 'Google', rating: 4.9, students: 340, successRate: 94, image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400', tags: ['UX Design', 'Career Growth'] },
-  { name: 'Sarah Chen', role: 'Software Architect', company: 'Stripe', rating: 5.0, students: 210, successRate: 98, image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=400', tags: ['System Design', 'Fintech'] },
-  { name: 'Marcus Thorne', role: 'Strategy Lead', company: 'McKinsey', rating: 4.8, students: 480, successRate: 91, image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400', tags: ['Consulting', 'Leadership'] },
-];
+type Mentor = {
+  _id: string;
+  name: string;
+  email: string;
+  profileImage?: string;
+  mentorProfile?: {
+    expertise?: string[];
+    bio?: string;
+    experienceYears?: number;
+    pricePerSession?: number;
+    rating?: number;
+  };
+};
 
 const TopMentorsSection = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [mentors, setMentors] = useState<Mentor[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/v1/users/browsementor`);
+        if (response.ok) {
+          const result = await response.json();
+          const mentorData = Array.isArray(result?.data) ? result.data.slice(0, 3) : [];
+          setMentors(mentorData);
+        }
+      } catch (error) {
+        console.error('Failed to fetch mentors:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMentors();
+  }, []);
+
   const scroll = (d: 'left' | 'right') => scrollRef.current?.scrollBy({ left: d === 'left' ? -350 : 350, behavior: 'smooth' });
+
+  if (loading) {
+    return (
+      <section id="mentors" className="py-20 lg:py-28 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+          <div className="inline-block w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+        </div>
+      </section>
+    );
+  }
+
+  if (mentors.length === 0) {
+    return null;
+  }
 
   return (
     <section id="mentors" className="py-20 lg:py-28 bg-white border-t border-gray-100">
@@ -31,7 +75,7 @@ const TopMentorsSection = () => {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <Link
               href="/browse-mentors"
-              className="px-6 py-2.5 rounded-lg font-semibold text-sm bg-blue-600 text-white hover:bg-blue-700 transition-colors whitespace-nowrap"
+              className="px-6 py-2.5 rounded-lg font-semibold text-sm bg-black text-white hover:bg-gray-800 transition-colors whitespace-nowrap"
             >
               Browse All Mentors
             </Link>
@@ -51,15 +95,24 @@ const TopMentorsSection = () => {
           ref={scrollRef}
           className="flex overflow-x-auto lg:grid lg:grid-cols-3 gap-6 pb-4 snap-x snap-mandatory hide-scrollbar"
         >
-          {MENTORS.map((mentor, idx) => (
+          {mentors.map((mentor) => {
+            const tags = mentor.mentorProfile?.expertise?.slice(0, 2) || ['Mentoring'];
+            const rating = mentor.mentorProfile?.rating ?? 4.8;
+            const students = 150;
+            const successRate = 92;
+            const image = mentor.profileImage || `https://ui-avatars.com/api/?background=000000&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=400&bold=true`;
+            const role = mentor.mentorProfile?.bio?.substring(0, 50) || 'Career Mentor';
+            const company = 'EdMarg';
+
+            return (
             <div
-              key={idx}
+              key={mentor._id}
               className="group relative flex min-w-[85vw] snap-center flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:shadow-lg sm:min-w-87.5 lg:min-w-0"
             >
               {/* Image */}
               <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-100">
                 <Image 
-                  src={mentor.image} 
+                  src={image} 
                   alt={mentor.name} 
                   fill
                   sizes="(max-width: 1024px) 100vw, 33vw"
@@ -69,13 +122,13 @@ const TopMentorsSection = () => {
                 {/* Rating */}
                 <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg shadow-md border border-gray-200">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-bold text-gray-900">{mentor.rating}</span>
+                  <span className="text-sm font-bold text-gray-900">{rating}</span>
                 </div>
 
                 {/* Company Badge */}
                 <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-md">
-                  <BriefcaseBusiness className="h-3.5 w-3.5 text-blue-600" />
-                  {mentor.company}
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-black" />
+                  {company}
                 </div>
               </div>
 
@@ -83,7 +136,7 @@ const TopMentorsSection = () => {
               <div className="flex grow flex-col p-6">
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {mentor.tags.map(tag => (
+                  {tags.map((tag: string) => (
                     <span key={tag} className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded border border-gray-200">
                       {tag}
                     </span>
@@ -95,22 +148,22 @@ const TopMentorsSection = () => {
                   {mentor.name}
                 </h3>
                 <p className="text-gray-600 text-sm mb-6">
-                  {mentor.role} <span className="text-gray-400">•</span> <span className="font-semibold text-gray-900">{mentor.company}</span>
+                  {role} <span className="text-gray-400">•</span> <span className="font-semibold text-gray-900">{company}</span>
                 </p>
 
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-gray-900">
-                      <Users className="w-4 h-4 text-blue-600" />
-                      <span className="font-bold">{mentor.students}+</span>
+                      <Users className="w-4 h-4 text-black" />
+                      <span className="font-bold">{students}+</span>
                     </div>
                     <span className="text-xs text-gray-600">Students Guided</span>
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2 text-gray-900">
-                      <Award className="w-4 h-4 text-green-600" />
-                      <span className="font-bold">{mentor.successRate}%</span>
+                      <Award className="w-4 h-4 text-black" />
+                      <span className="font-bold">{successRate}%</span>
                     </div>
                     <span className="text-xs text-gray-600">Success Rate</span>
                   </div>
@@ -127,7 +180,8 @@ const TopMentorsSection = () => {
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

@@ -48,7 +48,7 @@ function MentorSettingsContent() {
         setLoading(true);
         setError('');
 
-        const response = await apiClient.get<MentorSettings>('/api/mentor/settings');
+        const response = await apiClient.get<MentorSettings>('/api/v1/mentor/settings');
         if (!response.success || !response.data) {
           throw new Error(response.error || response.message || 'Unable to load mentor settings');
         }
@@ -72,7 +72,7 @@ function MentorSettingsContent() {
       setError('');
       setSuccess('');
 
-      const response = await apiClient.put('/api/mentor/profile', {
+      const response = await apiClient.put('/api/v1/mentor/profile', {
         pricePerSession: Number(settings.pricePerSession),
         sessionDuration: Number(settings.sessionDuration),
         autoConfirm: settings.autoConfirm,

@@ -67,7 +67,7 @@ function StatCard({ stat, animate }: { stat: typeof STATS[0]; animate: boolean }
 
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-6 text-center hover:shadow-lg transition-shadow">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-black">
         <Icon className="h-5 w-5" />
       </div>
       <div className="mb-1 text-3xl font-bold text-gray-900">
@@ -137,7 +137,7 @@ const ResultsSection = ({ hideIntro = false }: ResultsSectionProps) => {
                 {step.step}
               </div>
 
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-black">
                 {step.icon}
               </div>
               <h3 className="mb-3 text-xl font-bold text-gray-900">

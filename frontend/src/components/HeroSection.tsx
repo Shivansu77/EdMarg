@@ -20,7 +20,7 @@ const HeroSection = () => {
           <div>
             {/* Badge */}
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2">
-              <Sparkles className="h-4 w-4 text-blue-600" />
+              <Sparkles className="h-4 w-4 text-black" />
               <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                 Trusted by 10,000+ learners
               </span>
@@ -29,7 +29,7 @@ const HeroSection = () => {
             {/* Heading */}
             <h1 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight mb-6">
               Build Career Clarity
-              <span className="block text-blue-600 mt-2">With Expert Guidance</span>
+              <span className="block text-black mt-2">With Expert Guidance</span>
             </h1>
 
             {/* Description */}
@@ -41,7 +41,7 @@ const HeroSection = () => {
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link
                 href="/assessment"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-black hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors duration-200"
               >
                 Take Assessment
                 <ArrowRight className="h-4 w-4" />
@@ -60,7 +60,7 @@ const HeroSection = () => {
                 {['A', 'B', 'C', 'D'].map((letter) => (
                   <div
                     key={letter}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-blue-500 to-indigo-600 text-xs font-semibold text-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-gray-700 to-black text-xs font-semibold text-white"
                   >
                     {letter}
                   </div>
@@ -87,8 +87,8 @@ const HeroSection = () => {
 
             {/* Floating Card */}
             <div className="absolute -bottom-6 left-6 right-6 sm:left-auto sm:right-0 sm:w-80 flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-lg">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 flex-shrink-0">
-                <CheckCircle2 className="h-5 w-5 text-blue-600" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 flex-shrink-0">
+                <CheckCircle2 className="h-5 w-5 text-black" />
               </div>
               <div>
                 <p className="font-semibold text-gray-900 text-sm">Career direction identified</p>

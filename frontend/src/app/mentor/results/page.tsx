@@ -76,9 +76,9 @@ function MentorResultsContent() {
         setError('');
 
         const [statsResponse, settingsResponse, bookingsResponse] = await Promise.all([
-          apiClient.get<BookingStats>('/api/mentor/bookings/stats'),
-          apiClient.get<MentorSettings>('/api/mentor/settings'),
-          apiClient.get<{ bookings: RecentBooking[] }>('/api/mentor/bookings?limit=8'),
+          apiClient.get<BookingStats>('/api/v1/mentor/bookings/stats'),
+          apiClient.get<MentorSettings>('/api/v1/mentor/settings'),
+          apiClient.get<{ bookings: RecentBooking[] }>('/api/v1/mentor/bookings?limit=8'),
         ]);
 
         if (!statsResponse.success || !statsResponse.data) {

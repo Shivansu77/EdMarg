@@ -78,7 +78,7 @@ function MentorRequestsContent() {
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get<{ bookings: Booking[] }>('/api/mentor/bookings?limit=50');
+      const response = await apiClient.get<{ bookings: Booking[] }>('/api/v1/mentor/bookings?limit=50');
       if (response.success && response.data?.bookings) {
         setBookings(response.data.bookings);
       } else {
@@ -105,7 +105,7 @@ function MentorRequestsContent() {
     setActionLoading(bookingId);
     try {
       const payload = reason ? { reason } : undefined;
-      const res = await apiClient.put<{ startUrl?: string }>(`/api/mentor/bookings/${bookingId}/${action}`, payload);
+      const res = await apiClient.put<{ startUrl?: string }>(`/api/v1/mentor/bookings/${bookingId}/${action}`, payload);
       if (res.success) {
         if ((action === 'start' || action === 'accept') && res.data?.startUrl) {
           window.open(res.data.startUrl, '_blank');
@@ -124,7 +124,7 @@ function MentorRequestsContent() {
   const handleRetryZoom = async (bookingId: string) => {
     setActionLoading(bookingId);
     try {
-      const res = await apiClient.put<{ startUrl?: string }>(`/api/mentor/bookings/${bookingId}/start`);
+      const res = await apiClient.put<{ startUrl?: string }>(`/api/v1/mentor/bookings/${bookingId}/start`);
       if (res.success) {
         if (res.data?.startUrl) {
           window.open(res.data.startUrl, '_blank');

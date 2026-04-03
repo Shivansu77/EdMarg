@@ -28,7 +28,7 @@ export default function MentorStudentsPage() {
     const fetchStudentsData = async () => {
       try {
         // Fetch up to 200 bookings to extract unique students
-        const res = await apiClient.get<{ bookings: { student: { _id: string; name: string; email: string; profileImage?: string }; status: string; date: string }[] }>('/api/mentor/bookings?limit=200');
+        const res = await apiClient.get<{ bookings: { student: { _id: string; name: string; email: string; profileImage?: string }; status: string; date: string }[] }>('/api/v1/mentor/bookings?limit=200');
         if (res.success && res.data?.bookings) {
           const bookings = res.data.bookings;
           

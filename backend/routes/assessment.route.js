@@ -14,6 +14,7 @@ router.delete('/templates/:id', protect, authorize('admin'), assessmentControlle
 router.post('/assignments', protect, authorize('admin'), assessmentController.createAssignment);
 router.get('/assignments', protect, authorize('admin', 'mentor'), assessmentController.getAllAssignments);
 router.get('/assignments/my', protect, authorize('student'), assessmentController.getMyAssignments);
+router.get('/assignments/:id/student', protect, authorize('student'), assessmentController.getStudentAssignment);
 router.put('/assignments/:id', protect, authorize('admin'), assessmentController.updateAssignment);
 router.delete('/assignments/:id', protect, authorize('admin'), assessmentController.deleteAssignment);
 

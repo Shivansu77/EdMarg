@@ -1,5 +1,5 @@
 const assessmentRepository = require('../repositories/assessment.repository');
-const { NotFoundError, ValidationError } = require('../utils/errors');
+const { NotFoundError, ValidationError, ForbiddenError } = require('../utils/errors');
 
 class AssessmentService {
   async createTemplate(adminId, { title, description, questions }) {
@@ -47,6 +47,21 @@ class AssessmentService {
     return assessmentRepository.findAssignmentsByStudent(studentId);
   }
 
+  async getAssignmentForStudent(assignmentId, studentId) {
+    const assignment = await assessmentRepository.findAssignmentById(assignmentId);
+    if (!assignment) throw new NotFoundError('Assignment not found');
+    if (!assignment.isActive) throw new NotFoundError('Assignment not found');
+
+    const sid = String(studentId);
+    const allowed = (assignment.assignedTo || []).some((entry) => {
+      const id = entry && entry._id ? entry._id : entry;
+      return String(id) === sid;
+    });
+    if (!allowed) throw new ForbiddenError('This assessment is not assigned to you');
+
+    return assignment;
+  }
+
   async getAllAssignments() {
     return assessmentRepository.findAllAssignments();
   }
@@ -66,7 +81,14 @@ class AssessmentService {
   async saveResponse(assignmentId, studentId, answers, isSubmit = false) {
     const assignment = await assessmentRepository.findAssignmentById(assignmentId);
     if (!assignment) throw new NotFoundError('Assignment not found');
-    
+
+    const sid = String(studentId);
+    const allowed = (assignment.assignedTo || []).some((entry) => {
+      const id = entry && entry._id ? entry._id : entry;
+      return String(id) === sid;
+    });
+    if (!allowed) throw new ForbiddenError('This assessment is not assigned to you');
+
     const status = isSubmit ? 'completed' : 'pending';
     return assessmentRepository.createOrUpdateResponse(assignmentId, studentId, answers, status);
   }

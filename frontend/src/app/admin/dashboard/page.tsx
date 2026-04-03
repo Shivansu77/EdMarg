@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import { apiClient } from '@/utils/api-client';
 import { BriefcaseBusiness, GraduationCap, ShieldCheck, UserCog, CheckCircle, XCircle } from 'lucide-react';
 
 type DashboardStats = {
@@ -48,33 +49,27 @@ function AdminDashboardContent() {
   const [error, setError] = useState<string | null>(null);
 
   const loadDashboard = async (page: number) => {
-    const [statsRes, pendingRes] = await Promise.all([
-      fetch('/api/admin/stats'),
-      fetch(`/api/admin/mentors/pending?page=${page}`),
-    ]);
+    const statsRes = await apiClient.get<DashboardStats>('/api/v1/admin/stats');
+    const pendingRes = await apiClient.get<Mentor[]>(`/api/v1/admin/mentors/pending?page=${page}`);
 
-    if (!statsRes.ok) throw new Error('Failed to fetch stats');
-    if (!pendingRes.ok) throw new Error('Failed to fetch pending mentors');
+    if (!statsRes.success) throw new Error('Failed to fetch stats');
+    if (!pendingRes.success) throw new Error('Failed to fetch pending mentors');
 
-    const statsData = await statsRes.json();
-    const pendingData = await pendingRes.json();
-
-    setStats(statsData.data);
-    setPendingMentors(pendingData.data || []);
-    setPendingPage(pendingData.page || page);
-    setPendingPages(pendingData.pages || 1);
-    setPendingTotal(pendingData.total || 0);
+    setStats(statsRes.data || null);
+    setPendingMentors(pendingRes.data || []);
+    setPendingPage(pendingRes.page || page);
+    setPendingPages(pendingRes.pages || 1);
+    setPendingTotal(pendingRes.total || 0);
   };
 
   const loadAssessments = async (page: number) => {
-    const assessmentsRes = await fetch(`/api/admin/assessments?page=${page}&limit=10`);
-    if (!assessmentsRes.ok) throw new Error('Failed to fetch assessments');
+    const assessmentsRes = await apiClient.get<AssessmentSubmission[]>(`/api/v1/admin/assessments?page=${page}&limit=10`);
+    if (!assessmentsRes.success) throw new Error('Failed to fetch assessments');
 
-    const assessmentsData = await assessmentsRes.json();
-    setAssessments(assessmentsData.data || []);
-    setAssessmentPage(assessmentsData.page || page);
-    setAssessmentPages(assessmentsData.pages || 1);
-    setAssessmentTotal(assessmentsData.total || 0);
+    setAssessments(assessmentsRes.data || []);
+    setAssessmentPage(assessmentsRes.page || page);
+    setAssessmentPages(assessmentsRes.pages || 1);
+    setAssessmentTotal(assessmentsRes.total || 0);
   };
 
   useEffect(() => {
@@ -120,8 +115,8 @@ function AdminDashboardContent() {
 
   const handleApproveMentor = async (mentorId: string) => {
     try {
-      const res = await fetch(`/api/admin/mentors/${mentorId}/approve`, { method: 'PUT' });
-      if (res.ok) {
+      const res = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/approve`, {});
+      if (res.success) {
         setPendingPage(1);
         await loadDashboard(1);
       }
@@ -132,12 +127,8 @@ function AdminDashboardContent() {
 
   const handleRejectMentor = async (mentorId: string) => {
     try {
-      const res = await fetch(`/api/admin/mentors/${mentorId}/reject`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: 'Rejected by admin' }),
-      });
-      if (res.ok) {
+      const res = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/reject`, { reason: 'Rejected by admin' });
+      if (res.success) {
         setPendingPage(1);
         await loadDashboard(1);
       }

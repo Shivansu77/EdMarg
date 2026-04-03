@@ -32,7 +32,7 @@ function AdminUsersContent() {
     setLoading(true);
     try {
       const role = activeTab === 'students' ? 'student' : 'mentor';
-      const res = await apiClient.get<{ users: User[] }>('/api/admin/users', { params: { role } });
+      const res = await apiClient.get<{ users: User[] }>('/api/v1/admin/users', { params: { role } });
       console.log('Users API response:', res);
       if (res.success && res.data) {
         const usersList = Array.isArray(res.data) ? res.data : res.data.users || [];

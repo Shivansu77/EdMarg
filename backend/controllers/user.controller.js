@@ -194,6 +194,28 @@ exports.getBrowseMentors = async (req, res, next) => {
   }
 };
 
+/* ================= GET MENTOR BY ID ================= */
+exports.getMentorById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const mentor = await userService.getMentorById(id);
+
+    if (!mentor) {
+      return res.status(404).json({
+        success: false,
+        message: 'Mentor not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: mentor,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 /* ================= LOGOUT ================= */
 exports.logoutUser = async (req, res, next) => {
   try {

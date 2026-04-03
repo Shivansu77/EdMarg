@@ -16,6 +16,10 @@ interface ApiResponse<T> {
   data?: T;
   message?: string;
   error?: string;
+  page?: number;
+  pages?: number;
+  total?: number;
+  count?: number;
 }
 
 class ApiClient {

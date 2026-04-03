@@ -52,7 +52,7 @@ function MentorScheduleContent() {
   useEffect(() => {
     const fetchAvailability = async () => {
       try {
-        const res = await apiClient.get<BackendSchedule[]>('/api/mentor/availability');
+        const res = await apiClient.get<BackendSchedule[]>('/api/v1/mentor/availability');
         if (res.success && res.data) {
           // Map backend data to our state
           const newSchedules = [...schedules];
@@ -117,7 +117,7 @@ function MentorScheduleContent() {
         }
       }
 
-      const res = await apiClient.put('/api/mentor/availability', { schedules: payload });
+      const res = await apiClient.put('/api/v1/mentor/availability', { schedules: payload });
 
       if (res.success) {
         setSuccessMsg('Schedule updated successfully! Your slots have been automatically generated based on your session duration.');

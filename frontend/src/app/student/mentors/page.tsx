@@ -218,7 +218,7 @@ function MentorsContent() {
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          background: #4f46e5;
+          background: #000000;
           cursor: pointer;
           border: 2px solid white;
           box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -234,7 +234,7 @@ function MentorsContent() {
         {/* Dynamic Header */}
         <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
           <div className="max-w-4xl">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-black">
               Find Your Mentor
             </h1>
             <p className="text-gray-600 mt-2">
@@ -259,19 +259,19 @@ function MentorsContent() {
                     placeholder="Search by name, role, or skill..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-medium focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
                   />
                 </div>
 
                 {/* Domain */}
                 <div className="relative w-full lg:w-[25%] group">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                     <Briefcase className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 transition-colors" />
+                     <Briefcase className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" />
                   </div>
                   <select
                     value={careerDomain}
                     onChange={(e) => setCareerDomain(e.target.value)}
-                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
+                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
                   >
                     {DOMAIN_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
@@ -286,7 +286,7 @@ function MentorsContent() {
                   <select
                     value={minRating}
                     onChange={(e) => setMinRating(Number(e.target.value))}
-                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
+                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
                   >
                     {RATING_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                   </select>
@@ -299,14 +299,14 @@ function MentorsContent() {
                      onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                      className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
                        showAdvancedFilters || activeFilterCount > 0
-                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                       ? 'bg-gray-100 text-black border border-gray-300'
                        : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
                      }`}
                    >
                      <SlidersHorizontal size={16} />
                      Filters
                      {activeFilterCount > 0 && (
-                       <span className="bg-indigo-600 text-white text-[10px] px-2 py-0.5 rounded-full ml-1">{activeFilterCount}</span>
+                       <span className="bg-black text-white text-[10px] px-2 py-0.5 rounded-full ml-1">{activeFilterCount}</span>
                      )}
                    </button>
                 </div>
@@ -320,7 +320,7 @@ function MentorsContent() {
                   <div className="flex-1 bg-gray-50/80 p-5 rounded-2xl border border-gray-100">
                      <div className="flex justify-between items-center mb-4">
                         <label className="font-extrabold text-sm text-gray-900">Experience Cap</label>
-                        <span className="text-xs font-black text-indigo-600 bg-indigo-100 px-2 py-1 rounded-md">Up to {experienceMax} yrs</span>
+                        <span className="text-xs font-black text-black bg-gray-200 px-2 py-1 rounded-md">Up to {experienceMax} yrs</span>
                      </div>
                      <input
                        type="range"
@@ -336,7 +336,7 @@ function MentorsContent() {
                   <div className="flex-1 bg-gray-50/80 p-5 rounded-2xl border border-gray-100">
                      <div className="flex justify-between items-center mb-4">
                         <label className="font-extrabold text-sm text-gray-900">Maximum Price (₹)</label>
-                        <span className="text-xs font-black text-indigo-600 bg-indigo-100 px-2 py-1 rounded-md">Max ₹{priceMax}</span>
+                        <span className="text-xs font-black text-black bg-gray-200 px-2 py-1 rounded-md">Max ₹{priceMax}</span>
                      </div>
                      <input
                        type="range"
@@ -368,8 +368,8 @@ function MentorsContent() {
             <div className="flex items-center justify-center py-32">
               <div className="text-center">
                 <div className="inline-block relative">
-                   <div className="w-12 h-12 border-4 border-indigo-100 rounded-full"></div>
-                   <div className="w-12 h-12 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
+                   <div className="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
+                   <div className="w-12 h-12 border-4 border-black rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
                 </div>
                 <p className="mt-4 text-sm font-bold text-gray-600 uppercase tracking-widest">Loading mentors...</p>
               </div>
@@ -397,7 +397,7 @@ function MentorsContent() {
                   <p className="mt-2 text-sm font-medium text-gray-500 max-w-sm mx-auto">Try adjusting your Domain, Price, or Experience filters to find more available experts.</p>
                   <button 
                     onClick={clearFilters}
-                    className="mt-8 px-6 py-2.5 bg-indigo-50 text-indigo-700 font-bold rounded-xl hover:bg-indigo-100 transition-colors shadow-sm"
+                    className="mt-8 px-6 py-2.5 bg-gray-100 text-black font-bold rounded-xl hover:bg-gray-200 transition-colors shadow-sm"
                   >
                     Clear All Filters
                   </button>
@@ -415,11 +415,11 @@ function MentorsContent() {
                       return (
                         <div
                           key={mentor._id}
-                          className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col"
+                          className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-black transition-all duration-300 flex flex-col"
                         >
-                          <div className="relative h-48 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 overflow-hidden">
+                          <div className="relative h-48 bg-gradient-to-br from-gray-700 via-gray-800 to-black overflow-hidden">
                             <Image
-                              src={mentor.profileImage || `https://ui-avatars.com/api/?background=3b82f6&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
+                              src={mentor.profileImage || `https://ui-avatars.com/api/?background=000000&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
                               alt={mentor.name}
                               fill
                               sizes="(max-width: 1024px) 100vw, 25vw"
@@ -435,7 +435,7 @@ function MentorsContent() {
 
                           <div className="p-5 flex flex-col flex-1">
                             <div className="mb-3">
-                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors">
                                 {mentor.name}
                               </h3>
                               <p className="text-xs text-gray-500 font-medium mt-1">
@@ -450,7 +450,7 @@ function MentorsContent() {
                                 tags.map((tag) => (
                                   <span
                                     key={`${mentor._id}-${tag}`}
-                                    className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200"
+                                    className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-black border border-gray-300"
                                     title={tag}
                                   >
                                     {tag}
@@ -480,7 +480,7 @@ function MentorsContent() {
                                 </button>
                               </Link>
                               <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
-                                <button className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg">
+                                <button className="w-full rounded-lg bg-black hover:bg-gray-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg">
                                   {isLoggedIn ? 'Connect' : 'Sign in'}
                                 </button>
                               </Link>
@@ -496,7 +496,7 @@ function MentorsContent() {
                     <button
                       onClick={loadMoreMentors}
                       disabled={!canLoadMore}
-                      className="px-7 py-3 rounded-xl text-sm font-extrabold shadow-md transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 bg-gray-900 text-white hover:bg-black hover:shadow-lg"
+                      className="px-7 py-3 rounded-xl text-sm font-extrabold shadow-md transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 bg-black text-white hover:bg-gray-800 hover:shadow-lg"
                     >
                       {loadingMore
                         ? 'Loading more...'

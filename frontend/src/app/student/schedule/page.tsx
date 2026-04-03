@@ -53,7 +53,7 @@ function ScheduleContent() {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get<{ bookings: Booking[] }>('/api/bookings/my-bookings?limit=50');
+      const response = await apiClient.get<{ bookings: Booking[] }>('/api/v1/bookings/my-bookings?limit=50');
       if (response.success && response.data?.bookings) {
         setBookings(response.data.bookings);
       } else {

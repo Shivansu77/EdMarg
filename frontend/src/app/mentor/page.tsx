@@ -75,7 +75,13 @@ function PublicMentorPageContent() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch('/api/mentors');
+        const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/v1/users/browsementor`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
         if (!response.ok) throw new Error('Failed to fetch mentors');
 
         const result = await response.json();

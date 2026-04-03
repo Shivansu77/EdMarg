@@ -94,7 +94,7 @@ function AdminAssessmentsContent() {
     setError(null);
     try {
       if (activeTab === 'templates') {
-        const res = await apiClient.get<Template[]>('/api/assessments/templates');
+        const res = await apiClient.get<Template[]>('/api/v1/assessments/templates');
         console.log('Templates response:', res);
         if (res.success && res.data) {
           setTemplates(res.data);
@@ -102,7 +102,7 @@ function AdminAssessmentsContent() {
           setError('Failed to load templates: ' + (res.error || 'Unknown error'));
         }
       } else if (activeTab === 'assignments') {
-        const res = await apiClient.get<Assignment[]>('/api/assessments/assignments');
+        const res = await apiClient.get<Assignment[]>('/api/v1/assessments/assignments');
         console.log('Assignments response:', res);
         if (res.success && res.data) {
           setAssignments(res.data);
@@ -110,7 +110,7 @@ function AdminAssessmentsContent() {
           setError('Failed to load assignments: ' + (res.error || 'Unknown error'));
         }
       } else if (activeTab === 'responses') {
-        const res = await apiClient.get<Response[]>('/api/assessments/responses');
+        const res = await apiClient.get<Response[]>('/api/v1/assessments/responses');
         console.log('Responses response:', res);
         if (res.success && res.data) {
           setResponses(res.data);
@@ -129,7 +129,7 @@ function AdminAssessmentsContent() {
   const loadStudents = async () => {
     try {
       console.log('Loading students...');
-      const res = await apiClient.get<{ users: Student[] }>('/api/admin/users', { params: { role: 'student' } });
+      const res = await apiClient.get<{ users: Student[] }>('/api/v1/admin/users', { params: { role: 'student' } });
       console.log('Students response:', res);
       if (res.success && res.data) {
         const studentsList = Array.isArray(res.data) ? res.data : res.data.users || [];
@@ -144,14 +144,25 @@ function AdminAssessmentsContent() {
   };
 
   const handleCreateTemplate = async () => {
-    if (!templateForm.title || templateForm.questions.length === 0) {
+    // Auto-add any pending question in the inputs
+    const updatedForm = { ...templateForm };
+    if (currentQuestion.question) {
+      updatedForm.questions = [
+        ...updatedForm.questions,
+        { ...currentQuestion, id: currentQuestion.id || `q${Date.now()}` }
+      ];
+      setTemplateForm(updatedForm);
+      setCurrentQuestion({ id: '', type: 'text', question: '', options: [], required: false });
+    }
+
+    if (!updatedForm.title || updatedForm.questions.length === 0) {
       alert('Please provide a title and at least one question');
       return;
     }
 
     try {
-      console.log('Creating template:', templateForm);
-      const res = await apiClient.post('/api/assessments/templates', templateForm);
+      console.log('Creating template:', updatedForm);
+      const res = await apiClient.post('/api/v1/assessments/templates', updatedForm);
       console.log('Create template response:', res);
       if (res.success) {
         alert('Template created successfully!');
@@ -170,8 +181,24 @@ function AdminAssessmentsContent() {
   const handleUpdateTemplate = async () => {
     if (!editingTemplate) return;
 
+    // Auto-add any pending question in the inputs
+    const updatedForm = { ...templateForm };
+    if (currentQuestion.question) {
+      updatedForm.questions = [
+        ...updatedForm.questions,
+        { ...currentQuestion, id: currentQuestion.id || `q${Date.now()}` }
+      ];
+      setTemplateForm(updatedForm);
+      setCurrentQuestion({ id: '', type: 'text', question: '', options: [], required: false });
+    }
+
+    if (!updatedForm.title || updatedForm.questions.length === 0) {
+      alert('Please provide a title and at least one question');
+      return;
+    }
+
     try {
-      const res = await apiClient.put(`/api/assessments/templates/${editingTemplate._id}`, templateForm);
+      const res = await apiClient.put(`/api/v1/assessments/templates/${editingTemplate._id}`, updatedForm);
       if (res.success) {
         setShowTemplateModal(false);
         setEditingTemplate(null);
@@ -187,7 +214,7 @@ function AdminAssessmentsContent() {
     if (!confirm('Are you sure you want to delete this template?')) return;
 
     try {
-      const res = await apiClient.delete(`/api/assessments/templates/${id}`);
+      const res = await apiClient.delete(`/api/v1/assessments/templates/${id}`);
       if (res.success) loadData();
     } catch (error) {
       console.error('Error deleting template:', error);
@@ -229,7 +256,7 @@ function AdminAssessmentsContent() {
         return;
       }
 
-      const res = await apiClient.post('/api/assessments/assignments', payload);
+      const res = await apiClient.post('/api/v1/assessments/assignments', payload);
       console.log('Assignment creation response:', res);
       
       if (res.success) {
@@ -250,7 +277,7 @@ function AdminAssessmentsContent() {
     if (!confirm('Are you sure you want to delete this assignment?')) return;
 
     try {
-      const res = await apiClient.delete(`/api/assessments/assignments/${id}`);
+      const res = await apiClient.delete(`/api/v1/assessments/assignments/${id}`);
       if (res.success) loadData();
     } catch (error) {
       console.error('Error deleting assignment:', error);

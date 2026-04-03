@@ -36,15 +36,12 @@ class AssessmentRepository {
   }
 
   async findAssignmentsByStudent(studentId) {
-    console.log('Finding assignments for student:', studentId);
-    const assignments = await AssessmentAssignment.find({ assignedTo: studentId, isActive: true })
+    return AssessmentAssignment.find({
+      assignedTo: { $in: [studentId] },
+      isActive: true,
+    })
       .populate('template')
       .sort({ createdAt: -1 });
-    console.log('Found assignments:', assignments.length);
-    if (assignments.length > 0) {
-      console.log('First assignment:', JSON.stringify(assignments[0], null, 2));
-    }
-    return assignments;
   }
 
   async findAllAssignments() {

@@ -41,7 +41,8 @@ export default function BrowseMentorsPage() {
         setLoading(true);
         setError(null);
 
-        const response = await fetch('/api/mentors', {
+        const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const response = await fetch(`${API_URL}/api/v1/users/browsementor`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -120,7 +121,7 @@ export default function BrowseMentorsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">Find Your Mentor</h1>
+              <h1 className="text-4xl font-bold text-black">Find Your Mentor</h1>
               <p className="text-gray-600 mt-2">Connect with industry experts curated for your career goals</p>
             </div>
             <Link href="/" className="text-gray-600 hover:text-gray-900 font-medium text-sm">
@@ -152,14 +153,14 @@ export default function BrowseMentorsPage() {
               {/* Search Bar */}
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                  <Search className="h-5 w-5 text-gray-400 group-focus-within:text-black transition-colors" />
                 </div>
                 <input
                   type="text"
                   placeholder="Search by name, skill, or expertise..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm hover:border-gray-400 transition-all"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent shadow-sm hover:border-gray-400 transition-all"
                 />
               </div>
 
@@ -174,7 +175,7 @@ export default function BrowseMentorsPage() {
                     {selectedSkills.length > 0 && (
                       <button
                         onClick={() => setSelectedSkills([])}
-                        className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors"
+                        className="text-xs font-semibold text-black hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
                       >
                         Clear all
                       </button>
@@ -187,7 +188,7 @@ export default function BrowseMentorsPage() {
                         onClick={() => toggleSkill(skill)}
                         className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
                           selectedSkills.includes(skill)
-                            ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                            ? 'bg-black text-white shadow-md'
                             : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                         }`}
                       >
@@ -200,17 +201,17 @@ export default function BrowseMentorsPage() {
 
               {/* Active Filters */}
               {selectedSkills.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <span className="text-xs font-semibold text-blue-900">Active filters:</span>
+                <div className="flex flex-wrap gap-2 p-4 bg-gray-100 rounded-xl border border-gray-300">
+                  <span className="text-xs font-semibold text-black">Active filters:</span>
                   {selectedSkills.map((skill) => (
                     <div
                       key={skill}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white text-blue-700 text-xs font-semibold border border-blue-200 shadow-sm"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white text-black text-xs font-semibold border border-gray-300 shadow-sm"
                     >
                       {skill}
                       <button
                         onClick={() => toggleSkill(skill)}
-                        className="hover:text-blue-900 ml-1"
+                        className="hover:text-gray-700 ml-1"
                       >
                         <X size={14} />
                       </button>
@@ -222,7 +223,7 @@ export default function BrowseMentorsPage() {
               {/* Results Count */}
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold text-gray-700">
-                  <span className="text-blue-600 font-bold">{paginatedMentors.length}</span> of <span className="text-blue-600 font-bold">{filteredMentors.length}</span> mentors
+                  <span className="text-black font-bold">{paginatedMentors.length}</span> of <span className="text-black font-bold">{filteredMentors.length}</span> mentors
                 </p>
               </div>
 
@@ -252,12 +253,12 @@ export default function BrowseMentorsPage() {
                       return (
                         <div
                           key={mentor._id}
-                          className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-blue-200 transition-all duration-300 flex flex-col"
+                          className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-black transition-all duration-300 flex flex-col"
                         >
                           {/* Image Section with Overlay */}
-                          <div className="relative h-48 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 overflow-hidden">
+                          <div className="relative h-48 bg-gradient-to-br from-gray-700 via-gray-800 to-black overflow-hidden">
                             <Image
-                              src={mentor.profileImage || `https://ui-avatars.com/api/?background=3b82f6&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
+                              src={mentor.profileImage || `https://ui-avatars.com/api/?background=000000&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
                               alt={mentor.name}
                               fill
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
@@ -275,7 +276,7 @@ export default function BrowseMentorsPage() {
                           <div className="p-5 flex flex-col flex-1">
                             {/* Name and Experience */}
                             <div className="mb-3">
-                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{mentor.name}</h3>
+                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors">{mentor.name}</h3>
                               <p className="text-xs text-gray-500 font-medium mt-1">
                                 {experience} {experience === 1 ? 'year' : 'years'} of experience
                               </p>
@@ -287,7 +288,7 @@ export default function BrowseMentorsPage() {
                                 tags.map((tag) => (
                                   <span
                                     key={`${mentor._id}-${tag}`}
-                                    className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 border border-blue-200"
+                                    className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-black border border-gray-300"
                                   >
                                     {tag}
                                   </span>
@@ -319,7 +320,7 @@ export default function BrowseMentorsPage() {
                                 </button>
                               </Link>
                               <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
-                                <button className="w-full rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg">
+                                <button className="w-full rounded-lg bg-black hover:bg-gray-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg">
                                   {isLoggedIn ? 'Connect' : 'Sign in'}
                                 </button>
                               </Link>
@@ -358,7 +359,7 @@ export default function BrowseMentorsPage() {
                               onClick={() => setCurrentPage(page)}
                               className={`px-3 py-2.5 rounded-lg font-semibold transition-all ${
                                 currentPage === page
-                                  ? 'bg-blue-600 text-white shadow-md'
+                                  ? 'bg-black text-white shadow-md'
                                   : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                               }`}
                             >

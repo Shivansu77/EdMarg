@@ -47,7 +47,7 @@ function HistoryContent() {
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get<{ bookings: Booking[] }>('/api/bookings/my-bookings?limit=50&status=completed');
+        const response = await apiClient.get<{ bookings: Booking[] }>('/api/v1/bookings/my-bookings?limit=50&status=completed');
         if (response.success && response.data?.bookings) {
           setBookings(response.data.bookings);
         } else {

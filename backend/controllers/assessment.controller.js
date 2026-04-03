@@ -65,12 +65,19 @@ class AssessmentController {
 
   async getMyAssignments(req, res, next) {
     try {
-      console.log('getMyAssignments called for user:', req.user._id, 'role:', req.user.role);
       const assignments = await assessmentService.getAssignmentsByStudent(req.user._id);
-      console.log('Assignments found for student:', assignments.length);
       res.json(ApiResponse.success(assignments));
     } catch (error) {
       console.error('Error in getMyAssignments:', error);
+      next(error);
+    }
+  }
+
+  async getStudentAssignment(req, res, next) {
+    try {
+      const assignment = await assessmentService.getAssignmentForStudent(req.params.id, req.user._id);
+      res.json(ApiResponse.success(assignment));
+    } catch (error) {
       next(error);
     }
   }

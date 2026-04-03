@@ -50,7 +50,7 @@ function StudentAssessmentContent() {
     setLoading(true);
     try {
       console.log('Loading assignments...');
-      const res = await apiClient.get<Assignment[]>('/api/assessments/assignments/my');
+      const res = await apiClient.get<Assignment[]>('/api/v1/assessments/assignments/my');
       console.log('Assignments response:', res);
       
       if (res.success && res.data) {
@@ -60,7 +60,7 @@ function StudentAssessmentContent() {
         
         for (const assignment of assignmentsArray) {
           try {
-            const responseRes = await apiClient.get<Response>(`/api/assessments/responses/my/${assignment._id}`);
+            const responseRes = await apiClient.get<Response>(`/api/v1/assessments/responses/my/${assignment._id}`);
             console.log(`Response for ${assignment._id}:`, responseRes);
             if (responseRes.success && responseRes.data) {
               setResponses(prev => ({ ...prev, [assignment._id]: responseRes.data! }));

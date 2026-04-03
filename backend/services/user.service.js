@@ -86,6 +86,17 @@ class UserService {
     return userRepository.countMentors();
   }
 
+  async getMentorById(mentorId) {
+    const mentor = await userRepository.findById(mentorId);
+    if (!mentor || mentor.role !== 'mentor') {
+      return null;
+    }
+    // Remove sensitive fields
+    const mentorObj = mentor.toObject ? mentor.toObject() : mentor;
+    delete mentorObj.password;
+    return mentorObj;
+  }
+
   async getUserById(userId) {
     return userRepository.findById(userId);
   }
