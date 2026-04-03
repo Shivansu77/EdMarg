@@ -99,10 +99,10 @@ function StudentDashboardContent() {
 
   return (
     <DashboardLayout userName={user?.name ? `${user.name}'s Dashboard` : "Student Dashboard"}>
-      <div className="min-h-[100dvh] bg-gray-50/50 pb-16">
+      <div className="min-h-dvh bg-gray-50/50 pb-16">
         
         {/* Dynamic Header */}
-        <div className="relative overflow-hidden border-b border-gray-100 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/40 px-6 pb-10 pt-8 sm:px-8">
+        <div className="relative overflow-hidden border-b border-gray-100 bg-linear-to-br from-indigo-50/80 via-white to-blue-50/40 px-6 pb-10 pt-8 sm:px-8">
           <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-indigo-100/40 rounded-full blur-3xl opacity-60"></div>
           <div className="absolute bottom-0 left-10 w-60 h-60 bg-blue-100/40 rounded-full blur-3xl opacity-60"></div>
           
@@ -122,7 +122,7 @@ function StudentDashboardContent() {
               {pendingAssignments.length > 0 && (
                 <Link
                   href={`/student/assessments/${pendingAssignments[0]._id}`}
-                  className="group relative inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/30 active:scale-95"
+                  className="group relative inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-indigo-600 to-blue-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/30 active:scale-95"
                 >
                   Continue Assessment <ArrowRight size={18} strokeWidth={2.5} className="transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -156,7 +156,7 @@ function StudentDashboardContent() {
                 <p className="mt-1 flex items-center gap-2 text-sm text-gray-500 font-medium">
                   {s.sub}
                 </p>
-                <div className="absolute bottom-0 left-6 right-6 h-0.5 bg-gradient-to-r from-indigo-500 to-blue-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full"></div>
+                <div className="absolute bottom-0 left-6 right-6 h-0.5 bg-linear-to-r from-indigo-500 to-blue-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full"></div>
               </div>
             ))}
           </div>

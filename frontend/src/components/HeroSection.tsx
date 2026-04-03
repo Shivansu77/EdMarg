@@ -60,7 +60,7 @@ const HeroSection = () => {
                 {['A', 'B', 'C', 'D'].map((letter) => (
                   <div
                     key={letter}
-                    className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-gray-700 to-black text-xs font-semibold text-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-linear-to-br from-gray-700 to-black text-xs font-semibold text-white"
                   >
                     {letter}
                   </div>
@@ -87,7 +87,7 @@ const HeroSection = () => {
 
             {/* Floating Card */}
             <div className="absolute -bottom-6 left-6 right-6 sm:left-auto sm:right-0 sm:w-80 flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-lg">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 flex-shrink-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 shrink-0">
                 <CheckCircle2 className="h-5 w-5 text-black" />
               </div>
               <div>

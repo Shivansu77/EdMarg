@@ -64,7 +64,7 @@ export default function MentorDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block relative">
             <div className="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
@@ -78,7 +78,7 @@ export default function MentorDetailPage() {
 
   if (error || !mentor) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center px-6">
+      <div className="min-h-screen bg-linear-to-br from-slate-50 to-slate-100 flex items-center justify-center px-6">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-50 mb-6">
             <UserX className="w-10 h-10 text-red-600" />
