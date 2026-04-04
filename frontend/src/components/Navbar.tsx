@@ -65,7 +65,7 @@ const Navbar = () => {
         <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm font-medium text-gray-600">
           <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
           <Link href="/about" className="hover:text-gray-900 transition-colors">About</Link>
-          <Link href="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
+          <Link href="/blogs" className="hover:text-gray-900 transition-colors">Blog</Link>
           {!isLoggedIn && (
             <>
               <Link href="/#how-it-works" className="hover:text-gray-900 transition-colors">How it Works</Link>
@@ -117,7 +117,7 @@ const Navbar = () => {
             <nav className="flex flex-col gap-6 text-lg font-semibold text-gray-900 mb-8">
               <Link href="/" onClick={() => setIsOpen(false)}>Home</Link>
               <Link href="/about" onClick={() => setIsOpen(false)}>About</Link>
-              <Link href="/blog" onClick={() => setIsOpen(false)}>Blog</Link>
+              <Link href="/blogs" onClick={() => setIsOpen(false)}>Blog</Link>
               {!isLoggedIn && (
                 <>
                 <Link href="/#how-it-works" onClick={() => setIsOpen(false)}>How it Works</Link>
