@@ -1,5 +1,6 @@
 'use client';
 
+import { getImageUrl } from '@/utils/imageUrl';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -67,10 +68,7 @@ type BookingResult = {
    CONSTANTS
    ================================================================ */
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'http://localhost:5000';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/v1\/?$/, '');
 
 const STEPS = [
   { id: 1, label: 'Mentor', icon: User },
@@ -425,15 +423,10 @@ function BookingContent() {
                 <div className="flex flex-col sm:flex-row gap-6 p-8">
                   <div className="relative h-40 w-40 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 flex-shrink-0">
                     <Image
-                      src={
-                        mentor.profileImage ||
-                        `https://ui-avatars.com/api/?background=1f2937&color=ffffff&name=${encodeURIComponent(
-                          mentor.name
-                        )}&size=320&bold=true`
-                      }
+                      src={getImageUrl(mentor.profileImage, mentor.name)}
                       alt={mentor.name}
                       fill
-                      className="object-cover"
+                      className="object-cover object-top"
                     />
                   </div>
                   <div className="flex-1">
@@ -473,7 +466,7 @@ function BookingContent() {
                           Experience
                         </p>
                         <p className="text-xl font-bold text-gray-900 mt-1">
-                          {experience}+ yrs
+                          {experience > 0 ? `${experience}+ yrs` : '0 yrs'}
                         </p>
                       </div>
                       <div>
@@ -481,7 +474,7 @@ function BookingContent() {
                           Per Session
                         </p>
                         <p className="text-xl font-bold text-gray-900 mt-1">
-                          ${price}
+                          {price > 0 ? `₹${price}` : 'Free'}
                         </p>
                       </div>
                       <div>
@@ -721,9 +714,7 @@ function BookingContent() {
 
                   <div>
                     <p className="text-sm text-gray-500 font-medium">Session Fee</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                      ${price}
-                      <span className="text-sm font-medium text-gray-500 ml-1">
+                    <p className="text-3xl font-bold text-gray-900 mt-1">{price > 0 ? `₹${price}` : "Free"}<span className="text-sm font-medium text-gray-500 ml-1">
                         /session
                       </span>
                     </p>
@@ -800,15 +791,10 @@ function BookingContent() {
                   <div className="flex items-center gap-4">
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-gray-100 bg-gray-50 flex-shrink-0">
                       <Image
-                        src={
-                          mentor.profileImage ||
-                          `https://ui-avatars.com/api/?background=1f2937&color=ffffff&name=${encodeURIComponent(
-                            mentor.name
-                          )}&size=96&bold=true`
-                        }
+                        src={getImageUrl(mentor.profileImage, mentor.name)}
                         alt={mentor.name}
                         fill
-                        className="object-cover"
+                        className="object-cover object-top"
                       />
                     </div>
                     <div>
@@ -875,9 +861,7 @@ function BookingContent() {
                     <p className="text-sm text-gray-500 font-medium">
                       Session Fee
                     </p>
-                    <p className="text-3xl font-bold text-gray-900 mt-1">
-                      ${price}
-                    </p>
+                    <p className="text-3xl font-bold text-gray-900 mt-1">{price > 0 ? `₹${price}` : "Free"}</p>
                   </div>
 
                   <button

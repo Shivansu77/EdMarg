@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { Star, Search, User, Briefcase, ChevronRight, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 
+
+import { getImageUrl } from '@/utils/imageUrl';
 type Mentor = {
   _id: string;
   name: string;
@@ -23,7 +26,7 @@ type Mentor = {
   };
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
 
 const DOMAIN_OPTIONS = [
   'All Domains',
@@ -50,6 +53,7 @@ const RATING_OPTIONS = [
 ];
 
 function MentorsContent() {
+  const searchParams = useSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
@@ -61,7 +65,7 @@ function MentorsContent() {
   const [hasMoreMentors, setHasMoreMentors] = useState(true);
 
   // Filter States
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [careerDomain, setCareerDomain] = useState('All Domains');
   const [experienceMax, setExperienceMax] = useState(30);
   const [minRating, setMinRating] = useState(0);
@@ -69,6 +73,13 @@ function MentorsContent() {
   
   // Advanced Filter Toggle
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q !== null) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -419,11 +430,11 @@ function MentorsContent() {
                         >
                           <div className="relative h-48 bg-gradient-to-br from-gray-700 via-gray-800 to-black overflow-hidden">
                             <Image
-                              src={mentor.profileImage || `https://ui-avatars.com/api/?background=000000&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
+                              src={getImageUrl(mentor.profileImage, mentor.name)}
                               alt={mentor.name}
                               fill
                               sizes="(max-width: 1024px) 100vw, 25vw"
-                              className="object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="object-cover object-top group-hover:scale-110 transition-transform duration-300"
                             />
                             {rating > 0 && (
                               <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1.5 shadow-lg flex items-center gap-1">
@@ -518,7 +529,9 @@ function MentorsContent() {
 export default function MentorsPage() {
   return (
     <ProtectedRoute requiredRole="student">
-      <MentorsContent />
+      <Suspense fallback={<div>Loading filters...</div>}>
+        <MentorsContent />
+      </Suspense>
     </ProtectedRoute>
   );
 }

@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
       enum: ['student', 'mentor', 'admin'],
       default: 'student',
     },
-    profileImage: String,
+    profileImage: { type: String, default: "" },
     studentProfile: {
       classLevel: String,
       interests: [String],

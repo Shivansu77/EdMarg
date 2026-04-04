@@ -78,6 +78,8 @@ app.use((req, res, next) => {
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser());
 
 // Rate limiting
@@ -102,6 +104,7 @@ const availabilityRouteV1 = require('./routes/v1/availability.route');
 const mentorRouteV1 = require('./routes/v1/mentor.route');
 const zoomRouteV1 = require('./routes/v1/zoom.route');
 const reviewRouteV1 = require('./routes/v1/review.route');
+const profileRouteV1 = require('./routes/v1/profile.route');
 const userRouteV2 = require('./routes/v2/user.route');
 const adminRouteV2 = require('./routes/v2/admin.route');
 const assessmentRoute = require('./routes/assessment.route');
@@ -114,6 +117,7 @@ app.use('/api/v1/availability', availabilityRouteV1);
 app.use('/api/v1/mentor', mentorRouteV1);
 app.use('/api/v1/zoom', zoomRouteV1);
 app.use('/api/v1/reviews', reviewRouteV1);
+app.use('/api/v1/profile', profileRouteV1);
 app.use('/api/v1/assessments', assessmentRoute);
 app.use('/api/v2/users', authLimiter, userRouteV2);
 app.use('/api/v2/admin', adminRouteV2);

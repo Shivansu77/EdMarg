@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import MentorDetailClient from './MentorDetailClient';
+import MentorDetailClient from '@/app/student/mentors/[id]/MentorDetailClient';
 import { ArrowLeft, UserX } from 'lucide-react';
 import Link from 'next/link';
 
@@ -87,7 +87,7 @@ export default function MentorDetailPage() {
           <p className="text-gray-600 mb-8 max-w-md mx-auto">
             The mentor you're looking for doesn't exist or may have been removed.
           </p>
-          <Link href="/student/mentors">
+          <Link href="/browse-mentors">
             <button className="inline-flex items-center gap-2 bg-black hover:bg-gray-800 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-md hover:shadow-lg">
               <ArrowLeft size={20} />
               Back to Mentors

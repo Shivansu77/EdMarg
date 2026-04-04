@@ -6,7 +6,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Star, Briefcase, Clock, Calendar, ArrowLeft, CheckCircle, Award, Users, TrendingUp, Globe, MessageSquare, ChevronLeft, CalendarDays } from 'lucide-react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
+
+import { getImageUrl } from '@/utils/imageUrl';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
 
 type Review = {
   _id: string;
@@ -157,11 +159,11 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="w-28 h-28 md:w-32 md:h-32 shrink-0 rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm relative">
                 <Image
-                  src={mentor.profileImage || `https://ui-avatars.com/api/?background=f1f5f9&color=0f172a&name=${encodeURIComponent(mentor.name)}&size=400&bold=true`}
+                  src={getImageUrl(mentor.profileImage, mentor.name)}
                   alt={mentor.name}
                   width={128}
                   height={128}
-                  className="object-cover w-full h-full"
+                  className="object-cover object-top w-full h-full"
                 />
               </div>
               <div className="pt-2">
@@ -177,7 +179,7 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                   </div>
                   <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md text-slate-600">
                     <Briefcase size={14} />
-                    <span>{experienceYears}+ yrs exp</span>
+                    <span>{experienceYears > 0 ? `${experienceYears}+ yrs exp` : 'Expert Guide'}</span>
                   </div>
                   <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md text-slate-600">
                     <Globe size={14} />
@@ -270,7 +272,7 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                       <div key={review._id} className="group">
                         <div className="flex items-start gap-4">
                           <Image
-                            src={review.student.profileImage || `https://ui-avatars.com/api/?background=f1f5f9&color=0f172a&name=${encodeURIComponent(review.student.name)}&size=80`}
+                            src={getImageUrl(review.student.profileImage, review.student.name)}
                             alt={review.student.name}
                             width={40}
                             height={40}

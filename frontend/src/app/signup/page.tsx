@@ -24,7 +24,7 @@ export default function SignupPage() {
   const [expertise, setExpertise] = useState("");
   const [bio, setBio] = useState("");
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

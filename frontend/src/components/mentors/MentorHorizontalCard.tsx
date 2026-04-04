@@ -5,6 +5,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Star, Briefcase, ChevronRight, User, Globe } from 'lucide-react';
 
+
+import { getImageUrl } from '@/utils/imageUrl';
 interface MentorHorizontalCardProps {
   mentor: {
     _id: string;
@@ -58,10 +60,10 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
           <div className="relative w-full md:w-[160px] h-[160px] rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
             {mentor.profileImage ? (
               <Image
-                src={mentor.profileImage}
+                src={getImageUrl(mentor.profileImage, mentor.name)}
                 alt={mentor.name}
                 fill
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
               <div className="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -94,7 +96,7 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
 
                 <div className="flex items-center gap-2">
                   <Globe size={14} />
-                  <span>{experience}+ Years Experience</span>
+                  <span>{experience > 0 ? `${experience}+ Years` : "Expertise"}</span>
                 </div>
               </div>
             </div>
@@ -127,7 +129,7 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
 
               <div className="flex items-end gap-2">
                 <span className="text-3xl font-semibold text-black">
-                  ₹{price}
+                  {price > 0 ? `₹${price}` : "Free"}
                 </span>
                 <span className="text-xs text-gray-500">/session</span>
               </div>

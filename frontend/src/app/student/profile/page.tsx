@@ -6,6 +6,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import Image from 'next/image';
+import ProfileImageUpload from '@/components/ProfileImageUpload';
 import { 
   UserCircle, 
   Mail, 
@@ -205,29 +206,13 @@ function ProfileContent() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-900">Profile Image URL</label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/avatar.jpg"
-                  value={profileImage}
-                  onChange={(e) => setProfileImage(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+              <div className="space-y-3 pt-2">
+                <label className="text-sm font-semibold text-gray-900">Profile Picture</label>
+                <ProfileImageUpload 
+                  currentImage={profileImage}
+                  userName={name}
+                  onUploadSuccess={(url) => setProfileImage(url)}
                 />
-                {profileImage && (
-                  <div className="mt-4 flex items-center gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50">
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden shadow-sm bg-white border border-gray-100">
-                      <Image 
-                        src={profileImage} 
-                        alt="Profile Preview" 
-                        fill 
-                        className="object-cover"
-                        unoptimized={!profileImage.includes('images.unsplash.com') && !profileImage.includes('i.pravatar.cc')}
-                      />
-                    </div>
-                    <span className="text-sm text-gray-600 font-medium">Image Preview</span>
-                  </div>
-                )}
               </div>
             </div>
           </section>

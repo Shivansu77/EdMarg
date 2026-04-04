@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
 
 const getStoredToken = () => {
   if (typeof window === 'undefined') {
@@ -25,7 +25,7 @@ interface ApiResponse<T> {
 class ApiClient {
   private baseUrl: string;
 
-  constructor(baseUrl: string = API_BASE_URL) {
+  constructor(baseUrl: string = (API_BASE_URL || '').replace(/\/api\/v1\/?$/, '')) {
     this.baseUrl = baseUrl;
   }
 
@@ -65,6 +65,18 @@ class ApiClient {
       });
 
       const data = await response.json();
+
+      if (response.status === 401) {
+        if (typeof window !== 'undefined') {
+          window.localStorage.removeItem('token');
+          window.localStorage.removeItem('user');
+          window.dispatchEvent(new Event('edmarg-auth-user-change'));
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login?session_expired=true';
+          }
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.message || data.error || 'Request failed');

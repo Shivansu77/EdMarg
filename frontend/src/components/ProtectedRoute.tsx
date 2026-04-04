@@ -16,11 +16,7 @@ const AUTH_USER_EVENT = 'edmarg-auth-user-change';
 const emptySubscribe = () => () => undefined;
 
 const resolveApiBaseUrl = () => {
-  const baseUrl =
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    process.env.NEXT_PUBLIC_BACKEND_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'http://localhost:5000';
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/v1\/?$/, '');
 
   return baseUrl.replace(/\/$/, '');
 };

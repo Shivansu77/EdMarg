@@ -5,6 +5,8 @@ import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+
+import { getImageUrl } from '@/utils/imageUrl';
 import {
   Video,
   Clock,
@@ -107,7 +109,7 @@ function HistoryContent() {
                   <div className="flex items-start gap-4 mb-6">
                     <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {booking.mentor.profileImage ? (
-                        <Image src={booking.mentor.profileImage} alt={booking.mentor.name} width={48} height={48} className="object-cover" />
+                        <Image src={getImageUrl(booking.mentor.profileImage, booking.mentor.name)} alt={booking.mentor.name} width={48} height={48} className="object-cover object-top" />
                       ) : (
                         <UserIcon className="h-6 w-6 text-gray-400" />
                       )}

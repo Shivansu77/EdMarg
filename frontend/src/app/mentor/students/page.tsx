@@ -7,6 +7,8 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Users, Mail, Calendar } from 'lucide-react';
 import Image from 'next/image';
 
+
+import { getImageUrl } from '@/utils/imageUrl';
 interface Student {
   _id: string;
   name: string;
@@ -164,7 +166,7 @@ export default function MentorStudentsPage() {
                   <div className="flex items-start gap-4 mb-5">
                     <div className="h-14 w-14 rounded-full bg-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
                       {student.profileImage ? (
-                        <Image src={student.profileImage} alt={student.name} width={56} height={56} className="object-cover" />
+                        <Image src={getImageUrl(student.profileImage, student.name)} alt={student.name} width={56} height={56} className="object-cover object-top" />
                       ) : (
                         <span className="text-xl font-bold text-indigo-600">
                           {student.name.charAt(0).toUpperCase()}

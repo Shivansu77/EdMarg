@@ -6,6 +6,8 @@ import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLef
 import Image from 'next/image';
 import Link from 'next/link';
 
+
+import { getImageUrl } from '@/utils/imageUrl';
 type Mentor = {
   _id: string;
   name: string;
@@ -75,7 +77,7 @@ function PublicMentorPageContent() {
         setLoading(true);
         setError(null);
 
-        const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
         const response = await fetch(`${API_URL}/api/v1/users/browsementor`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -166,10 +168,10 @@ function PublicMentorPageContent() {
                 <div className="flex flex-col sm:flex-row sm:items-end gap-6 -mt-20 mb-6">
                   <div className="relative w-32 h-32 lg:w-40 lg:h-40 rounded-2xl border-4 border-white overflow-hidden shadow-sm bg-gray-50 flex-shrink-0">
                     <Image
-                      src={mentor.profileImage || `https://ui-avatars.com/api/?background=4e45e2&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=160`}
+                      src={getImageUrl(mentor.profileImage, mentor.name)}
                       alt={mentor.name}
                       fill
-                      className="object-cover"
+                      className="object-cover object-top"
                     />
                   </div>
                   <div className="flex-1">
@@ -181,7 +183,7 @@ function PublicMentorPageContent() {
                         <span className="text-gray-600 text-sm">(82 reviews)</span>
                       </div>
                       <span className="text-gray-400">•</span>
-                      <span className="text-gray-600 font-medium">{experience}+ years experience</span>
+                      <span className="text-gray-600 font-medium">{experience > 0 ? `${experience}+ years` : "Industry Expert"}</span>
                     </div>
                   </div>
                 </div>
@@ -273,7 +275,7 @@ function PublicMentorPageContent() {
                       <ul className="space-y-3 text-gray-700">
                         <li className="flex items-start gap-3">
                           <span className="text-gray-900 font-bold mt-0.5">•</span>
-                          <span className="text-base">{experience}+ years in the industry</span>
+                          <span className="text-base">{experience > 0 ? `${experience}+ years` : "Industry Expert"}</span>
                         </li>
                         <li className="flex items-start gap-3">
                           <span className="text-gray-900 font-bold mt-0.5">•</span>
@@ -316,7 +318,7 @@ function PublicMentorPageContent() {
                               src={review.avatar}
                               alt={review.author}
                               fill
-                              className="object-cover"
+                              className="object-cover object-top"
                             />
                           </div>
                             <div className="flex-1 min-w-0">
@@ -351,7 +353,7 @@ function PublicMentorPageContent() {
             <div className="bg-white rounded-2xl border border-gray-200 p-6 lg:p-8 sticky top-24 space-y-6">
               <div>
                 <p className="text-sm text-gray-600 font-medium">Starting from</p>
-                <p className="text-4xl font-bold text-gray-900 mt-2">${price}</p>
+                <p className="text-4xl font-bold text-gray-900 mt-2">{price > 0 ? `₹${price}` : "Free"}</p>
                 <p className="text-sm text-gray-600 mt-1">/session</p>
               </div>
 

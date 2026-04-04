@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Star, Search, X } from 'lucide-react';
 import Image from 'next/image';
 
+
+import { getImageUrl } from '@/utils/imageUrl';
 type Mentor = {
   _id: string;
   name: string;
@@ -41,7 +43,7 @@ export default function BrowseMentorsPage() {
         setLoading(true);
         setError(null);
 
-        const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
         const response = await fetch(`${API_URL}/api/v1/users/browsementor`, {
           method: 'GET',
           headers: {
@@ -248,7 +250,7 @@ export default function BrowseMentorsPage() {
                       const rating = mentor.mentorProfile?.rating ?? 0;
                       const bio = mentor.mentorProfile?.bio || 'Career mentor available for personalized sessions.';
                       const experience = mentor.mentorProfile?.experienceYears ?? 0;
-                      const price = mentor.mentorProfile?.pricePerSession;
+                      const price = mentor.mentorProfile?.pricePerSession ?? 0;
 
                       return (
                         <div
@@ -258,10 +260,10 @@ export default function BrowseMentorsPage() {
                           {/* Image Section with Overlay */}
                           <div className="relative h-48 bg-gradient-to-br from-gray-700 via-gray-800 to-black overflow-hidden">
                             <Image
-                              src={mentor.profileImage || `https://ui-avatars.com/api/?background=000000&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=300&bold=true`}
+                              src={getImageUrl(mentor.profileImage, mentor.name)}
                               alt={mentor.name}
                               fill
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-300"
                             />
                             {/* Rating Badge */}
                             {rating > 0 && (
@@ -278,7 +280,7 @@ export default function BrowseMentorsPage() {
                             <div className="mb-3">
                               <h3 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors">{mentor.name}</h3>
                               <p className="text-xs text-gray-500 font-medium mt-1">
-                                {experience} {experience === 1 ? 'year' : 'years'} of experience
+                                {experience > 0 ? `${experience} ${experience === 1 ? 'year' : 'years'} of experience` : 'Industry Expert'}
                               </p>
                             </div>
 
@@ -307,8 +309,8 @@ export default function BrowseMentorsPage() {
                             <div className="border-t border-gray-200 pt-4 mb-4">
                               <p className="text-xs text-gray-500 font-medium mb-1">Starting from</p>
                               <p className="text-xl font-bold text-gray-900">
-                                {price ? `$${price}` : 'Contact'}
-                                {price && <span className="text-sm font-medium text-gray-600">/session</span>}
+                                {price > 0 ? `₹${price}` : "Free"}
+                                {price > 0 && <span className="text-sm font-medium text-gray-600">/session</span>}
                               </p>
                             </div>
 

@@ -112,12 +112,12 @@ function MentorDashboardContent() {
           apiClient.get('/api/v1/mentor/bookings?limit=5') // Get recent for history
         ]);
 
-        if (meRes.data) setUser(meRes.data);
-        if (statsRes.data) setStats(statsRes.data);
+        if (meRes.data) setUser(meRes.data as User);
+        if (statsRes.data) setStats(statsRes.data as BookingStats);
         
         // Filter strictly future for upcoming
         if (upcomingRes.data) {
-           const allUpcoming = upcomingRes.data;
+           const allUpcoming = upcomingRes.data as Booking[];
            const strictlyUpcoming = allUpcoming.filter((b: Booking) => {
               if (isPastDate(b.date)) return false;
               return b.status === 'confirmed' || b.status === 'in-progress';
@@ -125,13 +125,13 @@ function MentorDashboardContent() {
            setUpcomingBookings(strictlyUpcoming.slice(0, 5));
         }
 
-        if (pendingRes.data?.bookings) {
-           setPendingRequests(pendingRes.data.bookings);
+        if ((pendingRes.data as any)?.bookings) {
+           setPendingRequests((pendingRes.data as any).bookings);
         }
 
         // For history
-        if (historyRes.data?.bookings) {
-            const allHistory = historyRes.data.bookings;
+        if ((historyRes.data as any)?.bookings) {
+            const allHistory = (historyRes.data as any).bookings;
             const pastOnly = allHistory.filter((b: Booking) => {
                return b.status === 'completed' || b.status === 'cancelled' || isPastDate(b.date);
             });

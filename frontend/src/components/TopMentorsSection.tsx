@@ -1,4 +1,5 @@
 'use client';
+import { getImageUrl } from '@/utils/imageUrl';
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users } from 'lucide-react';
@@ -27,7 +28,7 @@ const TopMentorsSection = () => {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const API_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+        const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
         const response = await fetch(`${API_URL}/api/v1/users/browsementor`);
         if (response.ok) {
           const result = await response.json();
@@ -100,7 +101,7 @@ const TopMentorsSection = () => {
             const rating = mentor.mentorProfile?.rating ?? 4.8;
             const students = 150;
             const successRate = 92;
-            const image = mentor.profileImage || `https://ui-avatars.com/api/?background=000000&color=ffffff&name=${encodeURIComponent(mentor.name)}&size=400&bold=true`;
+            const image = getImageUrl(mentor.profileImage, mentor.name);
             const role = mentor.mentorProfile?.bio?.substring(0, 50) || 'Career Mentor';
             const company = 'EdMarg';
 
@@ -116,7 +117,7 @@ const TopMentorsSection = () => {
                   alt={mentor.name} 
                   fill
                   sizes="(max-width: 1024px) 100vw, 33vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105" 
+                  className="object-cover object-top transition-transform duration-500 group-hover:scale-105" 
                 />
                 
                 {/* Rating */}

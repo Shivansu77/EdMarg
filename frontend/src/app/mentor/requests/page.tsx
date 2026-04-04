@@ -6,6 +6,8 @@ import { apiClient } from '@/utils/api-client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+
+import { getImageUrl } from '@/utils/imageUrl';
 import {
   CalendarClock,
   Video,
@@ -267,7 +269,7 @@ function MentorRequestsContent() {
                     <div className="flex items-start gap-4 mb-5">
                        <div className="h-12 w-12 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
                           {booking.student.profileImage ? (
-                            <Image src={booking.student.profileImage} alt={booking.student.name} width={48} height={48} className="object-cover" />
+                            <Image src={getImageUrl(booking.student.profileImage, booking.student.name)} alt={booking.student.name} width={48} height={48} className="object-cover object-top" />
                           ) : (
                             <UserIcon className="h-5 w-5 text-zinc-400" />
                           )}
