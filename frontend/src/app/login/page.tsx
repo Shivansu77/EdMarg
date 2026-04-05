@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import toast from 'react-hot-toast';
 
 const LoginPage: React.FC = () => {
   const router = useRouter();
@@ -22,13 +23,16 @@ const LoginPage: React.FC = () => {
 
     try {
       const authenticatedUser = await login(email, password);
+      toast.success('Successfully logged in!');
 
       if (authenticatedUser.role === 'student') router.push('/student/dashboard');
       else if (authenticatedUser.role === 'mentor') router.push('/mentor/dashboard');
       else if (authenticatedUser.role === 'admin') router.push('/admin/dashboard');
       else router.push('/');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to login');
+      const errorMessage = err instanceof Error ? err.message : 'Unable to login';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -1,0 +1,8 @@
+RewriteEngine On
+
+# Proxy requests to Node.js app
+RewriteRule ^(.*)$ http://127.0.0.1:5000/$1 [P,L]
+
+# Required proxy headers
+RequestHeader set X-Forwarded-Proto "https"
+RequestHeader set X-Forwarded-Port "443"

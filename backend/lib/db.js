@@ -41,6 +41,7 @@ async function connectDB() {
       // Timeouts are important for serverless; tune via env if needed.
       serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 5000),
       connectTimeoutMS: Number(process.env.MONGODB_CONNECT_TIMEOUT_MS || 5000),
+      family: 4 // Force IPv4 to solve ETIMEOUT in Node.js > 18
     };
 
     if (!cached.listenersAttached) {

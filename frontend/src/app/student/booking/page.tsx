@@ -4,6 +4,7 @@ import { getImageUrl } from '@/utils/imageUrl';
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import toast from 'react-hot-toast';
 import {
   Calendar,
   ChevronLeft,
@@ -272,9 +273,12 @@ function BookingContent() {
       }
 
       setBookingResult(result.data);
+      toast.success('Booking confirmed successfully!');
       setCurrentStep(4);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Booking failed');
+      const message = err instanceof Error ? err.message : 'Booking failed';
+      setError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -404,7 +408,7 @@ function BookingContent() {
         {/* ======== Error Banner ======== */}
         {error && currentStep !== 4 && (
           <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+            <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
             <p className="text-sm text-red-700 font-medium">{error}</p>
             <button
               onClick={() => setError(null)}
@@ -421,7 +425,7 @@ function BookingContent() {
             <div className="lg:col-span-2">
               <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
                 <div className="flex flex-col sm:flex-row gap-6 p-8">
-                  <div className="relative h-40 w-40 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 flex-shrink-0">
+                  <div className="relative h-40 w-40 rounded-xl overflow-hidden shadow-sm border border-gray-100 bg-gray-50 shrink-0">
                     <Image
                       src={getImageUrl(mentor.profileImage, mentor.name)}
                       alt={mentor.name}
@@ -440,7 +444,7 @@ function BookingContent() {
                         </p>
                       </div>
                       {rating > 0 && (
-                        <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg flex-shrink-0">
+                        <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-lg shrink-0">
                           <Star size={16} className="fill-yellow-400 text-yellow-400" />
                           <span className="text-sm font-bold text-gray-900">
                             {rating.toFixed(1)}
@@ -503,7 +507,7 @@ function BookingContent() {
                     'Interview preparation',
                   ].map((item, i) => (
                     <div key={i} className="flex items-start gap-3">
-                      <Check className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                      <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                       <p className="text-sm text-gray-700">{item}</p>
                     </div>
                   ))}
@@ -512,7 +516,7 @@ function BookingContent() {
 
               <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
                 <div className="flex items-start gap-3">
-                  <Lightbulb className="w-5 h-5 text-gray-600 flex-shrink-0 mt-0.5" />
+                  <Lightbulb className="w-5 h-5 text-gray-600 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Pro Tip</p>
                     <p className="text-xs text-gray-600 mt-1">
@@ -541,7 +545,7 @@ function BookingContent() {
                     >
                       <ChevronLeft size={18} />
                     </button>
-                    <span className="text-sm font-semibold text-gray-700 min-w-[120px] text-center">
+                    <span className="text-sm font-semibold text-gray-700 min-w-30 text-center">
                       {weekDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                       {' – '}
                       {weekDays[6].toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
@@ -665,7 +669,7 @@ function BookingContent() {
                 </h3>
                 <div className="space-y-5">
                   <div className="flex items-start gap-4">
-                    <div className="rounded-lg bg-gray-100 p-2.5 text-gray-600 flex-shrink-0">
+                    <div className="rounded-lg bg-gray-100 p-2.5 text-gray-600 shrink-0">
                       <User size={18} />
                     </div>
                     <div>
@@ -679,7 +683,7 @@ function BookingContent() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="rounded-lg bg-gray-100 p-2.5 text-gray-600 flex-shrink-0">
+                    <div className="rounded-lg bg-gray-100 p-2.5 text-gray-600 shrink-0">
                       <Calendar size={18} />
                     </div>
                     <div>
@@ -695,7 +699,7 @@ function BookingContent() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="rounded-lg bg-gray-100 p-2.5 text-gray-600 flex-shrink-0">
+                    <div className="rounded-lg bg-gray-100 p-2.5 text-gray-600 shrink-0">
                       <Clock size={18} />
                     </div>
                     <div>
@@ -789,7 +793,7 @@ function BookingContent() {
 
                 <div className="space-y-5">
                   <div className="flex items-center gap-4">
-                    <div className="relative w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-gray-100 bg-gray-50 flex-shrink-0">
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden shadow-sm border border-gray-100 bg-gray-50 shrink-0">
                       <Image
                         src={getImageUrl(mentor.profileImage, mentor.name)}
                         alt={mentor.name}
@@ -811,7 +815,7 @@ function BookingContent() {
 
                   <div className="space-y-4">
                     <div className="flex items-start gap-4">
-                      <div className="rounded-lg bg-gray-100 p-2 text-gray-600 flex-shrink-0">
+                      <div className="rounded-lg bg-gray-100 p-2 text-gray-600 shrink-0">
                         <Calendar size={16} />
                       </div>
                       <div>
@@ -825,7 +829,7 @@ function BookingContent() {
                     </div>
 
                     <div className="flex items-start gap-4">
-                      <div className="rounded-lg bg-gray-100 p-2 text-gray-600 flex-shrink-0">
+                      <div className="rounded-lg bg-gray-100 p-2 text-gray-600 shrink-0">
                         <Clock size={16} />
                       </div>
                       <div>
@@ -840,7 +844,7 @@ function BookingContent() {
                     </div>
 
                     <div className="flex items-start gap-4">
-                      <div className="rounded-lg bg-gray-100 p-2 text-gray-600 flex-shrink-0">
+                      <div className="rounded-lg bg-gray-100 p-2 text-gray-600 shrink-0">
                         <Video size={16} />
                       </div>
                       <div>
@@ -913,7 +917,7 @@ function BookingContent() {
                   {bookingResult.joinUrl ? (
                     <div className="rounded-xl bg-blue-50 border border-blue-200 p-5 text-left">
                       <div className="flex items-start gap-4">
-                        <div className="rounded-lg bg-blue-100 p-2.5 flex-shrink-0">
+                        <div className="rounded-lg bg-blue-100 p-2.5 shrink-0">
                           <Video className="w-5 h-5 text-blue-600" />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -937,7 +941,7 @@ function BookingContent() {
                   ) : bookingResult.zoomError ? (
                     <div className="rounded-xl bg-amber-50 border border-amber-200 p-5 text-left">
                       <div className="flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                         <div>
                           <p className="text-sm font-semibold text-amber-900">Zoom link could not be generated</p>
                           <p className="text-xs text-amber-700 mt-1">{bookingResult.zoomError}</p>
@@ -948,7 +952,7 @@ function BookingContent() {
                   ) : (
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-5 text-left">
                       <div className="flex items-start gap-3">
-                        <Video className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <Video className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
                         <div>
                           <p className="text-sm font-semibold text-gray-700">Zoom link pending</p>
                           <p className="text-xs text-gray-500 mt-1">The meeting link will be available once your mentor confirms the session.</p>

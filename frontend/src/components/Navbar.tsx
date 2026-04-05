@@ -4,47 +4,34 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { getImageUrl } from '@/utils/imageUrl';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState('student');
+  const { user, logout } = useAuth();
   const router = useRouter();
+
+  const isLoggedIn = !!user;
+  const userName = user?.name || 'User';
+  const userRole = user?.role || 'student';
+  const userAvatar = getImageUrl(user?.profileImage, userName, 80, user?.profileImageUpdatedAt);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
-    
-    // Check authentication status
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      const user = localStorage.getItem('user');
-      
-      if (token && user) {
-        try {
-          const userData = JSON.parse(user);
-          setIsLoggedIn(true);
-          setUserName(userData.name || 'User');
-          setUserRole(userData.role || 'student');
-        } catch {
-          setIsLoggedIn(false);
-        }
-      } else {
-        setIsLoggedIn(false);
-      }
-    };
-
-    checkAuth();
 
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsLoggedIn(false);
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
     setIsOpen(false);
     router.push('/');
   };
@@ -78,6 +65,11 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-4">
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
+              <img
+                src={userAvatar}
+                alt={`${userName} avatar`}
+                className="h-8 w-8 rounded-full object-cover object-top"
+              />
               <span className="text-sm text-gray-600">Welcome, {userName}</span>
               <Link
                 href={`/${userRole}/dashboard`}
@@ -130,6 +122,11 @@ const Navbar = () => {
               {isLoggedIn ? (
                 <>
                   <div className="py-3 px-4 bg-gray-50 rounded-lg text-center">
+                    <img
+                      src={userAvatar}
+                      alt={`${userName} avatar`}
+                      className="mx-auto mb-2 h-10 w-10 rounded-full object-cover object-top"
+                    />
                     <p className="text-sm text-gray-600">Welcome, {userName}</p>
                   </div>
                   <Link

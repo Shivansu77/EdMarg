@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import { Users, Mail, Calendar } from 'lucide-react';
 import Image from 'next/image';
 
@@ -107,16 +107,16 @@ export default function MentorStudentsPage() {
 
   if (loading) {
     return (
-      <DashboardLayout userName="Students">
+      <MentorDashboardLayout>
         <div className="flex justify-center items-center min-h-[60vh]">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
         </div>
-      </DashboardLayout>
+      </MentorDashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout userName={user?.name || "Students"}>
+    <MentorDashboardLayout>
       <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6">
         <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
@@ -208,6 +208,6 @@ export default function MentorStudentsPage() {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </MentorDashboardLayout>
   );
 }

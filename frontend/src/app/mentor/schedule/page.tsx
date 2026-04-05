@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { Save, CalendarDays, AlertCircle } from 'lucide-react';
+import { Save, CalendarDays, AlertCircle, Clock3, CheckCircle2 } from 'lucide-react';
 
 interface DaySchedule {
   dayOfWeek: number;
@@ -133,131 +133,176 @@ function MentorScheduleContent() {
 
   if (loading) {
     return (
-      <DashboardLayout userName="Schedule">
-        <div className="flex justify-center items-center min-h-[60vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <MentorDashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh] bg-[radial-gradient(circle_at_top,#f4f4f5_0%,#fafafa_40%,#ffffff_100%)]">
+          <div className="text-center">
+            <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900" />
+            <p className="mt-4 text-sm font-medium text-zinc-500">Loading your schedule...</p>
+          </div>
         </div>
-      </DashboardLayout>
+      </MentorDashboardLayout>
     );
   }
 
+  const availableDays = schedules.filter((s) => s.isAvailable).length;
+  const weeklyHours = schedules
+    .filter((s) => s.isAvailable)
+    .reduce((sum, s) => sum + Math.max(0, s.endHour - s.startHour), 0);
+
   return (
-    <DashboardLayout userName={user?.name || "Schedule"}>
-      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6">
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
-              <CalendarDays className="w-8 h-8 text-indigo-600" />
-              Manage Schedule
-            </h1>
-            <p className="mt-2 text-sm text-gray-500">
-              Define your weekly working hours. We&apos;ll automatically turn these into bookable slots based on your set session duration.
-            </p>
-          </div>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 transition-colors"
-          >
-            {saving ? (
-              <span className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            ) : (
-              <Save className="w-4 h-4 mr-2" />
+    <MentorDashboardLayout>
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top,#f4f4f5_0%,#fafafa_35%,#ffffff_100%)] px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <section className="rounded-3xl border border-zinc-200/80 bg-white/90 p-6 shadow-[0_20px_60px_-40px_rgba(0,0,0,0.35)] backdrop-blur md:p-8">
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-400">Mentor Availability</p>
+                <h1 className="mt-2 flex items-center gap-2 text-3xl font-semibold tracking-tight text-zinc-900">
+                  <CalendarDays className="h-8 w-8 text-zinc-700" />
+                  Manage Schedule
+                </h1>
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
+                  Set your weekly working hours and we&apos;ll automatically generate bookable slots based on your configured session duration.
+                </p>
+              </div>
+
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {saving ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <Save className="h-4 w-4" />
+                )}
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                <p className="text-xs uppercase tracking-widest text-zinc-500">Available Days</p>
+                <p className="mt-1 text-2xl font-semibold text-zinc-900">{availableDays} / 7</p>
+              </div>
+              <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                <p className="text-xs uppercase tracking-widest text-zinc-500">Weekly Hours</p>
+                <p className="mt-1 text-2xl font-semibold text-zinc-900">{weeklyHours}h</p>
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            {error && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-sm text-red-800">
+                <div className="flex items-start gap-2.5">
+                  <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                  <p>{error}</p>
+                </div>
+              </div>
             )}
-            Save Changes
-          </button>
-        </div>
 
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start">
-            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
+            {successMsg && (
+              <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-sm text-emerald-800">
+                <div className="flex items-start gap-2.5">
+                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                  <p>{successMsg}</p>
+                </div>
+              </div>
+            )}
+          </section>
 
-        {successMsg && (
-          <div className="mb-6 p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start">
-            <div className="w-5 h-5 text-emerald-500 mt-0.5 mr-3 flex-shrink-0 flex items-center justify-center rounded-full border-2 border-emerald-500 text-xs font-bold">✓</div>
-            <p className="text-sm text-emerald-800">{successMsg}</p>
-          </div>
-        )}
+          <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-[0_20px_60px_-45px_rgba(0,0,0,0.5)]">
+            <div className="border-b border-zinc-200 bg-zinc-50/80 px-6 py-4">
+              <p className="text-sm font-medium text-zinc-700">Weekly Time Blocks</p>
+            </div>
 
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="divide-y divide-gray-100">
-            {schedules.map((schedule, index) => {
-              const dayName = DAYS_OF_WEEK.find((d) => d.id === schedule.dayOfWeek)?.name;
-              
-              return (
-                <div key={schedule.dayOfWeek} className={`p-6 flex flex-col sm:flex-row sm:items-center gap-4 transition-colors ${schedule.isAvailable ? 'bg-white' : 'bg-gray-50'}`}>
-                  {/* Toggle */}
-                  <div className="w-40 flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => handleToggleDay(index)}
-                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-                        schedule.isAvailable ? 'bg-indigo-600' : 'bg-gray-200'
-                      }`}
-                      role="switch"
-                      aria-checked={schedule.isAvailable}
-                    >
-                      <span className="sr-only">Use setting</span>
-                      <span
-                        aria-hidden="true"
-                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                          schedule.isAvailable ? 'translate-x-5' : 'translate-x-0'
-                        }`}
-                      />
-                    </button>
-                    <span className={`font-medium ${schedule.isAvailable ? 'text-gray-900' : 'text-gray-500'}`}>
-                      {dayName}
-                    </span>
-                  </div>
+            <div className="divide-y divide-zinc-100">
+              {schedules.map((schedule, index) => {
+                const dayName = DAYS_OF_WEEK.find((d) => d.id === schedule.dayOfWeek)?.name;
 
-                  {/* Time Inputs */}
-                  <div className="flex-1">
-                    {schedule.isAvailable ? (
-                      <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-                        <div className="flex items-center gap-2">
-                          <label className="sr-only">Start time</label>
-                          <select
-                            value={schedule.startHour}
-                            onChange={(e) => handleChangeTime(index, 'startHour', parseInt(e.target.value))}
-                            className="block w-full rounded-lg border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm border"
-                          >
-                            {HOURS.map((h) => (
-                              <option key={h.value} value={h.value}>
-                                {h.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        <span className="text-gray-400 font-medium">to</span>
-                        <div className="flex items-center gap-2">
-                          <label className="sr-only">End time</label>
-                          <select
-                            value={schedule.endHour}
-                            onChange={(e) => handleChangeTime(index, 'endHour', parseInt(e.target.value))}
-                            className="block w-full rounded-lg border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm border"
-                          >
-                            {HOURS.map((h) => (
-                              <option key={h.value} value={h.value} disabled={h.value <= schedule.startHour}>
-                                {h.label}
-                              </option>
-                            ))}
-                          </select>
+                return (
+                  <div
+                    key={schedule.dayOfWeek}
+                    className={`px-6 py-5 transition-colors ${schedule.isAvailable ? 'bg-white' : 'bg-zinc-50/60'}`}
+                  >
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleDay(index)}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition focus:outline-none focus:ring-2 focus:ring-zinc-800 focus:ring-offset-2 ${
+                            schedule.isAvailable ? 'bg-zinc-900' : 'bg-zinc-300'
+                          }`}
+                          role="switch"
+                          aria-checked={schedule.isAvailable}
+                        >
+                          <span className="sr-only">Toggle availability</span>
+                          <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                              schedule.isAvailable ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+
+                        <div>
+                          <p className="text-sm font-semibold text-zinc-900">{dayName}</p>
+                          <p className="text-xs text-zinc-500">{schedule.isAvailable ? 'Open for bookings' : 'Not available'}</p>
                         </div>
                       </div>
-                    ) : (
-                      <span className="text-sm text-gray-400 italic">Unavailable</span>
-                    )}
+
+                      {schedule.isAvailable ? (
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <div className="rounded-xl border border-zinc-200 bg-white px-3 py-2">
+                            <label className="sr-only">Start time</label>
+                            <select
+                              value={schedule.startHour}
+                              onChange={(e) => handleChangeTime(index, 'startHour', parseInt(e.target.value, 10))}
+                              className="min-w-34 border-none bg-transparent text-sm font-medium text-zinc-800 outline-none"
+                            >
+                              {HOURS.map((h) => (
+                                <option key={h.value} value={h.value}>
+                                  {h.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="inline-flex items-center gap-1 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-medium text-zinc-500">
+                            <Clock3 className="h-3.5 w-3.5" />
+                            to
+                          </div>
+
+                          <div className="rounded-xl border border-zinc-200 bg-white px-3 py-2">
+                            <label className="sr-only">End time</label>
+                            <select
+                              value={schedule.endHour}
+                              onChange={(e) => handleChangeTime(index, 'endHour', parseInt(e.target.value, 10))}
+                              className="min-w-34 border-none bg-transparent text-sm font-medium text-zinc-800 outline-none"
+                            >
+                              {HOURS.map((h) => (
+                                <option key={h.value} value={h.value} disabled={h.value <= schedule.startHour}>
+                                  {h.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border border-zinc-200 bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-500">
+                          Unavailable
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          </section>
         </div>
       </div>
-    </DashboardLayout>
+    </MentorDashboardLayout>
   );
 }
 

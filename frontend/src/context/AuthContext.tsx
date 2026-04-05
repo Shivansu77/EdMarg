@@ -8,6 +8,7 @@ interface User {
   email: string;
   role: 'student' | 'mentor' | 'admin';
   profileImage?: string;
+  profileImageUpdatedAt?: number;
 }
 
 interface AuthApiResponse {
@@ -23,6 +24,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
+  updateUser: (patch: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -148,6 +150,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const user = useSyncExternalStore(subscribeToAuthUser, getStoredUserSnapshot, () => null);
   const isLoading = false;
 
+  const updateUser = (patch: Partial<User>) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const currentUser = getStoredUserSnapshot();
+    if (!currentUser) {
+      return;
+    }
+
+    const nextUser: User = {
+      ...currentUser,
+      ...patch,
+    };
+
+    persistAuthStorage(nextUser, getStoredToken() || undefined);
+    emitAuthChange();
+  };
+
   const login = async (email: string, password: string) => {
     const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/login`, {
       method: 'POST',
@@ -200,7 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import { useRouter, useSearchParams } from 'next/navigation';
+import toast from 'react-hot-toast';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
@@ -49,6 +50,13 @@ interface Booking {
 }
 
 type BookingTab = 'pending' | 'upcoming' | 'past';
+
+const actionSuccessMessages: Record<'accept' | 'reject' | 'start' | 'complete', string> = {
+  accept: 'Booking confirmed successfully.',
+  reject: 'Booking rejected.',
+  start: 'Session started successfully.',
+  complete: 'Session marked as completed.',
+};
 
 const resolveActiveTab = (value: string | null): BookingTab => {
   if (value === 'upcoming' || value === 'past') {
@@ -109,15 +117,16 @@ function MentorRequestsContent() {
       const payload = reason ? { reason } : undefined;
       const res = await apiClient.put<{ startUrl?: string }>(`/api/v1/mentor/bookings/${bookingId}/${action}`, payload);
       if (res.success) {
+        toast.success(actionSuccessMessages[action]);
         if ((action === 'start' || action === 'accept') && res.data?.startUrl) {
           window.open(res.data.startUrl, '_blank');
         }
         fetchBookings();
       } else {
-        alert(res.message || `Failed to ${action} booking`);
+        toast.error(res.message || `Failed to ${action} booking`);
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setActionLoading(null);
     }
@@ -128,15 +137,16 @@ function MentorRequestsContent() {
     try {
       const res = await apiClient.put<{ startUrl?: string }>(`/api/v1/mentor/bookings/${bookingId}/start`);
       if (res.success) {
+        toast.success('Zoom link generated successfully.');
         if (res.data?.startUrl) {
           window.open(res.data.startUrl, '_blank');
         }
         fetchBookings();
       } else {
-        alert(res.message || 'Failed to generate Zoom link');
+        toast.error(res.message || 'Failed to generate Zoom link');
       }
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'An error occurred');
+      toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setActionLoading(null);
     }
@@ -220,7 +230,7 @@ function MentorRequestsContent() {
                       {count}
                     </span>
                     {isActive && (
-                      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-zinc-900 rounded-t-full layout-indicator" />
+                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-zinc-900 rounded-t-full layout-indicator" />
                     )}
                   </button>
                 )
@@ -231,7 +241,7 @@ function MentorRequestsContent() {
         <main className="max-w-5xl mx-auto px-6 lg:px-8 pt-8">
           {error && (
             <div className="mb-8 p-4 rounded-xl bg-red-50 border border-red-100 flex items-start">
-              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 shrink-0" />
               <div>
                  <p className="font-semibold text-sm text-red-900">Unable to synchronize bookings</p>
                  <p className="text-xs text-red-700 mt-1">{error}</p>
@@ -267,7 +277,7 @@ function MentorRequestsContent() {
                     </div>
                     
                     <div className="flex items-start gap-4 mb-5">
-                       <div className="h-12 w-12 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                       <div className="h-12 w-12 rounded-full bg-zinc-50 border border-zinc-100 flex items-center justify-center shrink-0 overflow-hidden">
                           {booking.student.profileImage ? (
                             <Image src={getImageUrl(booking.student.profileImage, booking.student.name)} alt={booking.student.name} width={48} height={48} className="object-cover object-top" />
                           ) : (
@@ -307,7 +317,7 @@ function MentorRequestsContent() {
                   </div>
 
                   {/* Right Column: Dynamic Actions & Zoom Details */}
-                  <div className="md:w-[280px] flex flex-col justify-between border-t md:border-t-0 md:border-l border-zinc-100 pt-6 md:pt-0 md:pl-8">
+                  <div className="md:w-70 flex flex-col justify-between border-t md:border-t-0 md:border-l border-zinc-100 pt-6 md:pt-0 md:pl-8">
                      <div className="mb-6">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">Session Rate</p>
                         <p className="text-2xl font-bold tracking-tight text-zinc-900">

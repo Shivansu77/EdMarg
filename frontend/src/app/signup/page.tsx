@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff } from "lucide-react";
+import { API_BASE_URL } from "@/utils/api-client";
+import toast from 'react-hot-toast';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -81,6 +83,7 @@ export default function SignupPage() {
       localStorage.setItem("user", JSON.stringify(user));
 
       setSuccess(`Welcome, ${user?.name || name}! Your account was created.`);
+      toast.success(`Welcome, ${user?.name || name}! Your account was created.`);
 
       setTimeout(() => {
         if (role === "student") {
@@ -100,7 +103,9 @@ export default function SignupPage() {
       setExpertise("");
       setBio("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to create account");
+      const errorMessage = err instanceof Error ? err.message : "Unable to create account";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

@@ -102,7 +102,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                     </button>
                   )}
                 </div>
-                <div className="max-h-[360px] overflow-y-auto">
+                <div className="max-h-90 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 text-sm">
                       <Bell size={24} className="mx-auto mb-2 opacity-20" />
@@ -112,7 +112,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                     <div className="divide-y divide-gray-50">
                       {notifications.map((notification) => (
                         <div key={notification.id} className={`p-4 hover:bg-gray-50 transition-colors flex gap-3 cursor-pointer ${notification.unread ? 'bg-purple-500/5' : ''}`}>
-                          <div className={`mt-0.5 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full ${
+                          <div className={`mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full ${
                             notification.type === 'assignment' ? 'bg-blue-100 text-blue-600' :
                             notification.type === 'meeting' ? 'bg-green-100 text-green-600' :
                             'bg-purple-100 text-purple-600'
@@ -133,7 +133,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                             </p>
                           </div>
                           {notification.unread && (
-                            <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 flex-shrink-0"></div>
+                            <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 shrink-0"></div>
                           )}
                         </div>
                       ))}
@@ -163,7 +163,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                 {user?.profileImage ? (
                   <div className="relative h-full w-full rounded-full overflow-hidden">
                     <img
-                      src={getImageUrl(user.profileImage, user.name)}
+                      src={getImageUrl(user.profileImage, user.name, 300, user.profileImageUpdatedAt)}
                       alt={`${displayName} profile`}
                       className="h-full w-full object-cover object-top"
                       onError={(e) => {

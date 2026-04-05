@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Loader2, X, Check } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
+import { useAuth } from '@/context/AuthContext';
+import { getImageUrl } from '@/utils/imageUrl';
 
 interface ProfileImageUploadProps {
   currentImage?: string;
@@ -16,6 +18,7 @@ export default function ProfileImageUpload({
   userName,
   onUploadSuccess 
 }: ProfileImageUploadProps) {
+  const { updateUser } = useAuth();
   const [imagePreview, setImagePreview] = useState<string>(currentImage || '');
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,9 +34,9 @@ export default function ProfileImageUpload({
 
   useEffect(() => {
     if (currentImage) {
-      setImagePreview(currentImage.startsWith('http') || currentImage.startsWith('data:') ? currentImage : `${API_URL}${currentImage}`);
+      setImagePreview(getImageUrl(currentImage, userName));
     }
-  }, [currentImage, API_URL]);
+  }, [currentImage, userName]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -95,8 +98,10 @@ export default function ProfileImageUpload({
       const result = await response.json();
 
       if (result.success) {
-        const fullUrl = `${API_URL}${result.profileImage}`;
+        const imageVersion = Date.now();
+        const fullUrl = getImageUrl(result.profileImage, userName);
         setImagePreview(fullUrl);
+        updateUser({ profileImage: result.profileImage, profileImageUpdatedAt: imageVersion });
         if (onUploadSuccess) onUploadSuccess(result.profileImage);
         alert('Profile picture updated successfully!');
       } else {
@@ -120,7 +125,7 @@ export default function ProfileImageUpload({
     <div className="flex flex-col items-center sm:items-start gap-4">
       {/* Avatar Container */}
       <div className="relative group">
-        <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-100 flex-shrink-0 relative">
+        <div className="h-28 w-28 sm:h-32 sm:w-32 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gray-100 shrink-0 relative">
           <img 
             src={displaySrc} 
             alt="Profile Avatar" 
@@ -177,7 +182,7 @@ export default function ProfileImageUpload({
               </button>
             </div>
             
-            <div className="relative w-full h-[400px] bg-gray-900">
+            <div className="relative w-full h-100 bg-gray-900">
               <Cropper
                 image={srcImage}
                 crop={crop}
@@ -219,7 +224,7 @@ export default function ProfileImageUpload({
                   type="button"
                   onClick={handleCropSave}
                   disabled={isUploading}
-                  className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:ring-4 focus:outline-none focus:ring-indigo-300 flex items-center justify-center gap-2 min-w-[120px]"
+                  className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:ring-4 focus:outline-none focus:ring-indigo-300 flex items-center justify-center gap-2 min-w-30"
                 >
                   {isUploading ? (
                     <>

@@ -188,7 +188,7 @@ const DashboardHeader = ({
                {user?.profileImage ? (
                 <div className="relative h-full w-full rounded-full overflow-hidden">
                   <img
-                    src={getImageUrl(user.profileImage, user.name)}
+                    src={getImageUrl(user.profileImage, user.name, 300, user.profileImageUpdatedAt)}
                     alt={`${resolvedDisplayName} profile`}
                     className="h-full w-full object-cover object-top"
                       onError={(e) => {

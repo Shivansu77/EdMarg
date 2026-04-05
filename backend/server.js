@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
@@ -16,6 +17,7 @@ app.disable('x-powered-by');
 // Hardcoded allowed origins for production deployment
 const ALLOWED_ORIGINS = [
   'https://edmarg.com',
+  'https://www.edmarg.com',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
@@ -78,7 +80,6 @@ app.use((req, res, next) => {
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser());
 

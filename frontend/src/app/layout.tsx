@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import { Providers } from '@/context/Providers';
+import { NetworkStatus } from '@/components/NetworkStatus';
 import './globals.css';
 
 const manrope = Manrope({
@@ -53,7 +54,7 @@ export default function RootLayout({
       className={`${manrope.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">
-        <Providers>{children}</Providers>
+        <Providers>{children}<NetworkStatus /></Providers>
       </body>
     </html>
   );

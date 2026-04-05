@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
@@ -46,7 +46,7 @@ interface MentorProfile {
 }
 
 function MentorProfileContent() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   
   // Form State - Personal
   const [name, setName] = useState('');
@@ -132,22 +132,7 @@ function MentorProfileContent() {
       
       if (res.success) {
         setSuccessMsg('Profile updated successfully!');
-        
-        // Dispatch event to update Sidebar/Navbar immediately
-        if (typeof window !== 'undefined') {
-          const storedUser = localStorage.getItem('user');
-          if (storedUser) {
-            try {
-              const parsed = JSON.parse(storedUser);
-              parsed.name = name;
-              parsed.profileImage = profileImage;
-              localStorage.setItem('user', JSON.stringify(parsed));
-              window.dispatchEvent(new Event('edmarg-auth-user-change'));
-            } catch (e) {
-              console.error('Failed to update local cache', e);
-            }
-          }
-        }
+        updateUser({ name, profileImage, profileImageUpdatedAt: Date.now() });
         
         setTimeout(() => setSuccessMsg(''), 5000);
       } else {
@@ -162,16 +147,16 @@ function MentorProfileContent() {
 
   if (loading) {
     return (
-      <DashboardLayout userName="Profile">
+      <MentorDashboardLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
         </div>
-      </DashboardLayout>
+      </MentorDashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout userName="Profile">
+    <MentorDashboardLayout>
       <div className="max-w-4xl pb-16">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Mentor Profile</h1>
@@ -398,7 +383,7 @@ function MentorProfileContent() {
           </div>
         </form>
       </div>
-    </DashboardLayout>
+    </MentorDashboardLayout>
   );
 }
 
