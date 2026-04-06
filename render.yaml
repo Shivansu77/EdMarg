@@ -31,12 +31,18 @@ services:
     buildCommand: cd frontend && npm install && npm run build
     startCommand: cd frontend && npm start
     envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://edmarg-backend.onrender.com/api/v1
       - key: NEXT_PUBLIC_API_BASE_URL
         value: https://edmarg-backend.onrender.com/api/v1
       - key: NEXT_PUBLIC_BACKEND_URL
         value: https://edmarg-backend.onrender.com
+      - key: NEXT_PUBLIC_BASE_URL
+        value: https://edmarg.onrender.com
       - key: NEXT_PUBLIC_APP_NAME
         value: EdMarg
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://edmarg.onrender.com
       - key: NEXT_PUBLIC_ENVIRONMENT
         value: production
       - key: NODE_ENV

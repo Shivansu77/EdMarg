@@ -122,4 +122,42 @@ async function createZoomMeeting({ topic, startTime, duration }) {
   }
 }
 
-module.exports = { getZoomAccessToken, createZoomMeeting };
+/**
+ * Download a Zoom cloud recording as a readable stream.
+ * Zoom requires an access token appended as a query parameter for downloads.
+ *
+ * @param {string} downloadUrl - The download_url from Zoom's recording.completed webhook
+ * @returns {Promise<import('stream').Readable>} Node Readable stream of the video data
+ */
+async function downloadRecording(downloadUrl) {
+  try {
+    const token = await getZoomAccessToken();
+
+    // Zoom download URLs require the access_token as a query parameter
+    const separator = downloadUrl.includes('?') ? '&' : '?';
+    const authenticatedUrl = `${downloadUrl}${separator}access_token=${token}`;
+
+    console.log('[Zoom Download] Starting streaming download...');
+
+    const response = await axios.get(authenticatedUrl, {
+      responseType: 'stream',
+      // Follow redirects (Zoom may redirect to actual CDN)
+      maxRedirects: 5,
+      // 10 minute timeout for large recordings
+      timeout: 600000,
+    });
+
+    console.log('[Zoom Download] Stream established, content-type:', response.headers['content-type']);
+    return response.data; // This is a Readable stream
+  } catch (error) {
+    const status = error.response?.status;
+    console.error('[Zoom Download] Failed:', {
+      status,
+      message: error.message,
+      url: downloadUrl.substring(0, 60) + '...',
+    });
+    throw new Error(`Zoom recording download failed (HTTP ${status || 'N/A'}): ${error.message}`);
+  }
+}
+
+module.exports = { getZoomAccessToken, createZoomMeeting, downloadRecording };

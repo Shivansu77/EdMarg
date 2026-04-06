@@ -12,6 +12,7 @@ const PROTECTED_ROUTES = [
   '/student/history',
   '/student/profile',
   '/student/results',
+  '/student/recordings',
 ];
 
 const emptySubscribe = () => () => undefined;

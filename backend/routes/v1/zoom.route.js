@@ -1,5 +1,6 @@
 const express = require('express');
-const { zoomWebhook, createStandaloneMeeting } = require('../../controllers/zoom.controller');
+const { zoomWebhook, createStandaloneMeeting, retryRecording } = require('../../controllers/zoom.controller');
+const { protect, authorize } = require('../../middlewares/auth.middleware');
 
 const router = express.Router();
 
@@ -15,4 +16,11 @@ router.post('/webhook', zoomWebhook);
  */
 router.post('/create-meeting', createStandaloneMeeting);
 
+/**
+ * Retry a failed recording processing
+ * Only accessible by admins or mentors
+ */
+router.post('/retry-recording/:recordingId', protect, authorize('admin', 'mentor'), retryRecording);
+
 module.exports = router;
+

@@ -133,9 +133,7 @@ function HistoryContent() {
 
                   {booking.recordingUrl ? (
                     <a
-                      href={booking.recordingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={`/student/recordings/${booking._id}`}
                       className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
                     >
                       <Video className="w-4 h-4 mr-2" />

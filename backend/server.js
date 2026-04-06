@@ -18,6 +18,7 @@ app.disable('x-powered-by');
 const ALLOWED_ORIGINS = [
   'https://edmarg.com',
   'https://www.edmarg.com',
+  'https://edmarg.onrender.com',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
@@ -106,6 +107,7 @@ const mentorRouteV1 = require('./routes/v1/mentor.route');
 const zoomRouteV1 = require('./routes/v1/zoom.route');
 const reviewRouteV1 = require('./routes/v1/review.route');
 const profileRouteV1 = require('./routes/v1/profile.route');
+const recordingRouteV1 = require('./routes/v1/recording.route');
 const userRouteV2 = require('./routes/v2/user.route');
 const adminRouteV2 = require('./routes/v2/admin.route');
 const assessmentRoute = require('./routes/assessment.route');
@@ -119,6 +121,7 @@ app.use('/api/v1/mentor', mentorRouteV1);
 app.use('/api/v1/zoom', zoomRouteV1);
 app.use('/api/v1/reviews', reviewRouteV1);
 app.use('/api/v1/profile', profileRouteV1);
+app.use('/api/v1/recordings', recordingRouteV1);
 app.use('/api/v1/assessments', assessmentRoute);
 app.use('/api/v2/users', authLimiter, userRouteV2);
 app.use('/api/v2/admin', adminRouteV2);

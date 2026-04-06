@@ -528,7 +528,6 @@ function AssessmentContent() {
     </div>
   );
 }
-
 export default function AssessmentDetailPage() {
   return (
     <ProtectedRoute requiredRole="student">

@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff } from "lucide-react";
-import { API_BASE_URL } from "@/utils/api-client";
 import toast from 'react-hot-toast';
 
 export default function SignupPage() {
