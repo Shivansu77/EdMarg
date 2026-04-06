@@ -19,6 +19,7 @@ const ALLOWED_ORIGINS = [
   'https://edmarg.com',
   'https://www.edmarg.com',
   'https://edmarg.onrender.com',
+  'https://frontend-alpha-nine-92.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
