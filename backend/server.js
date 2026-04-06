@@ -149,8 +149,8 @@ app.use(errorHandler);
 // Export app immediately for Vercel
 module.exports = app;
 
-// Only listen if running locally
-if (require.main === module) {
+// Only listen if running locally or on Render
+if (require.main === module || process.env.RENDER) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
