@@ -131,6 +131,11 @@ app.use('/api/v2/admin', adminRouteV2);
 app.use('/api/users', authLimiter, userRouteV1);
 app.use('/api/admin', adminRouteV1);
 
+// Health Check
+app.get('/api/v1/health', (req, res) => {
+  res.status(200).json({ status: 'success', message: 'Healthy' });
+});
+
 app.get('/api/status', (req, res) => {
   res.json({ status: 'success', message: 'Backend is running' });
 });
