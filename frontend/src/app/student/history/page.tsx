@@ -49,9 +49,16 @@ function HistoryContent() {
     const fetchHistory = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get<{ bookings: Booking[] }>('/api/v1/bookings/my-bookings?limit=50&status=completed');
+        // Fetch broader set to include sessions that may still be "in-progress"
+        // but already have a recording URL attached.
+        const response = await apiClient.get<{ bookings: Booking[] }>(
+          '/api/v1/bookings/my-bookings?limit=50'
+        );
         if (response.success && response.data?.bookings) {
-          setBookings(response.data.bookings);
+          const historyBookings = response.data.bookings.filter(
+            (booking) => booking.status === 'completed' || Boolean(booking.recordingUrl)
+          );
+          setBookings(historyBookings);
         } else {
           setError(response.message || 'Failed to load session history');
         }

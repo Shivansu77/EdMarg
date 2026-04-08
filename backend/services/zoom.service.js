@@ -139,16 +139,38 @@ async function downloadRecording(downloadUrl) {
 
     console.log('[Zoom Download] Starting streaming download...');
 
-    const response = await axios.get(authenticatedUrl, {
-      responseType: 'stream',
-      // Follow redirects (Zoom may redirect to actual CDN)
-      maxRedirects: 5,
-      // 10 minute timeout for large recordings
-      timeout: 600000,
-    });
+    try {
+      const response = await axios.get(authenticatedUrl, {
+        responseType: 'stream',
+        // Follow redirects (Zoom may redirect to actual CDN)
+        maxRedirects: 5,
+        // 10 minute timeout for large recordings
+        timeout: 600000,
+      });
 
-    console.log('[Zoom Download] Stream established, content-type:', response.headers['content-type']);
-    return response.data; // This is a Readable stream
+      console.log('[Zoom Download] Stream established via query access_token, content-type:', response.headers['content-type']);
+      return response.data; // This is a Readable stream
+    } catch (firstError) {
+      const status = firstError.response?.status;
+      if (status !== 401) {
+        throw firstError;
+      }
+
+      // Fallback: some Zoom/CDN links work better with bearer auth header.
+      console.warn('[Zoom Download] Query-token download got 401, retrying with Authorization header...');
+
+      const fallbackResponse = await axios.get(downloadUrl, {
+        responseType: 'stream',
+        maxRedirects: 5,
+        timeout: 600000,
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log('[Zoom Download] Stream established via Authorization header, content-type:', fallbackResponse.headers['content-type']);
+      return fallbackResponse.data;
+    }
   } catch (error) {
     const status = error.response?.status;
     console.error('[Zoom Download] Failed:', {

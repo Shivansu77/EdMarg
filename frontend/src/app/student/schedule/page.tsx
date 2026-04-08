@@ -74,7 +74,9 @@ function ScheduleContent() {
 
   const filteredBookings = bookings.filter((b) => {
     if (activeTab === 'upcoming') return ['pending', 'confirmed', 'in-progress'].includes(b.status);
-    if (activeTab === 'past') return ['completed', 'cancelled', 'rejected'].includes(b.status);
+    if (activeTab === 'past') {
+      return ['completed', 'cancelled', 'rejected'].includes(b.status) || Boolean(b.recordingUrl);
+    }
     return true;
   });
 

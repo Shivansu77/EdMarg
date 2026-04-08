@@ -60,6 +60,26 @@ exports.getRecordingBySession = async (req, res) => {
     const recording = await Recording.findOne({ sessionId }).lean();
 
     if (!recording) {
+      // Backward-compat fallback:
+      // Some sessions may only have booking.recordingUrl persisted.
+      if (booking.recordingUrl) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            _id: null,
+            sessionId: booking._id,
+            meetingId: booking.zoomMeetingId || '',
+            duration: 0,
+            recordingType: 'zoom_playback',
+            processingStatus: 'completed',
+            fileSize: 0,
+            createdAt: booking.updatedAt || booking.createdAt,
+            videoUrl: booking.recordingUrl,
+          },
+          message: 'Serving recording from booking fallback URL',
+        });
+      }
+
       return res.status(404).json({
         success: false,
         message: 'No recording available for this session',
@@ -70,6 +90,26 @@ exports.getRecordingBySession = async (req, res) => {
     // 3. Handle processing states
     // ──────────────────────────────────────────────────────────────────
     if (recording.processingStatus !== 'completed') {
+      // If pipeline isn't completed but we still have a booking-level recording URL,
+      // return it so users can watch instead of seeing a hard failure.
+      if (booking.recordingUrl) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            _id: recording._id,
+            sessionId: recording.sessionId,
+            meetingId: recording.meetingId,
+            duration: recording.duration,
+            recordingType: recording.recordingType || 'zoom_playback',
+            processingStatus: 'completed',
+            fileSize: recording.fileSize || 0,
+            createdAt: recording.createdAt,
+            videoUrl: booking.recordingUrl,
+          },
+          message: 'Serving booking recording URL fallback while processing metadata',
+        });
+      }
+
       return res.status(200).json({
         success: true,
         data: {

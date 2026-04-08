@@ -126,6 +126,19 @@ exports.zoomWebhook = async (req, res) => {
         return res.status(200).send('ok');
       }
 
+      // Ignore Zoom webhook "test" payloads so they don't pollute real data.
+      const simulatedDownloadUrl = bestRecording.download_url || '';
+      const simulatedPlayUrl = bestRecording.play_url || '';
+      if (
+        simulatedDownloadUrl.includes('test-simulated') ||
+        simulatedPlayUrl.includes('test-simulated')
+      ) {
+        console.warn(
+          `[Zoom Webhook] Ignoring simulated recording payload for meeting ${zoomMeetingId}`
+        );
+        return res.status(200).send('ok');
+      }
+
       // ──────────────────────────────────────────────────────────────────
       // 3a. Find the booking that matches this Zoom meeting
       // ──────────────────────────────────────────────────────────────────
