@@ -14,21 +14,14 @@ const PORT = process.env.PORT || 5000;
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
-// Hardcoded allowed origins for production deployment
-const ALLOWED_ORIGINS = [
-  'https://edmarg.com',
-  'https://www.edmarg.com',
-  'https://edmarg.onrender.com',
-  'https://frontend-alpha-nine-92.vercel.app',
-  'http://localhost:3000',
-  'http://localhost:3001',
-  'http://127.0.0.1:3000',
-  'http://127.0.0.1:3001',
-  process.env.FRONTEND_ORIGIN
+const configuredFrontendOrigins = [
+  process.env.FRONTEND_ORIGIN,
+  process.env.FRONTEND_ORIGINS,
+  process.env.NEXT_PUBLIC_APP_URL,
 ].filter(Boolean);
 
-console.log('✅ CORS Allowed Origins:', ALLOWED_ORIGINS);
-console.log('🚀 Vercel Deployment: CORS Fix v2.0 - Redeploying');
+console.log('✅ CORS Frontend Origin Env:', configuredFrontendOrigins.length ? configuredFrontendOrigins : 'none');
+console.log('🚀 CORS middleware active (supports allow-list + *.vercel.app previews)');
 
 // 1. CORS Middleware - Layer 3 (Fallback)
 app.use((req, res, next) => {

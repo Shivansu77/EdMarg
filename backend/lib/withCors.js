@@ -2,6 +2,12 @@
  * Serverless-safe CORS wrapper for Vercel Express functions
  */
 
+const splitOrigins = (value) =>
+  String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+
 const ALLOWED_ORIGINS = [
   'https://edmarg.com',
   'https://www.edmarg.com',
@@ -10,8 +16,9 @@ const ALLOWED_ORIGINS = [
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
-  'https://frontend-alpha-nine-92.vercel.app',
-  process.env.FRONTEND_ORIGIN,
+  ...splitOrigins(process.env.FRONTEND_ORIGIN),
+  ...splitOrigins(process.env.FRONTEND_ORIGINS),
+  ...splitOrigins(process.env.NEXT_PUBLIC_APP_URL),
 ].filter(Boolean);
 
 function setCorsHeaders(req, res) {
@@ -21,9 +28,10 @@ function setCorsHeaders(req, res) {
     typeof origin === 'string' &&
     (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
   const isVercelApp = typeof origin === 'string' && origin.endsWith('.vercel.app');
+  const isListedOrigin = typeof origin === 'string' && ALLOWED_ORIGINS.includes(origin);
 
   // In production we enforce an allow-list; in dev we allow local origins.
-  if (origin && (isVercelApp || (!isProduction ? isLocalOrigin || ALLOWED_ORIGINS.includes(origin) : ALLOWED_ORIGINS.includes(origin)))) {
+  if (origin && (isVercelApp || isListedOrigin || (!isProduction && isLocalOrigin))) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
