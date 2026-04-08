@@ -1,5 +1,10 @@
 const express = require('express');
-const { zoomWebhook, createStandaloneMeeting, retryRecording } = require('../../controllers/zoom.controller');
+const {
+  zoomWebhook,
+  createStandaloneMeeting,
+  retryRecording,
+  processPendingRecordings,
+} = require('../../controllers/zoom.controller');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
 
 const router = express.Router();
@@ -22,5 +27,11 @@ router.post('/create-meeting', createStandaloneMeeting);
  */
 router.post('/retry-recording/:recordingId', protect, authorize('admin', 'mentor'), retryRecording);
 
-module.exports = router;
+/**
+ * Cron/manual worker endpoint:
+ * Processes pending/failed recording uploads and pushes them to Cloudinary.
+ * Auth: x-vercel-cron header OR ?token=RECORDING_CRON_SECRET
+ */
+router.get('/process-pending', processPendingRecordings);
 
+module.exports = router;

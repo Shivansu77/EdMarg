@@ -18,6 +18,18 @@ const { createZoomMeeting, downloadRecording } = require('../services/zoom.servi
 const { uploadVideoFromStream } = require('../services/cloudinary.service');
 const { isSimulatedZoomTestUrl, sanitizeRecordingUrl } = require('../utils/recording.utils');
 
+function isPendingProcessorAuthorized(req) {
+  const isVercelCron = Boolean(req.headers['x-vercel-cron']);
+  const secret = (process.env.RECORDING_CRON_SECRET || '').trim();
+  const token = String(req.query.token || '').trim();
+  const isNonProduction = process.env.NODE_ENV !== 'production';
+
+  if (isVercelCron) return true;
+  if (secret && token === secret) return true;
+  if (isNonProduction) return true;
+  return false;
+}
+
 // ─── Webhook Signature Verification ────────────────────────────────────────
 /**
  * Verifies the Zoom webhook request signature using HMAC-SHA256.
@@ -327,6 +339,115 @@ async function processRecordingAsync(recordingId) {
     }
   }
 }
+
+// ─── Pending Processor (Cron-safe) ─────────────────────────────────────────
+/**
+ * GET /api/v1/zoom/process-pending
+ *
+ * Processes a batch of recordings that are stuck in:
+ * pending/downloading/uploading/failed (with zoomDownloadUrl available).
+ *
+ * This route is intended for Vercel Cron (x-vercel-cron header) and can
+ * also be called manually with ?token=RECORDING_CRON_SECRET.
+ */
+exports.processPendingRecordings = async (req, res) => {
+  try {
+    if (!isPendingProcessorAuthorized(req)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized pending-processor request',
+      });
+    }
+
+    const limitParam = Number(req.query.limit);
+    const batchSize =
+      Number.isInteger(limitParam) && limitParam > 0
+        ? Math.min(limitParam, 10)
+        : 3;
+
+    const candidates = await Recording.find({
+      processingStatus: { $in: ['pending', 'downloading', 'uploading', 'failed'] },
+      zoomDownloadUrl: { $exists: true, $ne: '' },
+    })
+      .sort({ updatedAt: 1 })
+      .limit(batchSize)
+      .select('_id processingStatus meetingId')
+      .lean();
+
+    if (!candidates.length) {
+      return res.status(200).json({
+        success: true,
+        message: 'No pending recordings to process',
+        data: {
+          scanned: 0,
+          processed: 0,
+          failed: 0,
+        },
+      });
+    }
+
+    let processed = 0;
+    let failed = 0;
+    const results = [];
+
+    for (const candidate of candidates) {
+      const recordingId = String(candidate._id);
+
+      try {
+        if (candidate.processingStatus !== 'pending') {
+          await Recording.findByIdAndUpdate(recordingId, {
+            processingStatus: 'pending',
+            errorMessage: '',
+          });
+        }
+
+        await processRecordingAsync(recordingId);
+
+        const latest = await Recording.findById(recordingId)
+          .select('processingStatus errorMessage')
+          .lean();
+
+        const finalStatus = latest?.processingStatus || 'unknown';
+        const isCompleted = finalStatus === 'completed';
+
+        if (isCompleted) processed += 1;
+        else failed += 1;
+
+        results.push({
+          recordingId,
+          meetingId: candidate.meetingId,
+          status: finalStatus,
+          ...(latest?.errorMessage ? { error: latest.errorMessage } : {}),
+        });
+      } catch (err) {
+        failed += 1;
+        results.push({
+          recordingId,
+          meetingId: candidate.meetingId,
+          status: 'failed',
+          error: err.message,
+        });
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Pending recording batch processed',
+      data: {
+        scanned: candidates.length,
+        processed,
+        failed,
+        results,
+      },
+    });
+  } catch (error) {
+    console.error('[Zoom Pending Processor] Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to process pending recordings',
+    });
+  }
+};
 
 // ─── Standalone Meeting Creation (Existing) ─────────────────────────────────
 /**

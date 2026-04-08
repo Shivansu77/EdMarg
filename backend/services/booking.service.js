@@ -3,6 +3,7 @@ const availabilityRepository = require('../repositories/availability.repository'
 const userRepository = require('../repositories/user.repository');
 const { ValidationError, NotFoundError } = require('../utils/errors');
 const { sanitizeRecordingUrl } = require('../utils/recording.utils');
+const { Recording } = require('../models/Recording');
 
 /**
  * Build a proper ISO 8601 date-time string for Zoom API.
@@ -71,6 +72,51 @@ class BookingService {
       ...booking,
       recordingUrl: sanitizeRecordingUrl(booking.recordingUrl || ''),
     };
+  }
+
+  async _hydrateRecordingFallbacks(bookings = []) {
+    if (!Array.isArray(bookings) || bookings.length === 0) {
+      return bookings;
+    }
+
+    const bookingIds = bookings
+      .map((booking) => booking?._id)
+      .filter(Boolean);
+
+    if (!bookingIds.length) {
+      return bookings;
+    }
+
+    const completedRecordings = await Recording.find({
+      sessionId: { $in: bookingIds },
+      processingStatus: 'completed',
+      videoUrl: { $exists: true, $ne: '' },
+    })
+      .select('sessionId videoUrl')
+      .lean();
+
+    if (!completedRecordings.length) {
+      return bookings;
+    }
+
+    const recordingUrlBySessionId = new Map(
+      completedRecordings.map((recording) => [
+        String(recording.sessionId),
+        sanitizeRecordingUrl(recording.videoUrl || ''),
+      ])
+    );
+
+    return bookings.map((booking) => {
+      const existingRecordingUrl = sanitizeRecordingUrl(booking.recordingUrl || '');
+      if (existingRecordingUrl) {
+        return { ...booking, recordingUrl: existingRecordingUrl };
+      }
+
+      const fallbackRecordingUrl =
+        recordingUrlBySessionId.get(String(booking._id)) || '';
+
+      return { ...booking, recordingUrl: fallbackRecordingUrl };
+    });
   }
 
   /**
@@ -171,7 +217,8 @@ class BookingService {
       bookingRepository.countByStudent(studentId, { status }),
     ]);
 
-    const sanitizedBookings = bookings.map((booking) =>
+    const hydratedBookings = await this._hydrateRecordingFallbacks(bookings);
+    const sanitizedBookings = hydratedBookings.map((booking) =>
       this._sanitizeBookingForClient(booking)
     );
 
@@ -193,7 +240,8 @@ class BookingService {
       bookingRepository.countByMentor(mentorId, { status }),
     ]);
 
-    const sanitizedBookings = bookings.map((booking) =>
+    const hydratedBookings = await this._hydrateRecordingFallbacks(bookings);
+    const sanitizedBookings = hydratedBookings.map((booking) =>
       this._sanitizeBookingForClient(booking)
     );
 
