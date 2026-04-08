@@ -16,6 +16,9 @@ const forwardRequest = async (request: Request, path: string[]) => {
   // Host/length are recalculated by fetch runtime.
   headers.delete('host');
   headers.delete('content-length');
+  // Avoid compressed upstream payloads; Vercel/undici can auto-decode and
+  // leave stale content-encoding headers, causing ERR_CONTENT_DECODING_FAILED.
+  headers.delete('accept-encoding');
 
   const init: RequestInit = {
     method: request.method,
@@ -32,6 +35,9 @@ const forwardRequest = async (request: Request, path: string[]) => {
 
   const responseHeaders = new Headers(backendResponse.headers);
   responseHeaders.delete('content-length');
+  responseHeaders.delete('content-encoding');
+  responseHeaders.delete('transfer-encoding');
+  responseHeaders.delete('connection');
 
   return new Response(backendResponse.body, {
     status: backendResponse.status,
