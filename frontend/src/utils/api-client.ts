@@ -1,4 +1,9 @@
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
+const FALLBACK_API_BASE_URL = 'https://edmarg-backend.vercel.app';
+const configuredApiBase = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/v1\/?$/, '');
+const API_BASE_URL =
+  configuredApiBase && !configuredApiBase.includes('edmarg.onrender.com')
+    ? configuredApiBase
+    : FALLBACK_API_BASE_URL;
 
 const getStoredToken = () => {
   if (typeof window === 'undefined') {

@@ -45,7 +45,7 @@ function RecordingsContent() {
         if (response.success && response.data?.bookings) {
           setBookings(response.data.bookings.filter((booking) => Boolean(booking.recordingUrl)));
         } else {
-          setError(response.message || 'Failed to load recordings');
+          setError(response.message || response.error || 'Failed to load recordings');
         }
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Failed to load recordings');
@@ -165,4 +165,3 @@ export default function RecordingsPage() {
     </ProtectedRoute>
   );
 }
-

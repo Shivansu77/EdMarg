@@ -1,5 +1,4 @@
 const sharp = require('sharp');
-const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs/promises');
 const { User } = require('../models/user.model');
