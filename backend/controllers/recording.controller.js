@@ -8,7 +8,10 @@
 
 const { Recording } = require('../models/Recording');
 const { Booking } = require('../models/booking.model');
-const { generateSignedDeliveryUrl, cloudinary } = require('../services/cloudinary.service');
+const {
+  generateSignedDeliveryUrl,
+  uploadVideoBuffer,
+} = require('../services/cloudinary.service');
 
 // ─── Get Recording by Session ──────────────────────────────────────────────
 /**
@@ -138,13 +141,17 @@ exports.getRecordingBySession = async (req, res) => {
     let signedVideoUrl = recording.videoUrl;
 
     if (recording.cloudinaryPublicId) {
-      // Generate a fresh signed URL that expires in 2 hours
-      signedVideoUrl = cloudinary.url(recording.cloudinaryPublicId, {
-        resource_type: 'video',
-        secure: true,
-        sign_url: true,
-        type: 'upload',
-      });
+      try {
+        // Generate a fresh signed URL that expires in 2 hours
+        signedVideoUrl = generateSignedDeliveryUrl(recording.cloudinaryPublicId, {
+          expiresInSeconds: 7200,
+        });
+      } catch (signErr) {
+        console.warn(
+          `[Recording Controller] Failed to sign Cloudinary URL for ${recording.cloudinaryPublicId}:`,
+          signErr.message
+        );
+      }
     }
 
     return res.status(200).json({
@@ -201,6 +208,102 @@ exports.getMyRecordings = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to retrieve recordings',
+    });
+  }
+};
+
+// ─── Manual Upload for a Session ───────────────────────────────────────────
+/**
+ * POST /api/v1/recordings/:sessionId/upload
+ *
+ * Allows mentor/admin to upload a session video manually and store it in Cloudinary.
+ */
+exports.uploadRecordingForSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please attach a video file in field "video"',
+      });
+    }
+
+    const booking = await Booking.findById(sessionId).lean();
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Session not found',
+      });
+    }
+
+    const bookingMentorId = String(booking.mentor?._id || booking.mentor);
+
+    // Route is already protected, but we keep this guard here for clarity.
+    if (role !== 'admin' && userId !== bookingMentorId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the assigned mentor or an admin can upload this recording',
+      });
+    }
+
+    let recording = await Recording.findOne({ sessionId });
+    const meetingId =
+      recording?.meetingId ||
+      booking.zoomMeetingId ||
+      `manual-session-${String(sessionId)}`;
+
+    const cloudinaryResult = await uploadVideoBuffer(req.file.buffer, {
+      folder: 'session-recordings',
+      publicId: `meeting-${meetingId}`,
+    });
+
+    if (!recording) {
+      recording = new Recording({
+        sessionId: booking._id,
+        meetingId,
+        mentorId: booking.mentor?._id || booking.mentor,
+        studentId: booking.student?._id || booking.student,
+      });
+    }
+
+    recording.videoUrl = cloudinaryResult.secure_url;
+    recording.cloudinaryPublicId = cloudinaryResult.public_id;
+    recording.duration = cloudinaryResult.duration || recording.duration || 0;
+    recording.fileSize = cloudinaryResult.bytes || req.file.size || 0;
+    recording.recordingType = 'manual_upload';
+    recording.processingStatus = 'completed';
+    recording.zoomDownloadUrl = '';
+    recording.errorMessage = '';
+    await recording.save();
+
+    await Booking.findByIdAndUpdate(booking._id, {
+      recordingUrl: cloudinaryResult.secure_url,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Recording uploaded to Cloudinary successfully',
+      data: {
+        _id: recording._id,
+        sessionId: recording.sessionId,
+        meetingId: recording.meetingId,
+        duration: recording.duration,
+        fileSize: recording.fileSize,
+        recordingType: recording.recordingType,
+        processingStatus: recording.processingStatus,
+        videoUrl: recording.videoUrl,
+        cloudinaryPublicId: recording.cloudinaryPublicId,
+      },
+    });
+  } catch (error) {
+    console.error('[Recording Upload] Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to upload recording video',
     });
   }
 };

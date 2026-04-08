@@ -1,7 +1,33 @@
 const { AppError } = require('../utils/errors');
+const multer = require('multer');
 
 const errorHandler = (err, req, res, next) => {
   // Let global CORS middleware handle headers (removed manual setHeader to avoid conflicts)
+
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({
+        success: false,
+        message: 'Uploaded file is too large',
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: err.message || 'Invalid upload payload',
+    });
+  }
+
+  if (
+    typeof err?.message === 'string' &&
+    (err.message.includes('Only image files are allowed') ||
+      err.message.includes('Only video files are allowed'))
+  ) {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
 
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({

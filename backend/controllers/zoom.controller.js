@@ -155,10 +155,45 @@ exports.zoomWebhook = async (req, res) => {
       const existingRecording = await Recording.findOne({ meetingId: zoomMeetingId });
 
       if (existingRecording) {
+        if (
+          existingRecording.processingStatus === 'failed' &&
+          existingRecording.zoomDownloadUrl
+        ) {
+          existingRecording.processingStatus = 'pending';
+          existingRecording.errorMessage = '';
+          await existingRecording.save();
+
+          processRecordingAsync(existingRecording._id).catch((err) => {
+            console.error(
+              `[Zoom Pipeline] Retry failed for existing Recording ${existingRecording._id}:`,
+              err.message
+            );
+          });
+
+          console.log(
+            `[Zoom Webhook] Existing failed recording ${existingRecording._id} re-queued for processing`
+          );
+          return res.status(200).send('ok');
+        }
+
         console.log(
           `[Zoom Webhook] Recording already exists for meeting ${zoomMeetingId} ` +
           `(status: ${existingRecording.processingStatus}) — skipping`
         );
+        return res.status(200).send('ok');
+      }
+
+      if (!bestRecording.download_url) {
+        console.warn(
+          `[Zoom Webhook] Missing download_url for meeting ${zoomMeetingId}; cannot upload to Cloudinary`
+        );
+
+        if (bestRecording.play_url) {
+          await Booking.findByIdAndUpdate(booking._id, {
+            recordingUrl: bestRecording.play_url,
+          });
+        }
+
         return res.status(200).send('ok');
       }
 

@@ -25,6 +25,15 @@ if (cloudinaryUrl) {
   });
 }
 
+function assertCloudinaryConfigured() {
+  const cfg = cloudinary.config();
+  if (!cfg.cloud_name || !cfg.api_key || !cfg.api_secret) {
+    throw new Error(
+      'Cloudinary credentials are missing. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET.'
+    );
+  }
+}
+
 // ─── Upload Video from Readable Stream ──────────────────────────────────────
 /**
  * Streams a video directly to Cloudinary without buffering the whole file.
@@ -36,6 +45,8 @@ if (cloudinaryUrl) {
  * @returns {Promise<{ secure_url: string, public_id: string, duration: number, bytes: number }>}
  */
 async function uploadVideoFromStream(readableStream, options = {}) {
+  assertCloudinaryConfigured();
+
   const folder = options.folder || 'session-recordings';
 
   return new Promise((resolve, reject) => {
@@ -83,6 +94,24 @@ async function uploadVideoFromStream(readableStream, options = {}) {
   });
 }
 
+/**
+ * Uploads a video from an in-memory buffer.
+ *
+ * @param {Buffer} buffer - Video buffer from multer memory storage
+ * @param {Object} options
+ * @param {string} [options.folder]
+ * @param {string} [options.publicId]
+ * @returns {Promise<{ secure_url: string, public_id: string, duration: number, bytes: number }>}
+ */
+async function uploadVideoBuffer(buffer, options = {}) {
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+    throw new Error('Video buffer is empty or invalid');
+  }
+
+  const readableStream = Readable.from(buffer);
+  return uploadVideoFromStream(readableStream, options);
+}
+
 // ─── Generate Signed URL ────────────────────────────────────────────────────
 /**
  * Generates a time-limited signed URL for secure video playback.
@@ -124,7 +153,7 @@ function generateSignedDeliveryUrl(publicId, options = {}) {
     sign_url: true,
     secure: true,
     type: 'upload',
-    // Append expiration as a transformation timestamp
+    expires_at: expiresAt,
   });
 }
 
@@ -151,6 +180,7 @@ async function deleteVideo(publicId) {
 module.exports = {
   cloudinary, // Export the configured instance for edge cases
   uploadVideoFromStream,
+  uploadVideoBuffer,
   generateSignedUrl,
   generateSignedDeliveryUrl,
   deleteVideo,
