@@ -51,9 +51,10 @@ function RecordingPageContent() {
     const fetchBooking = async () => {
       setLoading(true);
       try {
-        // Fetch all completed bookings and find the matching one
+        // Fetch broader history to include sessions that may still be
+        // in-progress but already expose a recording URL.
         const response = await apiClient.get<{ bookings: BookingDetails[] }>(
-          '/api/v1/bookings/my-bookings?limit=100&status=completed'
+          '/api/v1/bookings/my-bookings?limit=100'
         );
         if (response.success && response.data?.bookings) {
           const found = response.data.bookings.find((b) => b._id === sessionId);

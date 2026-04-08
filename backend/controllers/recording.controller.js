@@ -12,6 +12,10 @@ const {
   generateSignedDeliveryUrl,
   uploadVideoBuffer,
 } = require('../services/cloudinary.service');
+const {
+  sanitizeRecordingUrl,
+  isSimulatedZoomTestUrl,
+} = require('../utils/recording.utils');
 
 // ─── Get Recording by Session ──────────────────────────────────────────────
 /**
@@ -34,21 +38,43 @@ exports.getRecordingBySession = async (req, res) => {
   try {
     const { sessionId } = req.params;
     const userId = String(req.user._id);
+    const sessionIdStr = String(sessionId);
+    const isMongoObjectId = /^[a-f\d]{24}$/i.test(sessionIdStr);
 
     // ──────────────────────────────────────────────────────────────────
-    // 1. Find the booking and verify ownership
+    // 1. Resolve booking
     // ──────────────────────────────────────────────────────────────────
-    const booking = await Booking.findById(sessionId).lean();
+    let booking = null;
+
+    if (isMongoObjectId) {
+      booking = await Booking.findById(sessionIdStr).lean();
+    }
 
     if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Session not found',
-      });
+      booking = await Booking.findOne({ zoomMeetingId: sessionIdStr }).lean();
+    }
+
+    if (!booking) {
+      // Fallback: try resolving through Recording if client sent meetingId/recordingId.
+      const recordingByAltId = await Recording.findOne({
+        $or: [{ meetingId: sessionIdStr }, ...(isMongoObjectId ? [{ _id: sessionIdStr }] : [])],
+      }).lean();
+
+      if (recordingByAltId) {
+        booking = await Booking.findById(recordingByAltId.sessionId).lean();
+      }
+
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: 'Session not found',
+        });
+      }
     }
 
     const bookingStudentId = String(booking.student._id || booking.student);
     const bookingMentorId = String(booking.mentor._id || booking.mentor);
+    const safeBookingRecordingUrl = sanitizeRecordingUrl(booking.recordingUrl || '');
 
     if (userId !== bookingStudentId && userId !== bookingMentorId) {
       return res.status(403).json({
@@ -65,7 +91,7 @@ exports.getRecordingBySession = async (req, res) => {
     if (!recording) {
       // Backward-compat fallback:
       // Some sessions may only have booking.recordingUrl persisted.
-      if (booking.recordingUrl) {
+      if (safeBookingRecordingUrl) {
         return res.status(200).json({
           success: true,
           data: {
@@ -77,7 +103,7 @@ exports.getRecordingBySession = async (req, res) => {
             processingStatus: 'completed',
             fileSize: 0,
             createdAt: booking.updatedAt || booking.createdAt,
-            videoUrl: booking.recordingUrl,
+            videoUrl: safeBookingRecordingUrl,
           },
           message: 'Serving recording from booking fallback URL',
         });
@@ -93,9 +119,19 @@ exports.getRecordingBySession = async (req, res) => {
     // 3. Handle processing states
     // ──────────────────────────────────────────────────────────────────
     if (recording.processingStatus !== 'completed') {
+      if (
+        recording.processingStatus === 'failed' &&
+        isSimulatedZoomTestUrl(recording.zoomDownloadUrl || '')
+      ) {
+        return res.status(404).json({
+          success: false,
+          message: 'No recording available for this session',
+        });
+      }
+
       // If pipeline isn't completed but we still have a booking-level recording URL,
       // return it so users can watch instead of seeing a hard failure.
-      if (booking.recordingUrl) {
+      if (safeBookingRecordingUrl) {
         return res.status(200).json({
           success: true,
           data: {
@@ -107,7 +143,7 @@ exports.getRecordingBySession = async (req, res) => {
             processingStatus: 'completed',
             fileSize: recording.fileSize || 0,
             createdAt: recording.createdAt,
-            videoUrl: booking.recordingUrl,
+            videoUrl: safeBookingRecordingUrl,
           },
           message: 'Serving booking recording URL fallback while processing metadata',
         });

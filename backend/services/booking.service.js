@@ -2,6 +2,7 @@ const bookingRepository = require('../repositories/booking.repository');
 const availabilityRepository = require('../repositories/availability.repository');
 const userRepository = require('../repositories/user.repository');
 const { ValidationError, NotFoundError } = require('../utils/errors');
+const { sanitizeRecordingUrl } = require('../utils/recording.utils');
 
 /**
  * Build a proper ISO 8601 date-time string for Zoom API.
@@ -64,6 +65,14 @@ async function attemptZoomMeetingCreation({ mentorName, date, startTime, session
 }
 
 class BookingService {
+  _sanitizeBookingForClient(booking) {
+    if (!booking) return booking;
+    return {
+      ...booking,
+      recordingUrl: sanitizeRecordingUrl(booking.recordingUrl || ''),
+    };
+  }
+
   /**
    * Create a new booking for a student with a mentor.
    * Respects mentor's sessionDuration and autoConfirm settings.
@@ -162,7 +171,16 @@ class BookingService {
       bookingRepository.countByStudent(studentId, { status }),
     ]);
 
-    return { bookings, total, page, pages: Math.ceil(total / limit) };
+    const sanitizedBookings = bookings.map((booking) =>
+      this._sanitizeBookingForClient(booking)
+    );
+
+    return {
+      bookings: sanitizedBookings,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    };
   }
 
   /**
@@ -175,14 +193,24 @@ class BookingService {
       bookingRepository.countByMentor(mentorId, { status }),
     ]);
 
-    return { bookings, total, page, pages: Math.ceil(total / limit) };
+    const sanitizedBookings = bookings.map((booking) =>
+      this._sanitizeBookingForClient(booking)
+    );
+
+    return {
+      bookings: sanitizedBookings,
+      total,
+      page,
+      pages: Math.ceil(total / limit),
+    };
   }
 
   /**
    * Get upcoming bookings for a mentor.
    */
   async getUpcomingMentorBookings(mentorId, limit = 10) {
-    return bookingRepository.findUpcomingByMentor(mentorId, limit);
+    const bookings = await bookingRepository.findUpcomingByMentor(mentorId, limit);
+    return bookings.map((booking) => this._sanitizeBookingForClient(booking));
   }
 
   /**

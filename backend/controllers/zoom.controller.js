@@ -16,6 +16,7 @@ const { Booking } = require('../models/booking.model');
 const { Recording } = require('../models/Recording');
 const { createZoomMeeting, downloadRecording } = require('../services/zoom.service');
 const { uploadVideoFromStream } = require('../services/cloudinary.service');
+const { isSimulatedZoomTestUrl, sanitizeRecordingUrl } = require('../utils/recording.utils');
 
 // ─── Webhook Signature Verification ────────────────────────────────────────
 /**
@@ -130,8 +131,8 @@ exports.zoomWebhook = async (req, res) => {
       const simulatedDownloadUrl = bestRecording.download_url || '';
       const simulatedPlayUrl = bestRecording.play_url || '';
       if (
-        simulatedDownloadUrl.includes('test-simulated') ||
-        simulatedPlayUrl.includes('test-simulated')
+        isSimulatedZoomTestUrl(simulatedDownloadUrl) ||
+        isSimulatedZoomTestUrl(simulatedPlayUrl)
       ) {
         console.warn(
           `[Zoom Webhook] Ignoring simulated recording payload for meeting ${zoomMeetingId}`
@@ -188,9 +189,10 @@ exports.zoomWebhook = async (req, res) => {
           `[Zoom Webhook] Missing download_url for meeting ${zoomMeetingId}; cannot upload to Cloudinary`
         );
 
-        if (bestRecording.play_url) {
+        const safePlayUrl = sanitizeRecordingUrl(bestRecording.play_url || '');
+        if (safePlayUrl) {
           await Booking.findByIdAndUpdate(booking._id, {
-            recordingUrl: bestRecording.play_url,
+            recordingUrl: safePlayUrl,
           });
         }
 
@@ -225,9 +227,10 @@ exports.zoomWebhook = async (req, res) => {
       });
 
       // Also update the legacy recordingUrl on the booking (backward compat)
-      if (bestRecording.play_url) {
+      const safePlayUrl = sanitizeRecordingUrl(bestRecording.play_url || '');
+      if (safePlayUrl) {
         await Booking.findByIdAndUpdate(booking._id, {
-          recordingUrl: bestRecording.play_url,
+          recordingUrl: safePlayUrl,
         });
       }
     }
