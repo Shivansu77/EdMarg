@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import { BlogPost } from '../types';
 import { formatBlogDate } from '../utils';
@@ -7,15 +10,27 @@ interface BlogCardProps {
 }
 
 export function BlogCard({ blog }: BlogCardProps) {
+  const [imageError, setImageError] = useState(false);
+
+  const imageUrl = imageError
+    ? 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=80'
+    : blog.image;
+
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl">
       <div className="relative h-52 w-full overflow-hidden">
         <img
-          src={blog.image}
+          src={imageUrl}
           alt={blog.title}
           className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={() => setImageError(true)}
         />
+        {imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+            <span className="text-xs text-slate-500">Image unavailable</span>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-5">

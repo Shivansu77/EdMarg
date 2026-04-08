@@ -1,15 +1,58 @@
+'use client';
+
 import type { Metadata } from 'next';
+import { useEffect, useState } from 'react';
 import { BlogShell } from '@/modules/blog/components/BlogShell';
 import { BlogList } from '@/modules/blog/components/BlogList';
-import { getAllBlogs } from '@/modules/blog/data/blogs';
+import { BlogListSkeleton } from '@/modules/blog/components/states/BlogListSkeleton';
+import { BlogPost } from '@/modules/blog/types';
+import { getAllBlogsFromAPI } from '@/services/blog.service';
 
-export const metadata: Metadata = {
-  title: 'Blogs | EdMarg',
-  description: 'Browse practical career and mentorship articles from EdMarg.',
-};
+// Note: metadata export only works in server components
+// For dynamic metadata with client components, use next/head or useEffect
 
 export default function BlogsPage() {
-  const blogs = getAllBlogs();
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchBlogs() {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getAllBlogsFromAPI();
+        setBlogs(data);
+        
+        // Update page title dynamically
+        document.title = 'Blogs | EdMarg';
+      } catch (err) {
+        console.error('Failed to load blogs:', err);
+        setError('Failed to load blogs. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchBlogs();
+  }, []);
+
+  if (error) {
+    return (
+      <BlogShell>
+        <section className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
+          <h2 className="text-2xl font-bold text-rose-900">Unable to Load Blogs</h2>
+          <p className="mt-3 text-sm text-rose-700">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-6 rounded-full bg-rose-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-rose-800"
+          >
+            Try Again
+          </button>
+        </section>
+      </BlogShell>
+    );
+  }
 
   return (
     <BlogShell>
@@ -25,7 +68,7 @@ export default function BlogsPage() {
         </p>
       </section>
 
-      <BlogList blogs={blogs} />
+      {loading ? <BlogListSkeleton /> : <BlogList blogs={blogs} />}
     </BlogShell>
   );
 }
