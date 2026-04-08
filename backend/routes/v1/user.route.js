@@ -18,7 +18,7 @@ router.post('/login', loginUser);
 router.get('/me', protect, getCurrentUser);
 router.get('/browsementor', getBrowseMentors);
 router.get('/mentor/:id', getMentorById);
-router.post('/logout', protect, logoutUser);
+router.post('/logout', logoutUser);
 router.put('/profile', protect, updateUserProfile);
 router.post('/assessment', protect, authorize('student'), submitAssessment);
 
