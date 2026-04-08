@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -276,15 +277,13 @@ function ScheduleContent() {
                     )}
 
                     {activeTab === 'past' && booking.recordingUrl && (
-                      <a
-                        href={booking.recordingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <Link
+                        href={`/student/recordings/${booking._id}`}
                         className="inline-flex items-center rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
                       >
                         <Video className="mr-2 h-4 w-4" />
                         Watch Recording
-                      </a>
+                      </Link>
                     )}
                   </div>
                 </div>

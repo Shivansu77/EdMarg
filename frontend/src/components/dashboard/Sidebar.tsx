@@ -8,6 +8,7 @@ import {
   CalendarCheck,
   ChevronRight,
   ClipboardCheck,
+  Film,
   History,
   BadgeCheck,
   LayoutGrid,
@@ -35,6 +36,7 @@ const studentNavItems = [
   { name: 'Book Session', href: '/student/mentors', icon: CalendarCheck },
   { name: 'Schedule', href: '/student/schedule', icon: CalendarDays },
   { name: 'History', href: '/student/history', icon: History },
+  { name: 'Recordings', href: '/student/recordings', icon: Film },
   { name: 'Profile', href: '/student/profile', icon: UserCircle },
 ];
 
@@ -122,7 +124,8 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
 
           <nav className="space-y-1 flex-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive =
+                pathname === item.href || pathname.startsWith(`${item.href}/`);
               const Icon = item.icon;
 
               return (

@@ -14,7 +14,8 @@ import {
   FileText,
   Clock,
   Sparkles,
-  Loader2
+  Loader2,
+  Film
 } from 'lucide-react';
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -83,6 +84,7 @@ function StudentDashboardContent() {
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   const pastBookings = bookings.filter(b => b.status === 'completed' || new Date(b.date) < today);
+  const recordingSessions = bookings.filter((b) => Boolean(b.recordingUrl));
   
   // Find highest priority pending assignment
   const pendingAssignments = assignments.filter(a => a.isActive /* might need active check based on your data structure */);
@@ -203,6 +205,36 @@ function StudentDashboardContent() {
                         </li>
                       ))}
                     </ul>
+                  )}
+                </div>
+              </Card>
+
+              <Card>
+                <div className="border-b border-gray-50 px-6 py-6 bg-gray-50/30">
+                  <Label>Library</Label>
+                  <h2 className="mt-2 text-xl font-bold tracking-tight text-gray-900">Session Recordings</h2>
+                </div>
+
+                <div className="p-6">
+                  {recordingSessions.length === 0 ? (
+                    <div className="text-center py-6">
+                      <Film className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500 text-sm">Your recordings will appear here.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        <span className="font-semibold text-gray-900">{recordingSessions.length}</span>{' '}
+                        recording{recordingSessions.length > 1 ? 's' : ''} available.
+                      </p>
+                      <Link
+                        href="/student/recordings"
+                        className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+                      >
+                        Open Recordings
+                        <ArrowRight size={16} />
+                      </Link>
+                    </div>
                   )}
                 </div>
               </Card>

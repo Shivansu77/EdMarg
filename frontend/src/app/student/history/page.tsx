@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -88,6 +89,12 @@ function HistoryContent() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Session History</h1>
             <p className="mt-2 text-sm text-gray-500">Review your past mentorship sessions and recordings.</p>
+            <Link
+              href="/student/recordings"
+              className="mt-3 inline-flex items-center text-sm font-semibold text-indigo-600 hover:underline"
+            >
+              Open recordings library
+            </Link>
           </div>
         </div>
 
@@ -139,13 +146,13 @@ function HistoryContent() {
                   </div>
 
                   {booking.recordingUrl ? (
-                    <a
+                    <Link
                       href={`/student/recordings/${booking._id}`}
                       className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
                     >
                       <Video className="w-4 h-4 mr-2" />
                       Watch Session Recording
-                    </a>
+                    </Link>
                   ) : (
                     <div className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-400 bg-gray-50 rounded-lg border border-gray-200 cursor-not-allowed">
                       No recording available
