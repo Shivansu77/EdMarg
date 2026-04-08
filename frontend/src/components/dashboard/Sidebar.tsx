@@ -11,6 +11,7 @@ import {
   Film,
   History,
   BadgeCheck,
+  FileText,
   LayoutGrid,
   UserCircle,
   Users,
@@ -51,6 +52,7 @@ const mentorNavItems = [
 const adminNavItems = [
   { name: 'Admin Dashboard', href: '/admin/dashboard', icon: LayoutGrid },
   { name: 'Users', href: '/admin/users', icon: Users },
+  { name: 'Blogs', href: '/admin/blogs', icon: FileText },
   { name: 'Assessments', href: '/admin/assessments', icon: ClipboardCheck },
   { name: 'Platform Stats', href: '/admin/dashboard', icon: BadgeCheck },
 ];
@@ -141,7 +143,7 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
                   title={isCollapsed ? item.name : undefined}
                 >
                   <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg flex-shrink-0 ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${
                       isActive
                         ? 'bg-gray-900 text-white'
                         : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'

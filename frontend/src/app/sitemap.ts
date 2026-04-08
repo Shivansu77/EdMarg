@@ -1,33 +1,71 @@
 import { MetadataRoute } from 'next';
-const URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://edmarg.onrender.com';
 
-export const dynamic = 'force-static';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://edmarg.com';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  return [
+async function getAllBlogs() {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/blogs`, {
+      next: { revalidate: 3600 }, // Revalidate every hour
+    });
+
+    if (!response.ok) {
+      console.warn('Failed to fetch blogs for sitemap');
+      return [];
+    }
+
+    const data = await response.json();
+    return data.data || [];
+  } catch (error) {
+    console.error('Error fetching blogs for sitemap:', error);
+    return [];
+  }
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const blogs = await getAllBlogs();
+
+  // Static pages
+  const staticPages: MetadataRoute.Sitemap = [
     {
-      url: URL,
+      url: SITE_URL,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: `${URL}/browse-mentors`,
+      url: `${SITE_URL}/browse-mentors`,
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.9,
     },
     {
-      url: `${URL}/login`,
+      url: `${SITE_URL}/login`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
     },
     {
-      url: `${URL}/signup`,
+      url: `${SITE_URL}/signup`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
-    }
+    },
+    {
+      url: `${SITE_URL}/blogs`,
+      lastModified: new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
   ];
+
+  // Dynamic blog pages
+  const blogPages: MetadataRoute.Sitemap = blogs.map((blog: any) => ({
+    url: `${SITE_URL}/blogs/${blog.slug}`,
+    lastModified: blog.updated_at || blog.created_at,
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }));
+
+  return [...staticPages, ...blogPages];
 }

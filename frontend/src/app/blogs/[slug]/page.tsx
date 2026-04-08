@@ -8,6 +8,7 @@ import { BlogContent } from '@/modules/blog/components/BlogContent';
 import { BlogCard } from '@/modules/blog/components/BlogCard';
 import { BlogPost } from '@/modules/blog/types';
 import { getBlogBySlugFromAPI, getAllBlogsFromAPI } from '@/services/blog.service';
+import { updateSEOMetadata, injectArticleStructuredData, updateSEO404 } from '@/utils/seo';
 
 export default function BlogDetailPage() {
   const params = useParams();
@@ -33,13 +34,35 @@ export default function BlogDetailPage() {
           setError('404');
           setBlog(null);
           setRelatedBlogs([]);
+          updateSEO404();
           return;
         }
 
         setBlog(fetchedBlog);
 
-        // Update page title and meta
-        document.title = `${fetchedBlog.title} | EdMarg Blog`;
+        // Update SEO metadata with blog data
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://edmarg.com';
+        const blogUrl = `${siteUrl}/blogs/${slug}`;
+        
+        updateSEOMetadata({
+          title: `${fetchedBlog.title} | EdMarg Blog`,
+          description: fetchedBlog.description || 'Read this insightful article on EdMarg Blog.',
+          url: blogUrl,
+          type: 'article',
+          image: fetchedBlog.image || `${siteUrl}/og-blog-image.png`,
+          author: fetchedBlog.author,
+          publishedDate: fetchedBlog.date,
+        });
+
+        // Inject Article structured data (JSON-LD)
+        injectArticleStructuredData({
+          title: fetchedBlog.title,
+          description: fetchedBlog.description || '',
+          image: fetchedBlog.image || `${siteUrl}/og-blog-image.png`,
+          author: fetchedBlog.author,
+          publishDate: fetchedBlog.date,
+          url: blogUrl,
+        });
 
         // Fetch all blogs to find related ones
         try {
@@ -68,7 +91,7 @@ export default function BlogDetailPage() {
     return (
       <BlogShell>
         <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="h-64 animate-pulse bg-slate-200 sm:h-80 lg:h-[28rem]" />
+          <div className="h-64 animate-pulse bg-slate-200 sm:h-80 lg:h-112" />
           <div className="space-y-4 p-6 sm:p-10">
             <div className="h-4 w-1/3 animate-pulse rounded bg-slate-200" />
             <div className="h-10 w-4/5 animate-pulse rounded bg-slate-200" />

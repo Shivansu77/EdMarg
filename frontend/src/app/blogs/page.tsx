@@ -1,20 +1,33 @@
 'use client';
 
-import type { Metadata } from 'next';
 import { useEffect, useState } from 'react';
 import { BlogShell } from '@/modules/blog/components/BlogShell';
 import { BlogList } from '@/modules/blog/components/BlogList';
 import { BlogListSkeleton } from '@/modules/blog/components/states/BlogListSkeleton';
 import { BlogPost } from '@/modules/blog/types';
 import { getAllBlogsFromAPI } from '@/services/blog.service';
-
-// Note: metadata export only works in server components
-// For dynamic metadata with client components, use next/head or useEffect
+import { updateSEOMetadata, injectOrganizationStructuredData } from '@/utils/seo';
 
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Update SEO metadata for blog listing page
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://edmarg.com';
+    updateSEOMetadata({
+      title: 'Blog | EdMarg - Career Insights & Mentorship Articles',
+      description:
+        'Explore insightful articles on education, career growth, exams, and mentorship guidance from EdMarg experts.',
+      url: `${siteUrl}/blogs`,
+      type: 'website',
+      image: `${siteUrl}/og-blog-image.png`,
+    });
+
+    // Inject organization structured data
+    injectOrganizationStructuredData();
+  }, []);
 
   useEffect(() => {
     async function fetchBlogs() {
@@ -23,9 +36,6 @@ export default function BlogsPage() {
         setError(null);
         const data = await getAllBlogsFromAPI();
         setBlogs(data);
-        
-        // Update page title dynamically
-        document.title = 'Blogs | EdMarg';
       } catch (err) {
         console.error('Failed to load blogs:', err);
         setError('Failed to load blogs. Please try again later.');

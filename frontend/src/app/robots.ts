@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-const URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://edmarg.onrender.com';
+const URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://edmarg.com';
 
 export const dynamic = 'force-static';
 
