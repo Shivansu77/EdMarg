@@ -4,6 +4,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -14,12 +15,6 @@ const AUTH_USER_STORAGE_KEY = 'user';
 const AUTH_TOKEN_STORAGE_KEY = 'token';
 const AUTH_USER_EVENT = 'edmarg-auth-user-change';
 const emptySubscribe = () => () => undefined;
-
-const resolveApiBaseUrl = () => {
-  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/v1\/?$/, '');
-
-  return baseUrl.replace(/\/$/, '');
-};
 
 const clearStoredAuth = () => {
   if (typeof window === 'undefined') {

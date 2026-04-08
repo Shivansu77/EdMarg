@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useSyncExternalStore } from 'react';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 interface User {
   _id: string;
@@ -34,12 +35,6 @@ const AUTH_TOKEN_STORAGE_KEY = 'token';
 const AUTH_USER_EVENT = 'edmarg-auth-user-change';
 let cachedUserStorageValue: string | null = null;
 let cachedUserSnapshot: User | null = null;
-
-const resolveApiBaseUrl = () => {
-  const baseUrl = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/v1\/?$/, '');
-
-  return baseUrl.replace(/\/$/, '');
-};
 
 const emitAuthChange = () => {
   if (typeof window !== 'undefined') {
