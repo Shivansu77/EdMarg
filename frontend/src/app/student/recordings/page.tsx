@@ -39,6 +39,8 @@ function RecordingsContent() {
       setLoading(true);
       setError('');
       try {
+        await apiClient.get('/api/v1/zoom/process-pending?limit=2');
+
         const response = await apiClient.get<{ bookings: Booking[] }>(
           '/api/v1/bookings/my-bookings?limit=100'
         );

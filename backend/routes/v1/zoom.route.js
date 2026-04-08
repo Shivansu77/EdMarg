@@ -28,10 +28,10 @@ router.post('/create-meeting', createStandaloneMeeting);
 router.post('/retry-recording/:recordingId', protect, authorize('admin', 'mentor'), retryRecording);
 
 /**
- * Cron/manual worker endpoint:
+ * Authenticated worker endpoint:
  * Processes pending/failed recording uploads and pushes them to Cloudinary.
- * Auth: x-vercel-cron header OR ?token=RECORDING_CRON_SECRET
+ * Triggered by dashboard/recordings page loads.
  */
-router.get('/process-pending', processPendingRecordings);
+router.get('/process-pending', protect, processPendingRecordings);
 
 module.exports = router;

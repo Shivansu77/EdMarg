@@ -51,6 +51,8 @@ function RecordingPageContent() {
     const fetchBooking = async () => {
       setLoading(true);
       try {
+        await apiClient.get('/api/v1/zoom/process-pending?limit=1');
+
         // Fetch broader history to include sessions that may still be
         // in-progress but already expose a recording URL.
         const response = await apiClient.get<{ bookings: BookingDetails[] }>(

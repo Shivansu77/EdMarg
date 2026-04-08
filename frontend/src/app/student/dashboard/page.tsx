@@ -43,6 +43,11 @@ function StudentDashboardContent() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Opportunistically process pending Zoom recordings so newly-finished
+        // sessions get uploaded to Cloudinary even if webhook background work
+        // was interrupted on serverless.
+        await apiClient.get('/api/v1/zoom/process-pending?limit=2');
+
         const [userRes, assignmentsRes, bookingsRes] = await Promise.all([
           apiClient.get('/api/v1/users/me'),
           apiClient.get('/api/v1/assessments/assignments/my'),

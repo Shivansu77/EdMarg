@@ -19,15 +19,7 @@ const { uploadVideoFromStream } = require('../services/cloudinary.service');
 const { isSimulatedZoomTestUrl, sanitizeRecordingUrl } = require('../utils/recording.utils');
 
 function isPendingProcessorAuthorized(req) {
-  const isVercelCron = Boolean(req.headers['x-vercel-cron']);
-  const secret = (process.env.RECORDING_CRON_SECRET || '').trim();
-  const token = String(req.query.token || '').trim();
-  const isNonProduction = process.env.NODE_ENV !== 'production';
-
-  if (isVercelCron) return true;
-  if (secret && token === secret) return true;
-  if (isNonProduction) return true;
-  return false;
+  return Boolean(req.user && req.user._id);
 }
 
 // ─── Webhook Signature Verification ────────────────────────────────────────
@@ -347,8 +339,8 @@ async function processRecordingAsync(recordingId) {
  * Processes a batch of recordings that are stuck in:
  * pending/downloading/uploading/failed (with zoomDownloadUrl available).
  *
- * This route is intended for Vercel Cron (x-vercel-cron header) and can
- * also be called manually with ?token=RECORDING_CRON_SECRET.
+ * This route is intended to be called by authenticated dashboard/recordings
+ * flows to recover recordings that were left pending/failed.
  */
 exports.processPendingRecordings = async (req, res) => {
   try {
