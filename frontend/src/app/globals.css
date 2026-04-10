@@ -173,6 +173,16 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-plus-jakarta); }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+@keyframes fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @keyframes star-drift {
   0% { transform: translateX(0) translateY(0); }
   50% { transform: translateX(-20px) translateY(12px); }
@@ -188,6 +198,9 @@ h1, h2, h3, h4, h5, h6 { font-family: var(--font-plus-jakarta); }
 .animate-scroll-logos { animation: scroll-logos 30s linear infinite; }
 .animate-subtle-float { animation: subtle-float 20s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-fade-up { animation: fade-up 700ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+.delay-100 { animation-delay: 100ms; }
+.delay-150 { animation-delay: 150ms; }
 
 .animate-scroll-logos-hover-pause:hover { animation-play-state: paused; }
 

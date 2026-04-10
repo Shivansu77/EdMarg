@@ -40,24 +40,27 @@ const Navbar = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-gray-200 bg-white/95 py-3 shadow-sm backdrop-blur-md'
-          : 'bg-white py-4'
+          ? 'border-b border-emerald-100 bg-white/88 py-3 shadow-[0_10px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl'
+          : 'bg-transparent py-4'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold text-gray-900">
-          EdMarg
+        <Link href="/" className="group flex items-center gap-3">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-emerald-300 to-green-400 text-sm font-extrabold text-slate-900 shadow-[0_10px_24px_rgba(16,185,129,0.3)] transition-transform duration-300 group-hover:-translate-y-0.5">
+            E
+          </span>
+          <span className="text-xl font-extrabold tracking-tight text-slate-900">EdMarg</span>
         </Link>
 
-        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-sm font-medium text-gray-600">
-          <Link href="/" className="hover:text-gray-900 transition-colors">Home</Link>
-          <Link href="/about" className="hover:text-gray-900 transition-colors">About</Link>
-          <Link href="/blogs" className="hover:text-gray-900 transition-colors">Blog</Link>
+        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-2 rounded-full border border-slate-200/80 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-600 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-md">
+          <Link href="/" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Home</Link>
+          <Link href="/about" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">About</Link>
+          <Link href="/blogs" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Blog</Link>
           {!isLoggedIn && (
             <>
-              <Link href="/#how-it-works" className="hover:text-gray-900 transition-colors">How it Works</Link>
-              <Link href="/#mentors" className="hover:text-gray-900 transition-colors">Mentors</Link>
-              <Link href="/#success-stories" className="hover:text-gray-900 transition-colors">Success Stories</Link>
+              <Link href="/#how-it-works" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">How it Works</Link>
+              <Link href="/#mentors" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Mentors</Link>
+              <Link href="/#success-stories" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Success Stories</Link>
             </>
           )}
         </nav>
@@ -73,7 +76,7 @@ const Navbar = () => {
               <span className="text-sm text-gray-600">Welcome, {userName}</span>
               <Link
                 href={`/${userRole}/dashboard`}
-                className="px-4 py-2 bg-black hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition-colors"
+                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-full transition-colors"
               >
                 Dashboard
               </Link>
@@ -87,10 +90,10 @@ const Navbar = () => {
             </div>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+              <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">
                 Log in
               </Link>
-              <Link href="/signup" className="px-5 py-2 bg-black hover:bg-gray-800 text-white text-sm font-medium rounded-lg transition-colors">
+              <Link href="/signup" className="px-5 py-2.5 bg-linear-to-r from-emerald-300 to-green-400 hover:from-emerald-400 hover:to-green-500 text-slate-900 text-sm font-bold rounded-full transition-all shadow-[0_10px_24px_rgba(16,185,129,0.28)]">
                 Sign up
               </Link>
             </>
@@ -98,15 +101,15 @@ const Navbar = () => {
         </div>
 
         <button
-          className="lg:hidden p-2 text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+          className="lg:hidden p-2 text-slate-900 hover:bg-white/80 rounded-lg transition-colors"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
         {isOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden bg-white pt-24 px-6">
-            <nav className="flex flex-col gap-6 text-lg font-semibold text-gray-900 mb-8">
+          <div className="fixed inset-0 z-40 lg:hidden bg-linear-to-b from-emerald-50 to-white pt-24 px-6">
+            <nav className="flex flex-col gap-4 text-lg font-semibold text-slate-900 mb-8">
               <Link href="/" onClick={() => setIsOpen(false)}>Home</Link>
               <Link href="/about" onClick={() => setIsOpen(false)}>About</Link>
               <Link href="/blogs" onClick={() => setIsOpen(false)}>Blog</Link>
@@ -121,7 +124,7 @@ const Navbar = () => {
             <div className="flex flex-col gap-3">
               {isLoggedIn ? (
                 <>
-                  <div className="py-3 px-4 bg-gray-50 rounded-lg text-center">
+                  <div className="py-3 px-4 bg-white rounded-2xl border border-emerald-100 text-center shadow-[0_10px_30px_rgba(16,185,129,0.12)]">
                     <img
                       src={userAvatar}
                       alt={`${userName} avatar`}
@@ -132,13 +135,13 @@ const Navbar = () => {
                   <Link
                     href={`/${userRole}/dashboard`}
                     onClick={() => setIsOpen(false)}
-                    className="w-full py-3 text-center bg-gray-100 text-gray-900 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                    className="w-full py-3 text-center bg-slate-900 text-white rounded-full font-semibold hover:bg-slate-800 transition-colors"
                   >
                     Go to Dashboard
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full py-3 text-center bg-red-50 text-red-600 rounded-lg font-medium hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-3 text-center bg-red-50 text-red-600 rounded-full font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
                   >
                     <LogOut size={18} />
                     Logout
@@ -146,10 +149,10 @@ const Navbar = () => {
                 </>
               ) : (
                 <>
-                  <Link href="/login" onClick={() => setIsOpen(false)} className="w-full py-3 text-center text-gray-900 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                  <Link href="/login" onClick={() => setIsOpen(false)} className="w-full py-3 text-center text-slate-900 border border-slate-300 rounded-full font-semibold hover:bg-white transition-colors">
                     Log in
                   </Link>
-                  <Link href="/signup" onClick={() => setIsOpen(false)} className="w-full py-3 text-center bg-black text-white rounded-lg font-medium hover:bg-gray-800 transition-colors">
+                  <Link href="/signup" onClick={() => setIsOpen(false)} className="w-full py-3 text-center bg-linear-to-r from-emerald-300 to-green-400 text-slate-900 rounded-full font-bold hover:from-emerald-400 hover:to-green-500 transition-colors">
                     Sign up
                   </Link>
                 </>

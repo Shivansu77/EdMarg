@@ -66,14 +66,14 @@ function StatCard({ stat, animate }: { stat: typeof STATS[0]; animate: boolean }
   const Icon = stat.icon;
 
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white p-6 text-center hover:shadow-lg transition-shadow">
-      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-black">
+    <div className="group flex flex-col items-center justify-center rounded-2xl border border-emerald-100 bg-white/95 p-6 text-center shadow-[0_8px_24px_rgba(15,23,42,0.05)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_rgba(15,23,42,0.12)]">
+      <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-500 group-hover:text-white">
         <Icon className="h-5 w-5" />
       </div>
-      <div className="mb-1 text-3xl font-bold text-gray-900">
+      <div className="mb-1 text-3xl font-extrabold text-slate-900">
         {display}{stat.value >= 1000 ? 'k' : ''}{stat.suffix}
       </div>
-      <div className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+      <div className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
         {stat.label}
       </div>
     </div>
@@ -107,20 +107,20 @@ const ResultsSection = ({ hideIntro = false }: ResultsSectionProps) => {
   }, []);
 
   return (
-    <section id="how-it-works" ref={sectionRef} className="relative w-full overflow-hidden bg-white py-20 lg:py-28">
+    <section id="how-it-works" ref={sectionRef} className="relative w-full overflow-hidden bg-linear-to-b from-white via-emerald-50/30 to-white py-20 lg:py-28">
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Stats Grid */}
-        <div className="mb-20 grid grid-cols-2 gap-4 lg:mb-24 lg:grid-cols-4 lg:gap-6">
+        <div className="mb-20 grid grid-cols-2 gap-4 lg:mb-24 lg:grid-cols-4 lg:gap-6 animate-fade-up delay-100">
           {STATS.map((stat, idx) => <StatCard key={idx} stat={stat} animate={animate} />)}
         </div>
 
         {/* Section Header */}
         {!hideIntro && (
-          <div className="mx-auto mb-16 max-w-2xl text-center">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <div className="mx-auto mb-16 max-w-2xl text-center animate-fade-up delay-150">
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
               How It Works
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-slate-600">
               A simple three-step journey to finding your career direction.
             </p>
           </div>
@@ -131,19 +131,19 @@ const ResultsSection = ({ hideIntro = false }: ResultsSectionProps) => {
           {STEPS.map((step, idx) => (
             <div
               key={idx}
-              className="relative flex flex-col items-start rounded-xl border border-gray-200 bg-white p-8 hover:shadow-lg transition-shadow"
+              className="relative flex flex-col items-start rounded-2xl border border-slate-200 bg-white p-8 shadow-[0_8px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(15,23,42,0.13)]"
             >
-              <div className="absolute right-6 top-6 text-4xl font-bold text-gray-100">
+              <div className="absolute right-6 top-6 text-4xl font-extrabold text-slate-100">
                 {step.step}
               </div>
 
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 text-black">
+              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700">
                 {step.icon}
               </div>
-              <h3 className="mb-3 text-xl font-bold text-gray-900">
+              <h3 className="mb-3 text-xl font-bold text-slate-900">
                 {step.title}
               </h3>
-              <p className="text-base leading-relaxed text-gray-600">
+              <p className="text-base leading-relaxed text-slate-600">
                 {step.description}
               </p>
             </div>
