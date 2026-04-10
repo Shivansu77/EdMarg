@@ -16,6 +16,8 @@ const { Booking } = require('../models/booking.model');
 const { Recording } = require('../models/Recording');
 const { createZoomMeeting, downloadRecording } = require('../services/zoom.service');
 const { uploadVideoFromStream } = require('../services/cloudinary.service');
+const { sendRecordingReadyEmail } = require('../services/email.service');
+const { User } = require('../models/user.model');
 const { isSimulatedZoomTestUrl, sanitizeRecordingUrl } = require('../utils/recording.utils');
 
 function isPendingProcessorAuthorized(req) {
@@ -310,12 +312,57 @@ async function processRecordingAsync(recordingId) {
       bytes: cloudinaryResult.bytes,
     });
 
-    // Also update the Booking with the Cloudinary URL for backward compatibility
+    // Update the Booking with the Cloudinary URL + mark as completed
     await Booking.findByIdAndUpdate(recording.sessionId, {
       recordingUrl: cloudinaryResult.secure_url,
+      status: 'completed',
+      completedAt: new Date(),
     });
 
-    console.log(`[Zoom Pipeline] ✅ Booking ${recording.sessionId} recordingUrl updated`);
+    console.log(`[Zoom Pipeline] ✅ Booking ${recording.sessionId} recordingUrl updated + status: completed`);
+
+    // ────────────────────────────────────────────────────────────────────
+    // Step 4: Send email notification to the student
+    // ────────────────────────────────────────────────────────────────────
+    try {
+      const [student, mentor] = await Promise.all([
+        User.findById(recording.studentId).select('name email').lean(),
+        User.findById(recording.mentorId).select('name').lean(),
+      ]);
+
+      if (student?.email) {
+        // Build the recording page URL using FRONTEND_ORIGIN env or fallback
+        const frontendBase = (
+          process.env.FRONTEND_ORIGIN ||
+          process.env.NEXT_PUBLIC_APP_URL ||
+          'https://edmarg.onrender.com'
+        ).replace(/\/$/, '');
+
+        const recordingPageUrl = `${frontendBase}/sessions/${recording.sessionId}/recording`;
+
+        // Format the session date from the booking
+        const booking = await Booking.findById(recording.sessionId).select('date startTime').lean();
+        const sessionDate = booking?.date
+          ? new Date(booking.date).toLocaleDateString('en-IN', {
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+            })
+          : 'your recent session';
+
+        await sendRecordingReadyEmail({
+          to: student.email,
+          studentName: student.name || 'Student',
+          mentorName: mentor?.name || 'your mentor',
+          sessionDate,
+          recordingPageUrl,
+          durationMinutes: recording.duration ? Math.round(recording.duration / 60) : undefined,
+        });
+      } else {
+        console.warn(`[Zoom Pipeline] Student ${recording.studentId} has no email — skipping notification`);
+      }
+    } catch (emailErr) {
+      // Email failure must never crash the pipeline
+      console.error(`[Zoom Pipeline] Email notification failed (non-fatal):`, emailErr.message);
+    }
   } catch (error) {
     console.error(`[Zoom Pipeline] ❌ Failed for Recording ${recordingId}:`, error.message);
 
