@@ -56,4 +56,4 @@ function withCors(handler) {
   };
 }
 
-module.exports = { withCors, setCorsHeaders };
+module.exports = { withCors, setCorsHeaders, ALLOWED_ORIGINS };

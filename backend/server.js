@@ -4,7 +4,8 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const { setCorsHeaders } = require('./lib/withCors');
+const cors = require('cors');
+const { ALLOWED_ORIGINS } = require('./lib/withCors');
 const connectDB = require('./lib/db');
 
 const app = express();
@@ -23,14 +24,28 @@ const configuredFrontendOrigins = [
 console.log('✅ CORS Frontend Origin Env:', configuredFrontendOrigins.length ? configuredFrontendOrigins : 'none');
 console.log('🚀 CORS middleware active (supports allow-list + *.vercel.app previews)');
 
-// 1. CORS Middleware - Layer 3 (Fallback)
-app.use((req, res, next) => {
-  setCorsHeaders(req, res);
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
+// 1. CORS Middleware
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl)
+    if (!origin) return callback(null, true);
+    
+    const isVercelApp = typeof origin === 'string' && origin.endsWith('.vercel.app');
+    const isListedOrigin = typeof origin === 'string' && ALLOWED_ORIGINS.includes(origin);
+    const isLocalOrigin = typeof origin === 'string' && (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
+    const isProduction = process.env.NODE_ENV === 'production';
+
+    if (isVercelApp || isListedOrigin || (!isProduction && isLocalOrigin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
+};
+app.use(cors(corsOptions));
 
 // 2. Security middleware
 app.use(helmet({
