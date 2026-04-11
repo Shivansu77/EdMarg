@@ -37,6 +37,7 @@ interface Booking {
   endTime: string;
   status: string;
   meetingLink?: string;
+  startUrl?: string;
   paymentStatus: string;
   amount: number;
 }
@@ -254,8 +255,8 @@ function MentorDashboardContent() {
                         <span className="shrink-0 rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 px-4 py-1.5 text-xs font-bold tracking-wide text-white shadow-sm">
                             {formatDate(item.date)} · {item.startTime}
                         </span>
-                        {item.meetingLink && (
-                          <a href={item.meetingLink} target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 px-3 py-1.5 rounded-full text-indigo-600 font-bold border border-indigo-100 hover:bg-indigo-100">Join</a>
+                        {(item.startUrl || item.meetingLink) && (
+                          <a href={item.startUrl || item.meetingLink} target="_blank" rel="noreferrer" className="text-xs bg-indigo-50 px-3 py-1.5 rounded-full text-indigo-600 font-bold border border-indigo-100 hover:bg-indigo-100">Start Session</a>
                         )}
                       </div>
                     </li>
