@@ -578,7 +578,7 @@ function BookingContent() {
                             : isPast
                               ? 'bg-gray-50 text-gray-300 cursor-not-allowed'
                               : isToday
-                                ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 ring-2 ring-blue-200'
+                                ? 'bg-cyan-50 text-cyan-700 hover:bg-cyan-100 ring-2 ring-cyan-200'
                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-[1.02]'
                         }`}
                       >
@@ -915,16 +915,16 @@ function BookingContent() {
               {sessionType === 'video' && (
                 <div className="mb-8">
                   {bookingResult.joinUrl ? (
-                    <div className="rounded-xl bg-blue-50 border border-blue-200 p-5 text-left">
+                    <div className="rounded-xl bg-cyan-50 border border-cyan-200 p-5 text-left">
                       <div className="flex items-start gap-4">
-                        <div className="rounded-lg bg-blue-100 p-2.5 shrink-0">
-                          <Video className="w-5 h-5 text-blue-600" />
+                        <div className="rounded-lg bg-cyan-100 p-2.5 shrink-0">
+                          <Video className="w-5 h-5 text-cyan-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-bold text-blue-900">Zoom Meeting Ready</p>
-                          <p className="text-xs text-blue-700 mt-1">Your video session link has been generated. You can join at the scheduled time.</p>
+                          <p className="text-sm font-bold text-cyan-900">Zoom Meeting Ready</p>
+                          <p className="text-xs text-cyan-700 mt-1">Your video session link has been generated. You can join at the scheduled time.</p>
                           {bookingResult.zoomMeetingId && (
-                            <p className="text-xs text-blue-600 mt-1">Meeting ID: {bookingResult.zoomMeetingId}</p>
+                            <p className="text-xs text-cyan-600 mt-1">Meeting ID: {bookingResult.zoomMeetingId}</p>
                           )}
                         </div>
                       </div>
@@ -932,7 +932,7 @@ function BookingContent() {
                         href={bookingResult.joinUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition-colors"
+                        className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white text-sm font-bold transition-colors"
                       >
                         <ExternalLink size={16} />
                         Join Zoom Meeting

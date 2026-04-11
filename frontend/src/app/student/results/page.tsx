@@ -11,8 +11,8 @@ const competencies = [
     description:
       'Your ability to synthesize complex qualitative data into actionable insights is in the top 5th percentile of applicants.',
     icon: Target,
-    color: 'text-blue-600',
-    bg: 'bg-blue-50',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
   },
   {
     title: 'Visual Design',

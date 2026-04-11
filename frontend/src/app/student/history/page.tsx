@@ -91,7 +91,7 @@ function HistoryContent() {
             <p className="mt-2 text-sm text-gray-500">Review your past mentorship sessions and recordings.</p>
             <Link
               href="/student/recordings"
-              className="mt-3 inline-flex items-center text-sm font-semibold text-indigo-600 hover:underline"
+              className="mt-3 inline-flex items-center text-sm font-semibold text-emerald-600 hover:underline"
             >
               Open recordings library
             </Link>
@@ -107,7 +107,7 @@ function HistoryContent() {
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 border-dashed">
@@ -148,7 +148,7 @@ function HistoryContent() {
                   {booking.recordingUrl ? (
                     <Link
                       href={`/student/recordings/${booking._id}`}
-                      className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
+                      className="w-full flex items-center justify-center px-4 py-2 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200"
                     >
                       <Video className="w-4 h-4 mr-2" />
                       Watch Session Recording

@@ -85,10 +85,15 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
         {/* Header */}
         <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
           {!isCollapsed && (
-            <Link href="/" onClick={onClose} className="block">
-              <p className="text-lg font-bold text-gray-900">Edmarg</p>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mt-1">
-                Career Curator
+            <Link href="/" onClick={onClose} className="group block">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-emerald-300 to-green-400 text-xs font-extrabold text-slate-900 shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
+                  E
+                </span>
+                <span className="text-xl font-extrabold tracking-tight text-slate-900">EdMarg</span>
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
+                Workspace
               </p>
             </Link>
           )}
@@ -98,7 +103,7 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 lg:hidden"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
               aria-label="Close navigation"
             >
               <X size={16} />
@@ -108,7 +113,7 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
             <button
               type="button"
               onClick={onToggleCollapsed}
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
               aria-label="Toggle sidebar"
             >
               <ChevronLeft size={16} className={`transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
@@ -137,26 +142,26 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
                   onClick={onClose}
                   className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
                     isActive
-                      ? 'bg-gray-100 text-gray-900'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-emerald-50/80 text-emerald-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
                   }`}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors duration-300 ${
                       isActive
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
+                        ? 'bg-linear-to-br from-emerald-400 to-green-500 text-slate-900 shadow-sm shadow-emerald-500/20'
+                        : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
                     }`}
                   >
                     <Icon size={18} strokeWidth={2} />
                   </span>
                   {!isCollapsed && (
                     <>
-                      <span className="flex-1 text-sm font-medium">{item.name}</span>
+                      <span className={`flex-1 text-sm ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.name}</span>
                       <ChevronRight
                         size={14}
-                        className={`text-gray-400 transition-transform ${isActive ? 'text-gray-900' : ''}`}
+                        className={`transition-transform ${isActive ? 'text-emerald-700' : 'text-slate-400 opacity-0 group-hover:opacity-100'}`}
                       />
                     </>
                   )}
@@ -167,15 +172,15 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
 
           {/* Workspace Tip */}
           {!isCollapsed && (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 mt-auto">
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500">
+            <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/50 p-4 mt-auto shadow-[0_4px_20px_rgba(16,185,129,0.03)]">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
                 Workspace Tip
               </p>
-              <p className="mt-2 text-sm font-semibold text-gray-900">
-                Keep your next step visible
+              <p className="mt-2 text-sm font-extrabold text-slate-900">
+                Everything at your fingertips
               </p>
-              <p className="mt-1 text-xs leading-relaxed text-gray-600">
-                Move between assessments, mentors, bookings, and profile updates without losing your place.
+              <p className="mt-1 text-xs leading-relaxed text-slate-600 font-medium">
+                Move seamlessly between assessments, mentors, and your profile to manage your journey.
               </p>
             </div>
           )}

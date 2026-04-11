@@ -205,10 +205,10 @@ function ProfileContent() {
   return (
     <DashboardLayout userName="Profile">
       <div className="max-w-5xl pb-16">
-        <div className="mb-8 overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-indigo-50/50 p-6 shadow-sm sm:p-8">
+        <div className="mb-8 overflow-hidden rounded-3xl border border-emerald-100/50 bg-linear-to-br from-white via-slate-50 to-emerald-50/50 p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
                 Student Profile
               </p>
               <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">Your Profile</h1>
@@ -232,7 +232,7 @@ function ProfileContent() {
             <p className="text-xs text-slate-500">Complete all fields for better mentor recommendations.</p>
           </div>
           <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-linear-to-r from-indigo-600 to-cyan-500 transition-all" style={{ width: `${completionPct}%` }} />
+            <div className="h-full rounded-full bg-linear-to-r from-emerald-400 to-cyan-500 transition-all" style={{ width: `${completionPct}%` }} />
           </div>
         </section>
 
@@ -265,7 +265,7 @@ function ProfileContent() {
           {/* Personal Information */}
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-6 py-5">
-              <UserCircle className="w-5 h-5 text-indigo-600" />
+              <UserCircle className="w-5 h-5 text-emerald-500" />
               <h2 className="text-lg font-bold text-slate-900">Personal Information</h2>
             </div>
             
@@ -279,7 +279,7 @@ function ProfileContent() {
                     onChange={(e) => setName(e.target.value)}
                     maxLength={NAME_MAX_LENGTH}
                     required
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   <p className="text-xs text-slate-500">{name.length}/{NAME_MAX_LENGTH}</p>
                 </div>
@@ -313,7 +313,7 @@ function ProfileContent() {
           {/* Academic Background */}
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-6 py-5">
-              <GraduationCap className="w-5 h-5 text-indigo-600" />
+              <GraduationCap className="w-5 h-5 text-emerald-500" />
               <h2 className="text-lg font-bold text-slate-900">Academic Background</h2>
             </div>
             
@@ -323,7 +323,7 @@ function ProfileContent() {
                 <select
                   value={classLevel}
                   onChange={(e) => setClassLevel(e.target.value)}
-                  className="w-full appearance-none rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-600"
+                  className="w-full appearance-none rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236b7280\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
                 >
                   <option value="" disabled>Select your education level...</option>
@@ -338,7 +338,7 @@ function ProfileContent() {
           {/* Interests */}
           <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-6 py-5">
-              <Sparkles className="w-5 h-5 text-indigo-600" />
+              <Sparkles className="w-5 h-5 text-emerald-500" />
               <h2 className="text-lg font-bold text-slate-900">Career Interests</h2>
             </div>
             
@@ -353,9 +353,9 @@ function ProfileContent() {
                       key={interest}
                       type="button"
                       onClick={() => handleInterestToggle(interest)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${
+                      className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
                         isSelected 
-                          ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600 ring-offset-2' 
+                          ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-500 ring-offset-2' 
                           : 'border border-transparent bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200'
                       }`}
                     >

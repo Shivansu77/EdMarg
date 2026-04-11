@@ -1,6 +1,5 @@
 import React from 'react';
-import { Quote, Star, Play, ArrowRight, CheckCircle2 } from 'lucide-react';
-import Image from 'next/image';
+import { Quote, Star, Play, CheckCircle2 } from 'lucide-react';
 
 const TESTIMONIALS = [
   {
@@ -55,7 +54,7 @@ const TestimonialsSection = () => {
             Real students who found their career path with EdMarg.
           </h2>
           <p className="text-lg md:text-xl text-zinc-500 max-w-2xl leading-relaxed">
-            Don't just take our word for it. See how learners improved their career direction through guided assessments and mentor-led action plans.
+            Don&apos;t just take our word for it. See how learners improved their career direction through guided assessments and mentor-led action plans.
           </p>
         </div>
 
@@ -77,8 +76,8 @@ const TestimonialsSection = () => {
               <div className="flex-1 relative">
                 <Quote className="absolute -top-2 -left-3 h-8 w-8 text-indigo-50 opacity-50 transform -scale-x-100" />
                 <p className="relative z-10 text-base lg:text-lg leading-relaxed text-zinc-600 font-medium">
-                  "{t.story.replace(t.highlight, '')}
-                  <span className="text-zinc-900 font-bold bg-indigo-50/50 rounded">{t.highlight}</span>"
+                  &quot;{t.story.replace(t.highlight, '')}
+                  <span className="text-zinc-900 font-bold bg-indigo-50/50 rounded">{t.highlight}</span>&quot;
                 </p>
               </div>
 

@@ -1,9 +1,7 @@
-const normalizeBaseUrl = (value: string) => value.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
 
 // Force the API base to the reliable Render server to bypass Vercel Authentication SSO blockers
 const configuredApiBase = 'https://edmarg.onrender.com';
 
-const isLocalHost = (hostname: string) => hostname === 'localhost' || hostname === '127.0.0.1';
 
 /**
  * Production: use same-origin base so browser requests go through Next.js API proxy
@@ -12,10 +10,19 @@ const isLocalHost = (hostname: string) => hostname === 'localhost' || hostname =
  * Local dev: honor configured backend URL (usually localhost:5000).
  */
 export const resolveApiBaseUrl = () => {
+  const isDev = process.env.NODE_ENV === 'development';
+
   if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168.') || hostname.includes('10.0.');
+    
+    // In dev, prefer local backend
+    if (isDev || isLocal) {
+      return 'http://localhost:5000';
+    }
     return configuredApiBase || 'https://edmarg.onrender.com';
   }
 
   // SSR fallback
-  return configuredApiBase || 'https://edmarg.onrender.com';
+  return isDev ? 'http://localhost:5000' : (configuredApiBase || 'https://edmarg.onrender.com');
 };

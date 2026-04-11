@@ -68,7 +68,7 @@ function updateCanonicalLink(url: string): void {
 /**
  * Inject JSON-LD structured data
  */
-function injectJSONLD(structuredData: Record<string, any>): void {
+function injectJSONLD(structuredData: Record<string, unknown>): void {
   // Remove existing JSON-LD for this type if present
   const existingScript = document.querySelector(`script[type="application/ld+json"]`);
   if (existingScript) {

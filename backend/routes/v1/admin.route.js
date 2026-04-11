@@ -7,6 +7,7 @@ const {
   approveMentor,
   rejectMentor,
   getPlatformStats,
+  getUserDetail,
 } = require('../../controllers/admin.controller');
 
 const router = express.Router();
@@ -14,6 +15,7 @@ const router = express.Router();
 router.use(protect, authorize('admin'));
 
 router.get('/users', getAllUsers);
+router.get('/users/:id', getUserDetail);
 router.get('/mentors/pending', getPendingMentors);
 router.get('/assessments', getAssessmentSubmissions);
 router.put('/mentors/:id/approve', approveMentor);

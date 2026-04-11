@@ -86,7 +86,7 @@ function RecordingsContent() {
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-200 border-dashed">
@@ -97,7 +97,7 @@ function RecordingsContent() {
             </p>
             <Link
               href="/student/schedule"
-              className="mt-4 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+              className="mt-4 inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-600"
             >
               Go to Schedule
             </Link>
@@ -145,7 +145,7 @@ function RecordingsContent() {
 
                   <Link
                     href={`/student/recordings/${booking._id}`}
-                    className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
+                    className="w-full inline-flex items-center justify-center px-4 py-2 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors border border-emerald-200"
                   >
                     <Video className="w-4 h-4 mr-2" />
                     Watch Recording

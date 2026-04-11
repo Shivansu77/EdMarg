@@ -88,6 +88,12 @@ class AdminService {
       pages: Math.ceil(total / Math.max(1, limit)),
     };
   }
+
+  async getUserById(userId) {
+    const user = await userRepository.findById(userId);
+    if (!user) throw new Error('User not found');
+    return user;
+  }
 }
 
 module.exports = new AdminService();

@@ -93,7 +93,7 @@ function RecordingPageContent() {
         {/* Back Navigation */}
         <button
           onClick={() => router.push('/student/history')}
-          className="group mb-6 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-indigo-600 transition-colors"
+          className="group mb-6 flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-emerald-600 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
           Back to Session History
@@ -120,7 +120,7 @@ function RecordingPageContent() {
         {/* Loading */}
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
           </div>
         ) : (
           <>

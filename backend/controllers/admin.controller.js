@@ -105,3 +105,17 @@ exports.getAssessmentSubmissions = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getUserDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const user = await adminService.getUserById(id);
+
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

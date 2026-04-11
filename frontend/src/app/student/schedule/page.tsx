@@ -102,7 +102,7 @@ function ScheduleContent() {
       case 'confirmed':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Confirmed</span>;
       case 'in-progress':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200 animate-pulse"><PlayCircle className="w-3 h-3 mr-1" /> In Progress</span>;
+        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 border border-cyan-200 animate-pulse"><PlayCircle className="w-3 h-3 mr-1" /> In Progress</span>;
       case 'completed':
         return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">Completed</span>;
       default:
@@ -113,10 +113,11 @@ function ScheduleContent() {
   return (
     <DashboardLayout userName={user?.name || "Student Schedule"}>
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-indigo-50/60 p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-8 overflow-hidden rounded-3xl border border-emerald-100/50 bg-linear-to-br from-white via-slate-50 to-emerald-50/60 p-6 shadow-[0_4px_30px_rgba(16,185,129,0.03)] sm:p-8 relative">
+          <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-emerald-200/55 blur-[100px] pointer-events-none" />
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between relative z-10">
             <div>
-              <p className="inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-700">
+              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
                 Session Planner
               </p>
               <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">Your Schedule</h1>
@@ -187,7 +188,7 @@ function ScheduleContent() {
 
         {loading ? (
           <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 text-center">
@@ -206,7 +207,7 @@ function ScheduleContent() {
                         {booking.mentor.profileImage ? (
                           <Image src={getImageUrl(booking.mentor.profileImage, booking.mentor.name)} alt={booking.mentor.name} width={56} height={56} className="h-14 w-14 object-cover object-top" />
                         ) : (
-                          <UserIcon className="h-6 w-6 text-indigo-600" />
+                          <UserIcon className="h-6 w-6 text-emerald-500" />
                         )}
                       </div>
 
@@ -255,7 +256,7 @@ function ScheduleContent() {
                         href={booking.joinUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+                        className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-emerald-600"
                       >
                         <Video className="mr-2 h-4 w-4" />
                         Join Zoom Meeting
@@ -268,7 +269,7 @@ function ScheduleContent() {
                         href={booking.joinUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex animate-pulse items-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                        className="inline-flex animate-pulse items-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-cyan-700"
                       >
                         <PlayCircle className="mr-2 h-4 w-4" />
                         Session in Progress - Join Now
@@ -279,7 +280,7 @@ function ScheduleContent() {
                     {activeTab === 'past' && booking.recordingUrl && (
                       <Link
                         href={`/student/recordings/${booking._id}`}
-                        className="inline-flex items-center rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2.5 text-sm font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
+                        className="inline-flex items-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
                       >
                         <Video className="mr-2 h-4 w-4" />
                         Watch Recording
