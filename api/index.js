@@ -3,7 +3,7 @@
  * Root-level Vercel Entry Point (Diagnostic Mode)
  */
 try {
-  const app = require('./backend/server');
+  const app = require('../backend/server');
 
   module.exports = async (req, res) => {
     try {
