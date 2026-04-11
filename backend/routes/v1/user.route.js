@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
+const { cacheResponse } = require('../../middlewares/cache.middleware');
 const {
   signupUser,
   loginUser,
@@ -15,9 +16,9 @@ const router = express.Router();
 
 router.post('/', signupUser);
 router.post('/login', loginUser);
-router.get('/me', protect, getCurrentUser);
-router.get('/browsementor', getBrowseMentors);
-router.get('/mentor/:id', getMentorById);
+router.get('/me', protect, cacheResponse({ ttlSeconds: 30 }), getCurrentUser);
+router.get('/browsementor', cacheResponse({ ttlSeconds: 120 }), getBrowseMentors);
+router.get('/mentor/:id', cacheResponse({ ttlSeconds: 120 }), getMentorById);
 router.post('/logout', logoutUser);
 router.put('/profile', protect, updateUserProfile);
 router.post('/assessment', protect, authorize('student'), submitAssessment);

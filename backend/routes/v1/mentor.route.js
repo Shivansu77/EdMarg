@@ -1,5 +1,6 @@
 const express = require('express');
 const { protect, authorize } = require('../../middlewares/auth.middleware');
+const { cacheResponse } = require('../../middlewares/cache.middleware');
 const {
   getProfile,
   updateProfile,
@@ -22,18 +23,18 @@ const router = express.Router();
 router.use(protect, authorize('mentor'));
 
 /* ---------- Profile & Settings ---------- */
-router.get('/profile', getProfile);
+router.get('/profile', cacheResponse({ ttlSeconds: 30 }), getProfile);
 router.put('/profile', updateProfile);
-router.get('/settings', getSettings);
+router.get('/settings', cacheResponse({ ttlSeconds: 60 }), getSettings);
 
 /* ---------- Availability ---------- */
-router.get('/availability', getMyAvailability);
+router.get('/availability', cacheResponse({ ttlSeconds: 30 }), getMyAvailability);
 router.put('/availability', setAvailability);
 
 /* ---------- Bookings ---------- */
-router.get('/bookings', getBookings);
-router.get('/bookings/upcoming', getUpcomingBookings);
-router.get('/bookings/stats', getBookingStats);
+router.get('/bookings', cacheResponse({ ttlSeconds: 20 }), getBookings);
+router.get('/bookings/upcoming', cacheResponse({ ttlSeconds: 20 }), getUpcomingBookings);
+router.get('/bookings/stats', cacheResponse({ ttlSeconds: 20 }), getBookingStats);
 
 /* ---------- Booking Actions ---------- */
 router.put('/bookings/:id/accept', acceptBooking);

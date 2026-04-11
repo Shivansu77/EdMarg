@@ -5,8 +5,10 @@ const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const { ALLOWED_ORIGINS } = require('./lib/withCors');
 const connectDB = require('./lib/db');
+const { invalidateCacheOnMutation } = require('./middlewares/cache.middleware');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -66,17 +68,71 @@ if (!process.env.MONGODB_URI) {
   console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
 }
 
-// 1.5 Database Connection Middleware - Root level fix for serverless
+const HEALTH_ROUTE_PATHS = new Set(['/health', '/api/v1/health', '/api/status', '/status']);
+let dbConnectPromise = null;
+
+const getDatabaseStatus = () => {
+  const states = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+
+  return states[mongoose.connection.readyState] || 'unknown';
+};
+
+const buildHealthPayload = () => ({
+  status: 'success',
+  message: 'Healthy',
+  timestamp: new Date().toISOString(),
+  uptimeSeconds: Math.round(process.uptime()),
+  database: getDatabaseStatus(),
+});
+
+const healthCheckHandler = (_req, res) => {
+  res.status(200).json(buildHealthPayload());
+};
+
+app.get('/health', healthCheckHandler);
+app.get('/api/v1/health', healthCheckHandler);
+app.get('/api/status', (req, res) => {
+  res.status(200).json(buildHealthPayload());
+});
+app.get('/status', (req, res) => {
+  res.status(200).json(buildHealthPayload());
+});
+
+const ensureDatabaseConnection = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return;
+  }
+
+  if (!dbConnectPromise) {
+    dbConnectPromise = connectDB().finally(() => {
+      dbConnectPromise = null;
+    });
+  }
+
+  await dbConnectPromise;
+};
+
+// 1.5 Database Connection Middleware - avoid gating health checks
 app.use(async (req, res, next) => {
+  if (HEALTH_ROUTE_PATHS.has(req.path)) {
+    return next();
+  }
+
   try {
-    await connectDB();
+    await ensureDatabaseConnection();
     next();
   } catch (err) {
     console.error('DB_CONNECTION_FAILURE:', err.message);
-    res.status(500).json({
+    res.set('Retry-After', '5');
+    res.status(503).json({
       success: false,
-      message: 'Initial server connection failure. Please try again in 5 seconds.',
-      hint: 'MONGODB_URI connectivity issue'
+      message: 'Server is waking up and connecting to the database. Please retry in a few seconds.',
+      hint: 'Render cold start or MongoDB connectivity delay',
     });
   }
 });
@@ -92,6 +148,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser());
+app.use(invalidateCacheOnMutation);
 
 // Rate limiting
 const authLimiter = rateLimit({
@@ -140,20 +197,6 @@ app.use('/api/v2/admin', adminRouteV2);
 // Backward compatibility - default to v1
 app.use('/api/users', authLimiter, userRouteV1);
 app.use('/api/admin', adminRouteV1);
-
-// Health Check
-app.get('/api/v1/health', (req, res) => {
-  res.status(200).json({ status: 'success', message: 'Healthy' });
-});
-
-app.get('/api/status', (req, res) => {
-  res.json({ status: 'success', message: 'Backend is running' });
-});
-
-// Root level status for Vercel diagnostics
-app.get('/status', (req, res) => {
-  res.json({ status: 'success', message: 'Backend is running (root)' });
-});
 
 // Error handling
 app.use(errorHandler);

@@ -10,6 +10,11 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null, listenersAttached: false };
 }
 
+const toNumber = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
 async function connectDB() {
   const MONGODB_URI = process.env.MONGODB_URI;
   const DB_NAME = process.env.DB_NAME || 'edmarg_db';
@@ -22,7 +27,6 @@ async function connectDB() {
     // `cached.conn` can exist while the underlying connection is disconnected in
     // serverless environments. Only reuse when Mongoose is actually "ready".
     if (mongoose.connection.readyState === 1) {
-      console.log('✅ Using cached MongoDB connection (connected)');
       return cached.conn;
     }
     console.warn(
@@ -38,9 +42,16 @@ async function connectDB() {
     const opts = {
       bufferCommands: false,
       dbName: DB_NAME,
-      // Timeouts are important for serverless; tune via env if needed.
-      serverSelectionTimeoutMS: Number(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS || 5000),
-      connectTimeoutMS: Number(process.env.MONGODB_CONNECT_TIMEOUT_MS || 5000),
+      // Atlas M0/M2/M5 optimization: keep pool small, recycle idle sockets,
+      // and fail fast on cold starts instead of long request hangs.
+      maxPoolSize: toNumber(process.env.MONGODB_MAX_POOL_SIZE, 8),
+      minPoolSize: toNumber(process.env.MONGODB_MIN_POOL_SIZE, 0),
+      maxIdleTimeMS: toNumber(process.env.MONGODB_MAX_IDLE_TIME_MS, 60000),
+      waitQueueTimeoutMS: toNumber(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS, 8000),
+      serverSelectionTimeoutMS: toNumber(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS, 8000),
+      connectTimeoutMS: toNumber(process.env.MONGODB_CONNECT_TIMEOUT_MS, 10000),
+      socketTimeoutMS: toNumber(process.env.MONGODB_SOCKET_TIMEOUT_MS, 45000),
+      autoIndex: process.env.NODE_ENV !== 'production',
       family: 4 // Force IPv4 to solve ETIMEOUT in Node.js > 18
     };
 

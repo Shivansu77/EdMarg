@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
@@ -32,6 +32,7 @@ export default function ProtectedRoute({
 }: ProtectedRouteProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const [isSessionChecking, setIsSessionChecking] = useState(true);
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const isAuthorized = Boolean(user && user.role === requiredRole);
 
@@ -41,6 +42,7 @@ export default function ProtectedRoute({
     }
 
     if (!user || user.role !== requiredRole) {
+      setIsSessionChecking(true);
       router.replace('/login');
     }
   }, [hasHydrated, requiredRole, router, user]);
@@ -53,6 +55,7 @@ export default function ProtectedRoute({
     const controller = new AbortController();
 
     const verifySession = async () => {
+      setIsSessionChecking(true);
       try {
         const response = await fetch(
           `${resolveApiBaseUrl()}/api/v1/users/me`,
@@ -69,10 +72,15 @@ export default function ProtectedRoute({
         if (!response.ok || serverRole !== requiredRole) {
           clearStoredAuth();
           router.replace('/login');
+          return;
         }
       } catch {
         if (controller.signal.aborted) {
           return;
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsSessionChecking(false);
         }
       }
     };
@@ -84,8 +92,21 @@ export default function ProtectedRoute({
     };
   }, [hasHydrated, isAuthorized, requiredRole, router]);
 
-  if (!hasHydrated || !isAuthorized) {
-    return null;
+  if (!hasHydrated || !isAuthorized || isSessionChecking) {
+    const loadingMessage = !hasHydrated
+      ? 'Preparing your session...'
+      : isSessionChecking
+        ? 'Waking up the server...'
+        : 'Redirecting to login...';
+
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
+          <p className="text-sm font-medium text-gray-700">{loadingMessage}</p>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;
