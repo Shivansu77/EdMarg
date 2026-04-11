@@ -14,13 +14,9 @@ const isLocalHost = (hostname: string) => hostname === 'localhost' || hostname =
  */
 export const resolveApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
-    if (isLocalHost(window.location.hostname)) {
-      return configuredApiBase || normalizeBaseUrl(window.location.origin);
-    }
-
-    return normalizeBaseUrl(window.location.origin);
+    return configuredApiBase || 'https://edmarg.onrender.com';
   }
 
   // SSR fallback
-  return configuredApiBase || 'https://edmarg-backend.vercel.app';
+  return configuredApiBase || 'https://edmarg.onrender.com';
 };
