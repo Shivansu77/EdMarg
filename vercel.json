@@ -7,14 +7,6 @@
   },
   "rewrites": [
     {
-      "source": "/api/hello",
-      "destination": "/api/hello.js"
-    },
-    {
-      "source": "/api/diag",
-      "destination": "/api/diag.js"
-    },
-    {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
     },
