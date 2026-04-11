@@ -7,6 +7,15 @@ module.exports = (req, res) => {
     VERCEL: process.env.VERCEL ? 'YES' : 'NO',
   };
 
+  const fs = require('fs');
+  const path = require('path');
+  let files = [];
+  try {
+    files = fs.readdirSync(path.join(process.cwd()));
+  } catch (e) {
+    files = [e.message];
+  }
+
   const allVars = Object.keys(process.env).filter(k => 
     !k.includes('SECRET') && 
     !k.includes('PASSWORD') && 
@@ -18,6 +27,8 @@ module.exports = (req, res) => {
   res.json({
     success: true,
     message: "Environment Diagnostic",
+    cwd: process.cwd(),
+    files,
     envStatus,
     availableNonSensitiveKeys: allVars
   });
