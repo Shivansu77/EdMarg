@@ -2,7 +2,7 @@ import { BlogPost } from '../types';
 
 export const blogs: BlogPost[] = [
   {
-    id: 1,
+    id: '1',
     title: 'How to Crack NPTEL Exam in 8 Weeks',
     slug: 'how-to-crack-nptel',
     description:
@@ -16,7 +16,7 @@ export const blogs: BlogPost[] = [
       '<p>NPTEL exams reward consistency more than marathon study sessions. Start with a weekly system and stick to it.</p><h2>Week-by-Week Plan</h2><p>In weeks 1-2, map your syllabus and identify high-weight topics. In weeks 3-6, solve at least 25 topic-wise questions weekly. In weeks 7-8, shift to mixed mocks and timing control.</p><h3>Must-Do Checklist</h3><ul><li>Create a fixed daily slot for lectures and notes.</li><li>Keep an error log of every wrong answer.</li><li>Use 2 revision rounds before your final mock.</li></ul><p>Small improvements each week compound into strong scores.</p>',
   },
   {
-    id: 2,
+    id: '2',
     title: 'How to Build a Mentor-Winning LinkedIn Profile',
     slug: 'mentor-winning-linkedin-profile',
     description:
@@ -30,7 +30,7 @@ export const blogs: BlogPost[] = [
       '<p>Your LinkedIn profile should answer one question quickly: why should a mentor invest time in you?</p><h2>Profile Structure That Works</h2><p>Start with a headline that includes your target role and strengths. Add a summary focused on your current level, what you are building, and what guidance you seek.</p><h3>Proof Over Claims</h3><ul><li>Show outcomes from projects, not just tools used.</li><li>Attach links to GitHub, demos, or case studies.</li><li>Ask for 2-3 skill-specific recommendations.</li></ul><p>When your profile communicates clarity, mentor replies improve significantly.</p>',
   },
   {
-    id: 3,
+    id: '3',
     title: 'Career Decision Framework for Confused Students',
     slug: 'career-decision-framework-for-students',
     description:
@@ -44,7 +44,7 @@ export const blogs: BlogPost[] = [
       '<p>Confusion usually means you are comparing options without a decision model.</p><h2>The 3-Lens Model</h2><p>Evaluate each career path through: ability (can you do it), demand (will it pay), and energy (will you sustain it).</p><h3>Scoring Method</h3><ul><li>Rate each lens from 1 to 10.</li><li>Multiply by weights: ability 35%, demand 35%, energy 30%.</li><li>Shortlist top two paths and run 30-day experiments.</li></ul><p>Data-driven decisions reduce regret and increase confidence.</p>',
   },
   {
-    id: 4,
+    id: '4',
     title: 'Portfolio Projects That Actually Get Interviews',
     slug: 'portfolio-projects-that-get-interviews',
     description:
@@ -58,7 +58,7 @@ export const blogs: BlogPost[] = [
       '<p>Most portfolios fail because they show effort but not impact.</p><h2>Project Design Principles</h2><p>Choose one user problem, define constraints, and measure before/after improvements.</p><h3>Interview-Ready Format</h3><ul><li>Problem statement in one paragraph.</li><li>Architecture and trade-off explanation.</li><li>Metrics: performance, conversion, or reliability.</li></ul><p>Interviewers look for judgment, not just coding output.</p>',
   },
   {
-    id: 5,
+    id: '5',
     title: 'From Semester Plan to Placement Plan',
     slug: 'semester-plan-to-placement-plan',
     description:
