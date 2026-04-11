@@ -69,7 +69,7 @@ type BookingResult = {
    CONSTANTS
    ================================================================ */
 
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/v1\/?$/, '');
+const API_BASE_URL = 'https://edmarg.onrender.com';
 
 const STEPS = [
   { id: 1, label: 'Mentor', icon: User },

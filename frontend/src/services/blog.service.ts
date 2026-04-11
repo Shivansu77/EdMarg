@@ -1,7 +1,7 @@
 import { BlogPost } from '@/modules/blog/types';
 import { apiClient } from '@/utils/api-client';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
+const API_BASE_URL = 'https://edmarg.onrender.com';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=80';

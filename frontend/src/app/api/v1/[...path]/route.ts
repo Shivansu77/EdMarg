@@ -1,4 +1,4 @@
-const BACKEND_BASE_URL = 'https://edmarg-backend.vercel.app';
+const BACKEND_BASE_URL = 'https://edmarg.onrender.com';
 
 const buildTargetUrl = (path: string[], requestUrl: string) => {
   const incomingUrl = new URL(requestUrl);
