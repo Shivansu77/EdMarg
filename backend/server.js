@@ -150,6 +150,11 @@ app.get('/api/status', (req, res) => {
   res.json({ status: 'success', message: 'Backend is running' });
 });
 
+// Root level status for Vercel diagnostics
+app.get('/status', (req, res) => {
+  res.json({ status: 'success', message: 'Backend is running (root)' });
+});
+
 // Error handling
 app.use(errorHandler);
 
