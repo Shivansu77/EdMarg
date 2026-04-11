@@ -1,8 +1,7 @@
 const normalizeBaseUrl = (value: string) => value.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
 
-const configuredApiBase = normalizeBaseUrl(
-  process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || ''
-);
+// Force the API base to the reliable Render server to bypass Vercel Authentication SSO blockers
+const configuredApiBase = 'https://edmarg.onrender.com';
 
 const isLocalHost = (hostname: string) => hostname === 'localhost' || hostname === '127.0.0.1';
 
