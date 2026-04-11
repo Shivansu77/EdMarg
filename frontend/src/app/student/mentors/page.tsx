@@ -9,6 +9,7 @@ import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { Star, Search, User, Briefcase, ChevronRight, SlidersHorizontal, ChevronDown, X } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 
 import { getImageUrl } from '@/utils/imageUrl';
@@ -27,7 +28,7 @@ type Mentor = {
   };
 };
 
-const API_BASE_URL = 'https://edmarg.onrender.com';
+const API_BASE_URL = resolveApiBaseUrl();
 
 const DOMAIN_OPTIONS = [
   'All Domains',

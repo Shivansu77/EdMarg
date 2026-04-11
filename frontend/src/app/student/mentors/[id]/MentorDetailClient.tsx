@@ -9,7 +9,9 @@ import { Star, Briefcase, Clock, Calendar, ArrowLeft, CheckCircle, Award, Users,
 
 
 import { getImageUrl } from '@/utils/imageUrl';
-const API_BASE_URL = 'https://edmarg.onrender.com';
+import { resolveApiBaseUrl } from '@/utils/api-base';
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 type Review = {
   _id: string;

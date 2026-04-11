@@ -7,8 +7,9 @@ import { useParams } from 'next/navigation';
 import MentorDetailClient from './MentorDetailClient';
 import { ArrowLeft, UserX } from 'lucide-react';
 import Link from 'next/link';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
-const API_BASE_URL = 'https://edmarg.onrender.com';
+const API_BASE_URL = resolveApiBaseUrl();
 
 
 export default function MentorDetailPage() {

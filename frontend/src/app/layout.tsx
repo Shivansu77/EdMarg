@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://edmarg.onrender.com',
+    url: 'https://www.edmarg.com',
     title: 'Edmarg — Career Mentorship & AI Guidance',
     description: 'Find clarity and confidence through AI-driven assessments and expert mentorship.',
     siteName: 'Edmarg',

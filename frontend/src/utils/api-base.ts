@@ -1,6 +1,6 @@
 
 // Force the API base to the reliable Render server to bypass Vercel Authentication SSO blockers
-const configuredApiBase = 'https://edmarg.onrender.com';
+const configuredApiBase = 'https://edmarg-backend.vercel.app';
 
 
 /**
@@ -20,9 +20,9 @@ export const resolveApiBaseUrl = () => {
     if (isDev || isLocal) {
       return 'http://localhost:5000';
     }
-    return configuredApiBase || 'https://edmarg.onrender.com';
+    return configuredApiBase || 'https://edmarg-backend.vercel.app';
   }
 
   // SSR fallback
-  return isDev ? 'http://localhost:5000' : (configuredApiBase || 'https://edmarg.onrender.com');
+  return isDev ? 'http://localhost:5000' : (configuredApiBase || 'https://edmarg-backend.vercel.app');
 };

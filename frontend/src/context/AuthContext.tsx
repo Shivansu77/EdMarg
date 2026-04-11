@@ -57,6 +57,9 @@ const clearAuthStorage = () => {
 
   window.localStorage.removeItem(AUTH_USER_STORAGE_KEY);
   window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+  
+  // Clear cookie for middleware
+  document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
 };
 
 const persistAuthStorage = (user: User, token?: string) => {
@@ -68,8 +71,11 @@ const persistAuthStorage = (user: User, token?: string) => {
 
   if (token) {
     window.localStorage.setItem(AUTH_TOKEN_STORAGE_KEY, token);
+    // Set cookie for middleware (1 day expiry)
+    document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
   } else {
     window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
+    document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
   }
 };
 

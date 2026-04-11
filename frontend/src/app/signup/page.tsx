@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff } from "lucide-react";
 import toast from 'react-hot-toast';
+import { resolveApiBaseUrl } from "@/utils/api-base";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function SignupPage() {
   const [expertise, setExpertise] = useState("");
   const [bio, setBio] = useState("");
 
-  const API_BASE_URL = 'https://edmarg.onrender.com';
+  const API_BASE_URL = resolveApiBaseUrl();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

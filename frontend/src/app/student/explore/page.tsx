@@ -6,6 +6,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { Search, Loader2, Filter, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import MentorHorizontalCard from '@/components/mentors/MentorHorizontalCard';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 type Mentor = {
   _id: string;
@@ -22,7 +23,7 @@ type Mentor = {
   };
 };
 
-const API_BASE_URL = 'https://edmarg.onrender.com';
+const API_BASE_URL = resolveApiBaseUrl();
 
 function ExploreContent() {
   const [mentors, setMentors] = useState<Mentor[]>([]);

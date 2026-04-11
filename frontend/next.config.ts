@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 import path from "path";
 
-const LEGACY_BACKEND_HOST = "https://edmarg-backend.onrender.com";
-const LIVE_BACKEND_HOST = "https://edmarg.onrender.com";
+const LEGACY_BACKEND_HOST = "https://edmarg-backend.vercel.app";
+const LIVE_BACKEND_HOST = "https://edmarg-backend.vercel.app";
 
 const remapBackendHost = (value?: string) => {
   if (!value) return undefined;

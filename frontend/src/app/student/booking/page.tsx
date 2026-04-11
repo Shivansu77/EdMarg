@@ -27,6 +27,7 @@ import {
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Image from 'next/image';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 /* ================================================================
    TYPES
@@ -69,7 +70,7 @@ type BookingResult = {
    CONSTANTS
    ================================================================ */
 
-const API_BASE_URL = 'https://edmarg.onrender.com';
+const API_BASE_URL = resolveApiBaseUrl();
 
 const STEPS = [
   { id: 1, label: 'Mentor', icon: User },

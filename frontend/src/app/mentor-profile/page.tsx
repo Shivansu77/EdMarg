@@ -7,9 +7,10 @@ import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLef
 import Image from 'next/image';
 import Link from 'next/link';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
-
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 import { getImageUrl } from '@/utils/imageUrl';
+
 type Mentor = {
   _id: string;
   name: string;
@@ -34,7 +35,7 @@ type Review = {
   avatar: string;
 };
 
-const API_BASE_URL = 'https://edmarg.onrender.com';
+const API_BASE_URL = resolveApiBaseUrl();
 
 function MentorProfileContent() {
   const searchParams = useSearchParams();
