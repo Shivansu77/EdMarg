@@ -4,13 +4,13 @@ import { ArrowRight } from 'lucide-react';
 
 const JoinSection = () => {
   return (
-    <section className="relative overflow-hidden bg-white py-20 lg:py-28">
+    <section className="relative overflow-hidden bg-linear-to-b from-white to-emerald-50/35 py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-emerald-400 bg-linear-to-br from-emerald-600 via-emerald-500 to-cyan-600 p-10 text-center shadow-[0_20px_60px_rgba(16,185,129,0.3)] lg:p-20">
+        <div className="relative w-full overflow-hidden rounded-[2.5rem] border border-emerald-400 bg-linear-to-br from-emerald-600 via-emerald-500 to-green-600 p-10 text-center shadow-[0_20px_60px_rgba(16,185,129,0.3)] lg:p-20">
           
           {/* Background Accents for the card */}
           <div className="absolute top-0 right-0 -mt-20 -mr-20 h-64 w-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-64 w-64 rounded-full bg-cyan-300/20 blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 -mb-20 -ml-20 h-64 w-64 rounded-full bg-green-300/20 blur-3xl pointer-events-none" />
 
           <div className="relative z-10 mx-auto max-w-3xl animate-fade-up">
             <h2 className="text-3xl lg:text-5xl font-extrabold text-white mb-6 tracking-tight drop-shadow-sm">

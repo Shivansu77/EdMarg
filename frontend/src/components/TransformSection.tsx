@@ -17,42 +17,42 @@ const AFTER_LIST = [
 
 const TransformSection = () => {
   return (
-    <section className="overflow-hidden bg-white py-20 lg:py-28 border-t border-gray-100">
+    <section className="overflow-hidden bg-linear-to-b from-white via-emerald-50/35 to-green-50/30 py-20 lg:py-28 border-t border-emerald-100">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         {/* Header */}
         <div className="mb-16 text-center">
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
             From Confusion to Clarity
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-slate-600">
             See the transformation EdMarg brings to your career journey
           </p>
         </div>
 
         {/* Split Screen */}
-        <div className="flex flex-col lg:flex-row gap-0 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
+        <div className="flex flex-col lg:flex-row gap-0 overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-lg shadow-emerald-500/10">
           {/* BEFORE */}
-          <div className="flex-1 bg-gray-50 p-8 lg:p-10">
+          <div className="flex-1 bg-white p-8 lg:p-10">
             <div className="mb-8">
-              <span className="inline-block px-3 py-1 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-600 uppercase tracking-wide">
+              <span className="inline-block px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-700 uppercase tracking-wide">
                 Before EdMarg
               </span>
             </div>
-            <h3 className="text-2xl lg:text-3xl font-bold text-gray-700 mb-8">
+            <h3 className="text-2xl lg:text-3xl font-bold text-slate-700 mb-8">
               Unclear Direction
             </h3>
             <ul className="space-y-4">
               {BEFORE_LIST.map((item, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 bg-gray-200">
-                    <X className="h-3 w-3 text-gray-500" strokeWidth={3} />
+                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-100">
+                    <X className="h-3 w-3 text-emerald-600" strokeWidth={3} />
                   </div>
-                  <span className="text-base font-medium text-gray-700">{item}</span>
+                  <span className="text-base font-medium text-slate-700">{item}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-8 pt-6 border-t border-gray-300">
-              <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+            <div className="mt-8 pt-6 border-t border-emerald-200">
+              <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                 Feeling: overwhelmed and stuck
               </p>
             </div>
@@ -60,33 +60,33 @@ const TransformSection = () => {
 
           {/* Divider */}
           <div className="flex items-center justify-center bg-white px-4 py-6 lg:w-20 lg:px-0 lg:py-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-300 bg-gray-100">
-              <ArrowRight className="h-5 w-5 text-blue-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50">
+              <ArrowRight className="h-5 w-5 text-emerald-600" />
             </div>
           </div>
 
           {/* AFTER */}
-          <div className="flex-1 bg-blue-50 p-8 lg:p-10">
+          <div className="flex-1 bg-linear-to-br from-emerald-50 to-green-50 p-8 lg:p-10">
             <div className="mb-8">
-              <span className="inline-block px-3 py-1 bg-white border border-blue-300 rounded-lg text-xs font-semibold text-blue-600 uppercase tracking-wide">
+              <span className="inline-block px-3 py-1 bg-white border border-emerald-300 rounded-lg text-xs font-semibold text-emerald-700 uppercase tracking-wide">
                 After EdMarg
               </span>
             </div>
-            <h3 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8">
+            <h3 className="text-2xl lg:text-3xl font-bold text-slate-900 mb-8">
               Clear Career Plan
             </h3>
             <ul className="space-y-4">
               {AFTER_LIST.map((item, idx) => (
                 <li key={idx} className="flex items-start gap-3">
-                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-500">
+                  <div className="mt-1 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500">
                     <Check className="h-3 w-3 text-white" strokeWidth={3} />
                   </div>
-                  <span className="text-base font-semibold text-gray-900">{item}</span>
+                  <span className="text-base font-semibold text-slate-900">{item}</span>
                 </li>
               ))}
             </ul>
-            <div className="mt-8 pt-6 border-t border-blue-300">
-              <p className="text-xs font-semibold text-blue-600 uppercase tracking-wide">
+            <div className="mt-8 pt-6 border-t border-emerald-300">
+              <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wide">
                 Feeling: empowered and focused
               </p>
             </div>
