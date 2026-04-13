@@ -60,6 +60,7 @@ const clearAuthStorage = () => {
   
   // Clear cookie for middleware
   document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+  document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
 };
 
 const persistAuthStorage = (user: User, token?: string) => {
@@ -76,6 +77,7 @@ const persistAuthStorage = (user: User, token?: string) => {
   } else {
     window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
     document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+    document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
   }
 };
 

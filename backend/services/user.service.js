@@ -4,6 +4,7 @@ const userRepository = require('../repositories/user.repository');
 const { TokenBlacklist } = require('../models/user.model');
 const { UnauthorizedError, ValidationError } = require('../utils/errors');
 const studentAssessmentRepository = require('../repositories/studentAssessment.repository');
+const careerAssessmentService = require('./careerAssessment.service');
 
 const isBcryptHash = (value = '') =>
   typeof value === 'string' &&
@@ -127,7 +128,12 @@ class UserService {
       throw new ValidationError('Assessment answers cannot be empty');
     }
 
-    return studentAssessmentRepository.upsertAssessment(userId, answers);
+    const result = careerAssessmentService.evaluate(answers);
+    return studentAssessmentRepository.upsertAssessment(userId, answers, result);
+  }
+
+  async getAssessmentSubmission(userId) {
+    return studentAssessmentRepository.findByStudent(userId);
   }
 }
 

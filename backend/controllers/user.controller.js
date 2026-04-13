@@ -169,6 +169,22 @@ exports.submitAssessment = async (req, res, next) => {
   }
 };
 
+/* ================= GET MY ASSESSMENT ================= */
+exports.getMyAssessment = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const submission = await userService.getAssessmentSubmission(userId);
+
+    return res.status(200).json({
+      success: true,
+      data: submission,
+      message: submission ? 'Assessment fetched successfully' : 'No assessment submitted yet',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 /* ================= BROWSE MENTORS ================= */
 exports.getBrowseMentors = async (req, res, next) => {
   try {

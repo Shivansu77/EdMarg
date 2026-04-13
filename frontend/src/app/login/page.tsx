@@ -1,20 +1,32 @@
 'use client';
 
-import React, { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, FormEvent } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { getRoleDashboardPath, getSafePostAuthPath } from '@/utils/auth-redirect';
 import toast from 'react-hot-toast';
 
-const LoginPage: React.FC = () => {
+const LoginContent: React.FC = () => {
   const router = useRouter();
-  const { login } = useAuth();
+  const searchParams = useSearchParams();
+  const { login, user } = useAuth();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const redirectParam = searchParams.get('redirect') ?? searchParams.get('callbackUrl');
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const fallbackPath = getRoleDashboardPath(user.role);
+    router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
+  }, [redirectParam, router, user]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
@@ -24,11 +36,8 @@ const LoginPage: React.FC = () => {
     try {
       const authenticatedUser = await login(email, password);
       toast.success('Successfully logged in!');
-
-      if (authenticatedUser.role === 'student') router.push('/student/dashboard');
-      else if (authenticatedUser.role === 'mentor') router.push('/mentor/dashboard');
-      else if (authenticatedUser.role === 'admin') router.push('/admin/dashboard');
-      else router.push('/');
+      const fallbackPath = getRoleDashboardPath(authenticatedUser.role);
+      router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unable to login';
       setError(errorMessage);
@@ -155,10 +164,16 @@ const LoginPage: React.FC = () => {
       </div>
 
       <div className="relative z-10 px-6 py-6 text-center text-sm font-medium text-slate-500">
-        <p>© 2024 EdMarg. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} EdMarg. All rights reserved.</p>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default function LoginPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader className="animate-spin text-emerald-500" /></div>}>
+      <LoginContent />
+    </React.Suspense>
+  );
+}

@@ -1,198 +1,299 @@
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { BadgeCheck, Zap, Target, Users, TrendingUp, Award, ArrowRight } from 'lucide-react';
-import Link from 'next/link';
+import { apiClient } from '@/utils/api-client';
+import {
+  AlertCircle,
+  ArrowRight,
+  BadgeCheck,
+  ClipboardCheck,
+  Loader2,
+  Sparkles,
+  Target,
+  TrendingUp,
+} from 'lucide-react';
 
-const competencies = [
-  {
-    title: 'UX Research',
-    description:
-      'Your ability to synthesize complex qualitative data into actionable insights is in the top 5th percentile of applicants.',
-    icon: Target,
-    color: 'text-emerald-600',
-    bg: 'bg-emerald-50',
-  },
-  {
-    title: 'Visual Design',
-    description:
-      'You possess a natural eye for hierarchy and balance, ensuring that information is not just functional, but aesthetically pleasing.',
-    icon: Zap,
-    color: 'text-purple-600',
-    bg: 'bg-purple-50',
-  },
-  {
-    title: 'Interaction Design',
-    description:
-      'Logic-driven flow creation comes easily to you. You predict user behavior before the first click happens.',
-    icon: Users,
-    color: 'text-cyan-600',
-    bg: 'bg-cyan-50',
-  },
-];
+type CareerRecommendation = {
+  rank: number;
+  careerId: string;
+  careerName: string;
+  matchScore: number;
+  whyThisFitsYou: string;
+  requiredSkills?: string[];
+  suggestedNextSteps?: string[];
+  salaryRange?: string;
+};
+
+type AssessmentResult = {
+  assessmentVersion: string;
+  generatedAt: string;
+  step2TagScores?: Record<string, number>;
+  step3CareerMapping?: {
+    dominantTags?: string[];
+  };
+  step4Output?: {
+    top3CareerRecommendations?: CareerRecommendation[];
+  };
+};
+
+type AssessmentSubmission = {
+  _id: string;
+  result?: AssessmentResult | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type Assignment = {
+  _id: string;
+  template?: {
+    title?: string;
+  };
+};
+
+type AssignmentResponse = {
+  _id: string;
+  status: 'pending' | 'completed';
+};
+
+const extractAssignments = (payload: unknown): Assignment[] => {
+  if (Array.isArray(payload)) {
+    return payload as Assignment[];
+  }
+
+  if (!payload || typeof payload !== 'object') {
+    return [];
+  }
+
+  const data = payload as { assignments?: unknown; items?: unknown; results?: unknown; data?: unknown };
+  const candidates = [data.assignments, data.items, data.results, data.data];
+  const firstArray = candidates.find(Array.isArray);
+  return Array.isArray(firstArray) ? (firstArray as Assignment[]) : [];
+};
 
 function ResultsContent() {
+  const [careerSubmission, setCareerSubmission] = useState<AssessmentSubmission | null>(null);
+  const [assignmentTotal, setAssignmentTotal] = useState(0);
+  const [completedAssignedCount, setCompletedAssignedCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadResults = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const [careerRes, assignmentsRes] = await Promise.all([
+          apiClient.get<AssessmentSubmission | null>('/api/v1/users/assessment'),
+          apiClient.get<Assignment[] | { assignments?: Assignment[] }>('/api/v1/assessments/assignments/my'),
+        ]);
+
+        if (careerRes.success && careerRes.data) {
+          setCareerSubmission(careerRes.data);
+        } else {
+          setCareerSubmission(null);
+        }
+
+        const assignments = assignmentsRes.success ? extractAssignments(assignmentsRes.data) : [];
+        setAssignmentTotal(assignments.length);
+
+        if (!assignments.length) {
+          setCompletedAssignedCount(0);
+        } else {
+          const settled = await Promise.allSettled(
+            assignments.map((assignment) =>
+              apiClient.get<AssignmentResponse>(`/api/v1/assessments/responses/my/${assignment._id}`)
+            )
+          );
+
+          let completed = 0;
+          settled.forEach((result) => {
+            if (result.status !== 'fulfilled') return;
+            const payload = result.value;
+            if (payload.success && payload.data?.status === 'completed') {
+              completed += 1;
+            }
+          });
+
+          setCompletedAssignedCount(completed);
+        }
+      } catch (fetchError) {
+        console.error('Failed to load results:', fetchError);
+        setError('Unable to load your results right now. Please refresh and try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadResults();
+  }, []);
+
+  const recommendations = useMemo(
+    () => careerSubmission?.result?.step4Output?.top3CareerRecommendations || [],
+    [careerSubmission]
+  );
+  const topRecommendation = recommendations[0];
+  const dominantTags = careerSubmission?.result?.step3CareerMapping?.dominantTags || [];
+  const tagScores = careerSubmission?.result?.step2TagScores || {};
+  const generatedAt = careerSubmission?.result?.generatedAt
+    ? new Date(careerSubmission.result.generatedAt).toLocaleDateString()
+    : null;
+
+  const hasCareerResult = Boolean(topRecommendation);
+  const matchScore = typeof topRecommendation?.matchScore === 'number' ? `${Math.round(topRecommendation.matchScore)}%` : '—';
+  const signalsAnalyzed = Object.keys(tagScores).length;
+  const nextSteps = topRecommendation?.suggestedNextSteps?.slice(0, 3) || [];
+
+  if (loading) {
+    return (
+      <DashboardLayout userName="Assessment Results">
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout userName="Assessment Results">
       <div className="space-y-8 pb-12">
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-cyan-50/50 p-6 shadow-sm sm:p-8">
+        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-cyan-50/50 p-6 shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <span className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-700">
-                Assessment Intelligence
+                <Sparkles size={14} className="mr-2" />
+                Assessment Results
               </span>
               <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">Your Career Fit Summary</h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 sm:text-base">
-                We&apos;ve curated your professional identity based on 42 unique markers, matching aptitude, thinking style, and growth potential.
+                Results are generated from your Career Assessment plus completion progress of assigned assessments.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:min-w-90">
               <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Match Score</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">98%</p>
+                <p className="mt-1 text-2xl font-extrabold text-slate-900">{matchScore}</p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Signals Analyzed</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">42</p>
+                <p className="mt-1 text-2xl font-extrabold text-slate-900">{signalsAnalyzed}</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <div className="grid grid-cols-1 gap-8 p-6 lg:grid-cols-[1fr_320px] lg:p-10">
-            <div>
-              <div className="mb-6">
-                <span className="inline-block rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-xs font-bold tracking-widest text-slate-700">
-                  MATCH SCORE: 98%
-                </span>
-              </div>
-
-              <h2 className="mb-5 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 lg:text-5xl">
-                Your Recommended Path:
-                <br />
-                <span className="text-cyan-700">Product Design</span>
-              </h2>
-
-              <p className="mb-8 max-w-2xl text-base leading-relaxed text-slate-700 lg:text-lg">
-                Your aptitude for empathizing with user pain points combined with a strong structural logic suggests you would
-                excel in roles that bridge the gap between human needs and technical constraints. You prioritize clarity,
-                flow, and visual harmony.
-              </p>
-
-              <div className="flex flex-wrap gap-3">
-                <Link href="/student/mentors">
-                  <button className="inline-flex items-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800">
-                    Find a Mentor
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </button>
-                </Link>
-                <button className="rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50">
-                  View Full Syllabus
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center">
-              <div className="relative flex h-64 w-64 items-center justify-center rounded-3xl border border-slate-200 bg-linear-to-br from-slate-50 to-cyan-50">
-                <div className="absolute inset-4 rounded-2xl border border-white/70 bg-white/40" />
-                <BadgeCheck size={96} className="relative text-slate-900" strokeWidth={1.5} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <section>
-          <div className="mb-6">
-            <h3 className="text-3xl font-extrabold tracking-tight text-slate-900">Core Competencies</h3>
-            <p className="mt-2 text-sm text-slate-600">Three pillars identified as your natural strengths.</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {competencies.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div key={item.title} className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5">
-                  <div className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl ${item.bg}`}>
-                    <Icon size={24} className={item.color} strokeWidth={2} />
-                  </div>
-                  <h4 className="mb-3 text-xl font-bold text-slate-900">{item.title}</h4>
-                  <p className="text-base leading-relaxed text-slate-600">{item.description}</p>
-                </div>
-              );
-            })}
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <div className="mb-4 flex items-start gap-3">
-              <Award className="mt-1 h-6 w-6 shrink-0 text-slate-900" />
-              <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Why Product Design?</h3>
+        {error && (
+          <section className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+              <p className="text-sm font-medium">{error}</p>
             </div>
-            <p className="mb-6 text-base leading-relaxed text-slate-700">
-              Based on your assessment, you demonstrated a high &quot;Holistic Thinking&quot; score. Product Design requires a
-              candidate to look at the &apos;Big Picture&apos; while obsessing over the details—a trait you displayed throughout
-              the behavioral section of the quiz.
-            </p>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4">
-              <p className="text-base text-slate-700">
-                <span className="font-bold text-slate-900">120+ Product Designers</span> are ready to mentor you today.
-              </p>
-            </div>
-          </div>
+          </section>
+        )}
 
-          <div className="rounded-3xl border border-slate-900 bg-slate-900 p-8 text-white shadow-sm">
-            <div className="mb-4 flex items-start gap-3">
-              <TrendingUp className="mt-1 h-6 w-6 shrink-0 text-cyan-300" />
-              <h3 className="text-2xl font-extrabold tracking-tight">Mentorship Impact</h3>
-            </div>
-            <p className="mb-6 text-base leading-relaxed text-slate-200">
-              Students who follow their recommended path with a mentor see a <span className="font-bold text-white">45% faster</span> job placement rate.
+        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Career Assessment</p>
+            <p className="mt-2 text-lg font-bold text-slate-900">{hasCareerResult ? 'Completed' : 'Not Completed'}</p>
+            <p className="mt-1 text-sm text-slate-600">{generatedAt ? `Updated on ${generatedAt}` : 'Take assessment to unlock recommendations.'}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Assigned Assessments</p>
+            <p className="mt-2 text-lg font-bold text-slate-900">
+              {completedAssignedCount}/{assignmentTotal} Completed
             </p>
-            <div className="mb-4">
-              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-700">
-                <div className="h-full w-[75%] rounded-full bg-cyan-300" />
-              </div>
-            </div>
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-300">Industry Readiness: 75%</p>
+            <p className="mt-1 text-sm text-slate-600">Track all assigned tests in your assessments workspace.</p>
           </div>
-        </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Recommended Path</p>
+            <p className="mt-2 text-lg font-bold text-slate-900">{topRecommendation?.careerName || 'Not available yet'}</p>
+            <p className="mt-1 text-sm text-slate-600">{topRecommendation?.salaryRange || 'Complete Career Assessment to view your recommendation.'}</p>
+          </div>
+        </section>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h3 className="mb-6 text-2xl font-extrabold tracking-tight text-slate-900">Next Steps</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="flex gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-900">
-                1
-              </div>
-              <div>
-                <p className="font-semibold text-slate-900">Browse Mentors</p>
-                <p className="mt-1 text-sm text-slate-600">Find mentors who specialize in Product Design</p>
-              </div>
+        {!hasCareerResult ? (
+          <section className="rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <ClipboardCheck size={48} className="mx-auto text-slate-300" />
+            <h2 className="mt-4 text-2xl font-bold text-slate-900">No Career Result Yet</h2>
+            <p className="mt-2 text-slate-600">Complete your Career Assessment and assigned assessments to see your detailed result summary here.</p>
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
+              <Link href="/student/assessment" className="inline-flex items-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                Start Career Assessment
+              </Link>
+              <Link href="/student/assessments" className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
+                View Assigned Assessments
+              </Link>
             </div>
-            <div className="flex gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-900">
-                2
+          </section>
+        ) : (
+          <>
+            <section className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+              <div className="mb-6 flex items-center gap-3">
+                <BadgeCheck className="h-6 w-6 text-slate-900" />
+                <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">
+                  Your Recommended Path: {topRecommendation.careerName}
+                </h2>
               </div>
-              <div>
-                <p className="font-semibold text-slate-900">Book a Session</p>
-                <p className="mt-1 text-sm text-slate-600">Schedule your first mentorship session</p>
+              <p className="text-base leading-relaxed text-slate-700">{topRecommendation.whyThisFitsYou}</p>
+
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link href="/student/mentors" className="inline-flex items-center rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800">
+                  Find a Mentor
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+                <Link href="/student/assessment" className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50">
+                  Review Career Assessment
+                </Link>
               </div>
-            </div>
-            <div className="flex gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 font-bold text-slate-900">
-                3
+            </section>
+
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+                <div className="mb-4 flex items-start gap-3">
+                  <Target className="mt-1 h-6 w-6 shrink-0 text-slate-900" />
+                  <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Top Recommendations</h3>
+                </div>
+                <div className="space-y-3">
+                  {recommendations.map((item) => (
+                    <div key={`${item.careerId}-${item.rank}`} className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <p className="font-semibold text-slate-900">
+                        #{item.rank} {item.careerName}
+                      </p>
+                      <p className="text-sm text-slate-600">Match score: {Math.round(item.matchScore)}%</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-slate-900">Start Learning</p>
-                <p className="mt-1 text-sm text-slate-600">Get personalized guidance and feedback</p>
+
+              <div className="rounded-3xl border border-slate-900 bg-slate-900 p-8 text-white shadow-sm">
+                <div className="mb-4 flex items-start gap-3">
+                  <TrendingUp className="mt-1 h-6 w-6 shrink-0 text-cyan-300" />
+                  <h3 className="text-2xl font-extrabold tracking-tight">Next Steps</h3>
+                </div>
+                <div className="space-y-3">
+                  {nextSteps.length ? (
+                    nextSteps.map((step, index) => (
+                      <div key={`${step}-${index}`} className="rounded-xl border border-slate-700 bg-slate-800/60 px-4 py-3 text-sm text-slate-100">
+                        {index + 1}. {step}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-300">No next steps generated yet.</p>
+                  )}
+                </div>
+                {dominantTags.length > 0 && (
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-slate-300">
+                    Dominant Tags: {dominantTags.join(', ')}
+                  </p>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
+            </section>
+          </>
+        )}
       </div>
     </DashboardLayout>
   );

@@ -6,7 +6,9 @@ import { NextResponse, type NextRequest } from 'next/server';
  */
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get('auth-token')?.value;
+  const token =
+    request.cookies.get('auth-token')?.value ||
+    request.cookies.get('accessToken')?.value;
 
   // 1. Define Public Routes (accessible without login)
   const isPublicRoute = 
@@ -44,15 +46,10 @@ export function middleware(request: NextRequest) {
 
   if (isPrivateRoute && !token) {
     const loginUrl = new URL('/login', request.url);
-    // Optional: store the original path to redirect back after login
-    loginUrl.searchParams.set('callbackUrl', pathname);
+    const redirectPath = `${pathname}${request.nextUrl.search}`;
+    // Store the original path to redirect back after login.
+    loginUrl.searchParams.set('redirect', redirectPath);
     return NextResponse.redirect(loginUrl);
-  }
-
-  // 4. Auth-Redirect Logic
-  // If user is already logged in and tries to hit /login or /signup, send them to dashboard
-  if (token && (pathname === '/login' || pathname === '/signup')) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();

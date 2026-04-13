@@ -1,14 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff } from "lucide-react";
 import toast from 'react-hot-toast';
+import { useAuth } from "@/context/AuthContext";
+import { getRoleDashboardPath, getSafePostAuthPath } from "@/utils/auth-redirect";
 import { resolveApiBaseUrl } from "@/utils/api-base";
 
-export default function SignupPage() {
+interface SignupResponse {
+  success?: boolean;
+  message?: string;
+  error?: string;
+  token?: string;
+  data?: {
+    _id?: string;
+    name?: string;
+    email?: string;
+    role?: "student" | "mentor" | "admin";
+    profileImage?: string;
+    token?: string;
+  };
+}
+
+function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -27,6 +46,16 @@ export default function SignupPage() {
   const [bio, setBio] = useState("");
 
   const API_BASE_URL = resolveApiBaseUrl();
+  const redirectParam = searchParams.get("redirect") ?? searchParams.get("callbackUrl");
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const fallbackPath = getRoleDashboardPath(user.role);
+    router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
+  }, [redirectParam, router, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,37 +90,59 @@ export default function SignupPage() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/users`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
+      const rawBody = await response.text();
+      let result: SignupResponse = {};
+
+      if (rawBody) {
+        try {
+          result = JSON.parse(rawBody) as SignupResponse;
+        } catch {
+          throw new Error("Received an invalid signup response");
+        }
+      }
+
       if (!response.ok || !result.success) {
         throw new Error(result.error || result.message || "Signup failed");
       }
 
-      const user = result.data;
+      if (!result.data?._id || !result.data.name || !result.data.email || !result.data.role) {
+        throw new Error("Signup response was incomplete");
+      }
+
+      const createdUser = {
+        _id: result.data._id,
+        name: result.data.name,
+        email: result.data.email,
+        role: result.data.role,
+        profileImage: result.data.profileImage,
+      };
+
       const token = result.token || result.data?.token;
 
       // Save to localStorage
+      localStorage.setItem("user", JSON.stringify(createdUser));
       if (token) {
         localStorage.setItem("token", token);
+        document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
+      } else {
+        localStorage.removeItem("token");
+        document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax";
       }
-      localStorage.setItem("user", JSON.stringify(user));
 
-      setSuccess(`Welcome, ${user?.name || name}! Your account was created.`);
-      toast.success(`Welcome, ${user?.name || name}! Your account was created.`);
+      window.dispatchEvent(new Event("edmarg-auth-user-change"));
 
-      setTimeout(() => {
-        if (role === "student") {
-          router.push("/student/dashboard");
-        } else if (role === "mentor") {
-          router.push("/mentor/dashboard");
-        }
-      }, 1500);
+      setSuccess(`Welcome, ${createdUser.name || name}! Your account was created.`);
+      toast.success(`Welcome, ${createdUser.name || name}! Your account was created.`);
+
+      const fallbackPath = getRoleDashboardPath(createdUser.role);
+      router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
 
       setName("");
       setEmail("");
@@ -385,8 +436,16 @@ export default function SignupPage() {
       </div>
 
       <div className="relative z-10 px-6 py-6 text-center text-sm font-medium text-slate-500">
-        <p>© 2024 EdMarg. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} EdMarg. All rights reserved.</p>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin h-8 w-8 rounded-full border-4 border-emerald-500 border-t-transparent"></div></div>}>
+      <SignupContent />
+    </React.Suspense>
   );
 }

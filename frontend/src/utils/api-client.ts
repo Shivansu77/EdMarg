@@ -9,6 +9,15 @@ const getStoredToken = () => {
   return window.localStorage.getItem('token');
 };
 
+const clearAuthTokenCookie = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+  document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+};
+
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
 }
@@ -72,6 +81,7 @@ class ApiClient {
         if (typeof window !== 'undefined') {
           window.localStorage.removeItem('token');
           window.localStorage.removeItem('user');
+          clearAuthTokenCookie();
           window.dispatchEvent(new Event('edmarg-auth-user-change'));
           // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {

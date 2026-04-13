@@ -32,6 +32,8 @@ const Navbar = () => {
     } catch {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
+      window.dispatchEvent(new Event('edmarg-auth-user-change'));
     }
     setIsOpen(false);
     router.push('/');

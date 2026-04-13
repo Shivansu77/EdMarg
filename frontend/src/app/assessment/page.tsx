@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
 
 export default function AssessmentRedirectPage() {
-  redirect('/student/assessment');
+  redirect('/student/assessments');
 }

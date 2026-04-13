@@ -7,12 +7,14 @@ import { useAuth } from '@/context/AuthContext';
 const PROTECTED_ROUTES = [
   '/student/dashboard',
   '/student/assessment',
+  '/student/assessments',
   '/student/booking',
   '/student/schedule',
   '/student/history',
   '/student/profile',
   '/student/results',
   '/student/recordings',
+  '/student/mentors',
 ];
 
 const emptySubscribe = () => () => undefined;

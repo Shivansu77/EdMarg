@@ -18,17 +18,17 @@ type Question = {
 };
 
 type Template = {
-  _id: string;
-  title: string;
-  description: string;
-  questions: Question[];
+  _id?: string;
+  title?: string;
+  description?: string;
+  questions?: Question[] | Record<string, Question>;
 };
 
 type Assignment = {
   _id: string;
-  template: Template;
+  template?: Template | null;
   dueDate?: string;
-  createdAt: string;
+  createdAt?: string;
 };
 
 type Response = {
@@ -38,39 +38,206 @@ type Response = {
   submittedAt?: string;
 };
 
+type CareerAssessmentSubmission = {
+  _id: string;
+  createdAt?: string;
+  updatedAt?: string;
+  result?: unknown;
+};
+
+type NormalizedTemplate = {
+  _id: string;
+  title: string;
+  description: string;
+  questions: Question[];
+};
+
+type NormalizedAssignment = {
+  _id: string;
+  template: NormalizedTemplate;
+  dueDate?: string;
+  createdAt?: string;
+};
+
+const QUESTION_TYPES: Question['type'][] = ['text', 'multipleChoice', 'checkbox', 'rating', 'dropdown'];
+const DEFAULT_TITLE = 'Assessment';
+const DEFAULT_DESCRIPTION = 'Complete this assessment to continue your journey.';
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const normalizeQuestionArray = (questions: unknown): Question[] => {
+  if (!Array.isArray(questions)) {
+    return [];
+  }
+
+  return questions
+    .filter(isRecord)
+    .map((question, index) => {
+      const normalizedType = QUESTION_TYPES.includes(question.type as Question['type'])
+        ? (question.type as Question['type'])
+        : 'text';
+
+      const options = Array.isArray(question.options)
+        ? question.options.filter((option): option is string => typeof option === 'string')
+        : undefined;
+
+      return {
+        id: typeof question.id === 'string' && question.id.trim() ? question.id : `q-${index + 1}`,
+        type: normalizedType,
+        question: typeof question.question === 'string' ? question.question : '',
+        options,
+        required: Boolean(question.required),
+      };
+    });
+};
+
+const normalizeQuestions = (questions: Template['questions']): Question[] => {
+  if (Array.isArray(questions)) {
+    return normalizeQuestionArray(questions);
+  }
+
+  if (isRecord(questions)) {
+    return normalizeQuestionArray(Object.values(questions));
+  }
+
+  return [];
+};
+
+const normalizeTemplate = (template: unknown): NormalizedTemplate => {
+  if (!isRecord(template)) {
+    return {
+      _id: '',
+      title: DEFAULT_TITLE,
+      description: DEFAULT_DESCRIPTION,
+      questions: [],
+    };
+  }
+
+  const parsedTemplate = template as Template;
+
+  return {
+    _id: typeof parsedTemplate._id === 'string' ? parsedTemplate._id : '',
+    title:
+      typeof parsedTemplate.title === 'string' && parsedTemplate.title.trim()
+        ? parsedTemplate.title
+        : DEFAULT_TITLE,
+    description:
+      typeof parsedTemplate.description === 'string' && parsedTemplate.description.trim()
+        ? parsedTemplate.description
+        : DEFAULT_DESCRIPTION,
+    questions: normalizeQuestions(parsedTemplate.questions),
+  };
+};
+
+const extractAssignments = (payload: unknown): Assignment[] => {
+  if (Array.isArray(payload)) {
+    return payload as Assignment[];
+  }
+
+  if (!isRecord(payload)) {
+    return [];
+  }
+
+  const candidates = [payload.assignments, payload.items, payload.results, payload.data];
+  const firstArray = candidates.find(Array.isArray);
+  return Array.isArray(firstArray) ? (firstArray as Assignment[]) : [];
+};
+
+const normalizeAssignments = (payload: unknown): NormalizedAssignment[] =>
+  extractAssignments(payload).reduce<NormalizedAssignment[]>((normalized, assignment) => {
+    if (!isRecord(assignment) || typeof assignment._id !== 'string' || !assignment._id) {
+      return normalized;
+    }
+
+    const nextAssignment: NormalizedAssignment = {
+      _id: assignment._id,
+      template: normalizeTemplate(assignment.template),
+    };
+
+    if (typeof assignment.dueDate === 'string') {
+      nextAssignment.dueDate = assignment.dueDate;
+    }
+
+    if (typeof assignment.createdAt === 'string') {
+      nextAssignment.createdAt = assignment.createdAt;
+    }
+
+    normalized.push(nextAssignment);
+    return normalized;
+  }, []);
+
+const formatDate = (rawDate?: string) => {
+  if (!rawDate) {
+    return null;
+  }
+
+  const parsedDate = new Date(rawDate);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate.toLocaleDateString();
+};
+
 function StudentAssessmentContent() {
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [assignments, setAssignments] = useState<NormalizedAssignment[]>([]);
   const [responses, setResponses] = useState<Record<string, Response>>({});
+  const [careerAssessment, setCareerAssessment] = useState<CareerAssessmentSubmission | null>(null);
+  const [careerAssessmentLoading, setCareerAssessmentLoading] = useState(true);
   const [loading, setLoading] = useState(true);
   const [statusLoading, setStatusLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    loadAssignments();
+    void Promise.all([loadAssignments(), loadCareerAssessment()]);
   }, []);
+
+  const loadCareerAssessment = async () => {
+    setCareerAssessmentLoading(true);
+    try {
+      const res = await apiClient.get<CareerAssessmentSubmission | null>('/api/v1/users/assessment');
+      if (res.success && res.data) {
+        setCareerAssessment(res.data);
+      } else {
+        setCareerAssessment(null);
+      }
+    } catch (error) {
+      console.error('Error loading career assessment:', error);
+      setCareerAssessment(null);
+    } finally {
+      setCareerAssessmentLoading(false);
+    }
+  };
 
   const loadAssignments = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get<Assignment[]>('/api/v1/assessments/assignments/my');
-      
-      if (res.success && res.data) {
-        const assignmentsArray = Array.isArray(res.data) ? res.data : [];
+      const res = await apiClient.get<Assignment[] | { assignments?: Assignment[] }>(
+        '/api/v1/assessments/assignments/my'
+      );
+
+      if (res.success) {
+        const assignmentsArray = normalizeAssignments(res.data);
         setAssignments(assignmentsArray);
 
         // Render list fast, then hydrate response statuses in parallel.
         void loadResponseStatuses(assignmentsArray);
       } else {
         console.error('Failed to load assignments:', res.error);
+        setAssignments([]);
+        setResponses({});
       }
     } catch (error) {
       console.error('Error loading assignments:', error);
+      setAssignments([]);
+      setResponses({});
     } finally {
       setLoading(false);
     }
   };
 
-  const loadResponseStatuses = async (assignmentsArray: Assignment[]) => {
+  const loadResponseStatuses = async (assignmentsArray: NormalizedAssignment[]) => {
     if (!assignmentsArray.length) {
       setResponses({});
       return;
@@ -120,6 +287,13 @@ function StudentAssessmentContent() {
     router.push(`/student/assessments/${assignmentId}`);
   };
 
+  const handleOpenCareerAssessment = () => {
+    router.push('/student/assessment');
+  };
+
+  const careerAssessmentDate = formatDate(careerAssessment?.updatedAt || careerAssessment?.createdAt);
+  const hasCompletedCareerAssessment = Boolean(careerAssessment);
+
   return (
     <DashboardLayout userName="Student">
       <div className="space-y-6 pb-10">
@@ -164,6 +338,48 @@ function StudentAssessmentContent() {
           </div>
         </section>
 
+        <section className="rounded-3xl border border-cyan-200 bg-linear-to-br from-cyan-50 to-white p-6 shadow-sm">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex-1">
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
+                  <Sparkles size={24} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">Career Assessment</h2>
+                  <p className="text-sm text-slate-600">
+                    Discover your best-fit career paths with personalized recommendations.
+                  </p>
+                </div>
+              </div>
+
+              {careerAssessmentLoading ? (
+                <p className="text-sm font-medium text-slate-600">Checking your career assessment status...</p>
+              ) : hasCompletedCareerAssessment ? (
+                <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                  <CheckCircle size={16} />
+                  <span>{careerAssessmentDate ? `Completed on ${careerAssessmentDate}` : 'Completed'}</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600">
+                  <ClipboardCheck size={16} />
+                  <span>Not started yet</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex shrink-0">
+              <button
+                onClick={handleOpenCareerAssessment}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+              >
+                {hasCompletedCareerAssessment ? 'Review Career Assessment' : 'Start Career Assessment'}
+                <ArrowRight size={18} />
+              </button>
+            </div>
+          </div>
+        </section>
+
         {loading ? (
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-slate-600">Loading assessments...</p>
@@ -181,6 +397,9 @@ function StudentAssessmentContent() {
             {assignments.map((assignment) => {
               const status = getAssignmentStatus(assignment._id);
               const response = responses[assignment._id];
+              const assignedDate = formatDate(assignment.createdAt);
+              const dueDate = formatDate(assignment.dueDate);
+              const completedDate = formatDate(response?.submittedAt);
               
               return (
                 <section
@@ -211,24 +430,24 @@ function StudentAssessmentContent() {
                         <div className="flex items-center gap-2">
                           <Calendar size={16} />
                           <span>
-                            Assigned {new Date(assignment.createdAt).toLocaleDateString()}
+                            {assignedDate ? `Assigned ${assignedDate}` : 'Assigned recently'}
                           </span>
                         </div>
-                        {assignment.dueDate && (
+                        {dueDate && (
                           <div className="flex items-center gap-2">
                             <Clock size={16} />
                             <span>
-                              Due {new Date(assignment.dueDate).toLocaleDateString()}
+                              Due {dueDate}
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {status === 'completed' && response?.submittedAt && (
+                      {status === 'completed' && completedDate && (
                         <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
                           <CheckCircle size={16} />
                           <span>
-                            Completed on {new Date(response.submittedAt).toLocaleDateString()}
+                            Completed on {completedDate}
                           </span>
                         </div>
                       )}

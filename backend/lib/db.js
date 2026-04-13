@@ -15,6 +15,16 @@ const toNumber = (value, fallback) => {
   return Number.isFinite(parsed) ? parsed : fallback;
 };
 
+const toPositiveInt = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const toNonNegativeInt = (value, fallback) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : fallback;
+};
+
 async function connectDB() {
   const MONGODB_URI = process.env.MONGODB_URI;
   const DB_NAME = process.env.DB_NAME || 'edmarg_db';
@@ -42,15 +52,21 @@ async function connectDB() {
     const opts = {
       bufferCommands: false,
       dbName: DB_NAME,
-      // Atlas M0/M2/M5 optimization: keep pool small, recycle idle sockets,
-      // and fail fast on cold starts instead of long request hangs.
-      maxPoolSize: toNumber(process.env.MONGODB_MAX_POOL_SIZE, 8),
-      minPoolSize: toNumber(process.env.MONGODB_MIN_POOL_SIZE, 0),
+      // Pool tuning:
+      // - Avoid starvation under concurrent API traffic.
+      // - Keep enough warm sockets in production.
+      // - Let queued operations wait a bit longer before failing.
+      maxPoolSize: toPositiveInt(process.env.MONGODB_MAX_POOL_SIZE, process.env.NODE_ENV === 'production' ? 20 : 12),
+      minPoolSize: toNonNegativeInt(process.env.MONGODB_MIN_POOL_SIZE, process.env.NODE_ENV === 'production' ? 2 : 0),
+      maxConnecting: toPositiveInt(process.env.MONGODB_MAX_CONNECTING, 4),
       maxIdleTimeMS: toNumber(process.env.MONGODB_MAX_IDLE_TIME_MS, 60000),
-      waitQueueTimeoutMS: toNumber(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS, 8000),
+      waitQueueTimeoutMS: toPositiveInt(process.env.MONGODB_WAIT_QUEUE_TIMEOUT_MS, 20000),
       serverSelectionTimeoutMS: toNumber(process.env.MONGODB_SERVER_SELECTION_TIMEOUT_MS, 8000),
       connectTimeoutMS: toNumber(process.env.MONGODB_CONNECT_TIMEOUT_MS, 10000),
-      socketTimeoutMS: toNumber(process.env.MONGODB_SOCKET_TIMEOUT_MS, 45000),
+      socketTimeoutMS: toNumber(process.env.MONGODB_SOCKET_TIMEOUT_MS, 60000),
+      heartbeatFrequencyMS: toPositiveInt(process.env.MONGODB_HEARTBEAT_FREQUENCY_MS, 10000),
+      retryReads: true,
+      retryWrites: true,
       autoIndex: process.env.NODE_ENV !== 'production',
       family: 4 // Force IPv4 to solve ETIMEOUT in Node.js > 18
     };
@@ -70,6 +86,9 @@ async function connectDB() {
     }
 
     console.log('⏳ Connecting to MongoDB...');
+    console.log(
+      `📦 Mongo pool config: maxPoolSize=${opts.maxPoolSize}, minPoolSize=${opts.minPoolSize}, maxConnecting=${opts.maxConnecting}, waitQueueTimeoutMS=${opts.waitQueueTimeoutMS}`
+    );
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
       if (mongoose.connection.readyState !== 1) {
         throw new Error(`MongoDB not ready after connect (readyState=${mongoose.connection.readyState})`);

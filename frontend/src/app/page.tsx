@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import HeroSection from '@/components/HeroSection';
 import LifeWhySplitSection from '@/components/LifeWhySplitSection';
 import ResultsSection from '@/components/ResultsSection';
@@ -8,6 +9,16 @@ import JoinSection from '@/components/JoinSection';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import FloatingCTA from '@/components/FloatingCTA';
+import { SITE_URL } from '@/utils/site-url';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+  openGraph: {
+    url: SITE_URL,
+  },
+};
 
 export default function Home() {
   return (

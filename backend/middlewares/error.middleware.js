@@ -1,6 +1,11 @@
 const { AppError } = require('../utils/errors');
 const multer = require('multer');
 
+const isMongoPoolTimeoutError = (error) =>
+  error?.name === 'MongoWaitQueueTimeoutError' ||
+  (typeof error?.message === 'string' &&
+    error.message.includes('Timed out while checking out a connection from connection pool'));
+
 const errorHandler = (err, req, res, next) => {
   // Let global CORS middleware handle headers (removed manual setHeader to avoid conflicts)
 
@@ -34,6 +39,21 @@ const errorHandler = (err, req, res, next) => {
       success: false,
       message: err.message,
       errors: err.errors || null,
+    });
+  }
+
+  if (isMongoPoolTimeoutError(err)) {
+    console.error(`ERROR 🔥 [${req.method} ${req.url}]: MongoDB pool timeout`, {
+      message: err.message,
+      name: err.name,
+    });
+    res.set('Retry-After', '2');
+    return res.status(503).json({
+      success: false,
+      message: 'Database is temporarily busy. Please retry in a moment.',
+      ...(process.env.NODE_ENV === 'development' && {
+        hint: 'MongoDB pool checkout timeout. Consider increasing pool size or reducing request burst.',
+      }),
     });
   }
 

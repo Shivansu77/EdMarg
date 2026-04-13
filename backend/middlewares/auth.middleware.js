@@ -22,6 +22,28 @@ const getTokenFromRequest = (req) => {
   return null;
 };
 
+const isMongoPoolTimeoutError = (error) =>
+  error?.name === 'MongoWaitQueueTimeoutError' ||
+  (typeof error?.message === 'string' &&
+    error.message.includes('Timed out while checking out a connection from connection pool'));
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const withPoolCheckoutRetry = async (operation, label) => {
+  try {
+    return await operation();
+  } catch (error) {
+    if (!isMongoPoolTimeoutError(error)) {
+      throw error;
+    }
+
+    const retryDelayMs = Number(process.env.MONGODB_POOL_RETRY_DELAY_MS) || 120;
+    console.warn(`[AUTH_DB_RETRY] ${label} failed with pool timeout. Retrying in ${retryDelayMs}ms...`);
+    await delay(retryDelayMs);
+    return operation();
+  }
+};
+
 /* ================= PROTECT MIDDLEWARE ================= */
 exports.protect = async (req, res, next) => {
   try {
@@ -38,7 +60,10 @@ exports.protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     /* ---------- Check blacklist ---------- */
-    const isBlacklisted = await TokenBlacklist.exists({ token });
+    const isBlacklisted = await withPoolCheckoutRetry(
+      () => TokenBlacklist.exists({ token }),
+      'TokenBlacklist.exists'
+    );
 
     if (isBlacklisted) {
       return res.status(401).json({
@@ -48,9 +73,13 @@ exports.protect = async (req, res, next) => {
     }
 
     /* ---------- Fetch user ---------- */
-    const user = await User.findById(decoded.userId)
-      .select('-password')
-      .lean();
+    const user = await withPoolCheckoutRetry(
+      () =>
+        User.findById(decoded.userId)
+          .select('-password')
+          .lean(),
+      'User.findById'
+    );
 
     if (!user) {
       return res.status(401).json({

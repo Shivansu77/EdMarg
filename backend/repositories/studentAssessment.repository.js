@@ -1,12 +1,23 @@
 const { StudentAssessment } = require('../models/studentAssessment.model');
 
 class StudentAssessmentRepository {
-  async upsertAssessment(studentId, answers) {
+  
+  async upsertAssessment(studentId, answers, result) {
+    const updatePayload = { answers };
+
+    if (result !== undefined) {
+      updatePayload.result = result;
+    }
+
     return StudentAssessment.findOneAndUpdate(
       { student: studentId },
-      { answers },
+      updatePayload,
       { new: true, upsert: true, setDefaultsOnInsert: true }
     ).lean();
+  }
+
+  async findByStudent(studentId) {
+    return StudentAssessment.findOne({ student: studentId }).lean();
   }
 
   async findRecent({ page = 1, limit = 20 } = {}) {
@@ -28,4 +39,3 @@ class StudentAssessmentRepository {
 }
 
 module.exports = new StudentAssessmentRepository();
-

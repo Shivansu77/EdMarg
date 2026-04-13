@@ -15,6 +15,10 @@ const studentAssessmentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       required: true,
     },
+    result: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
   },
   { timestamps: true }
 );
@@ -22,4 +26,3 @@ const studentAssessmentSchema = new mongoose.Schema(
 const StudentAssessment = mongoose.model('StudentAssessment', studentAssessmentSchema);
 
 module.exports = { StudentAssessment };
-

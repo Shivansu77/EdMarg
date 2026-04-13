@@ -51,6 +51,16 @@ type Response = {
   submittedAt?: string;
 };
 
+const MAX_STUDENTS_PAGE_SIZE = 50;
+
+const extractStudents = (payload: unknown): Student[] => {
+  if (Array.isArray(payload)) return payload as Student[];
+  if (payload && typeof payload === 'object' && Array.isArray((payload as any).users)) {
+    return (payload as any).users;
+  }
+  return [];
+};
+
 function AdminAssessmentsContent() {
   const [activeTab, setActiveTab] = useState<'templates' | 'assignments' | 'responses'>('templates');
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -97,32 +107,17 @@ function AdminAssessmentsContent() {
     try {
       if (activeTab === 'templates') {
         const res = await apiClient.get<Template[]>('/api/v1/assessments/templates');
-        console.log('Templates response:', res);
-        if (res.success && res.data) {
-          setTemplates(res.data);
-        } else {
-          setError('Failed to load templates: ' + (res.error || 'Unknown error'));
-        }
+        if (res.success) setTemplates(res.data || []);
       } else if (activeTab === 'assignments') {
         const res = await apiClient.get<Assignment[]>('/api/v1/assessments/assignments');
-        console.log('Assignments response:', res);
-        if (res.success && res.data) {
-          setAssignments(res.data);
-        } else {
-          setError('Failed to load assignments: ' + (res.error || 'Unknown error'));
-        }
+        if (res.success) setAssignments(res.data || []);
       } else if (activeTab === 'responses') {
         const res = await apiClient.get<Response[]>('/api/v1/assessments/responses');
-        console.log('Responses response:', res);
-        if (res.success && res.data) {
-          setResponses(res.data);
-        } else {
-          setError('Failed to load responses: ' + (res.error || 'Unknown error'));
-        }
+        if (res.success) setResponses(res.data || []);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading data:', error);
-      setError('Error loading data: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setError('Error loading data: ' + (error.message || 'Unknown error'));
     } finally {
       setLoading(false);
     }
@@ -130,18 +125,38 @@ function AdminAssessmentsContent() {
 
   const loadStudents = async () => {
     try {
-      console.log('Loading students...');
-      const res = await apiClient.get<{ users: Student[] }>('/api/v1/admin/users', { params: { role: 'student' } });
-      console.log('Students response:', res);
-      if (res.success && res.data) {
-        const studentsList = Array.isArray(res.data) ? res.data : res.data.users || [];
-        console.log('Students loaded:', studentsList.length);
-        setStudents(studentsList);
-      } else {
-        console.error('Failed to load students:', res.error);
-      }
-    } catch (error) {
-      console.error('Error loading students:', error);
+      const collected: Student[] = [];
+      const seen = new Set<string>();
+
+      let page = 1;
+      let pages = 1;
+
+      do {
+        const res = await apiClient.get('/api/v1/admin/users', {
+          params: { role: 'student', page, limit: MAX_STUDENTS_PAGE_SIZE }
+        });
+
+        if (!res.success) throw new Error(res.error);
+
+        const list = extractStudents(res.data);
+
+        list.forEach((s) => {
+          if (!s?._id || seen.has(s._id)) return;
+          seen.add(s._id);
+          collected.push(s);
+        });
+
+        pages = Number(res.pages) || 1;
+        page++;
+
+      } while (page <= pages);
+
+      setStudents(collected);
+
+    } catch (err: any) {
+      console.error('Error loading students:', err);
+      // Don't show error to user since this happens on assignment modal open only
+      setStudents([]);
     }
   };
 

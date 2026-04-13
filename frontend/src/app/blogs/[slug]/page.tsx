@@ -1,147 +1,169 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import type { Metadata } from 'next';
+import { cache } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { BlogShell } from '@/modules/blog/components/BlogShell';
 import { BlogContent } from '@/modules/blog/components/BlogContent';
 import { BlogCard } from '@/modules/blog/components/BlogCard';
 import { BlogPost } from '@/modules/blog/types';
 import { getBlogBySlugFromAPI, getAllBlogsFromAPI } from '@/services/blog.service';
-import { updateSEOMetadata, injectArticleStructuredData, updateSEO404 } from '@/utils/seo';
+import { SITE_URL } from '@/utils/site-url';
 
-export default function BlogDetailPage() {
-  const params = useParams();
-  const slug = params?.slug as string;
+type BlogRouteParams = {
+  slug: string;
+};
 
-  const [blog, setBlog] = useState<BlogPost | null>(null);
-  const [relatedBlogs, setRelatedBlogs] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const fallbackDescription = 'Read this insightful article on EdMarg Blog.';
+const getBlogBySlugCached = cache(async (slug: string) => getBlogBySlugFromAPI(slug));
 
-  useEffect(() => {
-    if (!slug) return;
+export const revalidate = 3600;
 
-    async function fetchBlogData() {
-      try {
-        setLoading(true);
-        setError(null);
+export async function generateStaticParams() {
+  try {
+    const blogs = await getAllBlogsFromAPI();
+    return blogs
+      .filter((blog) => Boolean(blog.slug))
+      .map((blog) => ({ slug: blog.slug }));
+  } catch (error) {
+    console.error('Failed to generate blog static params:', error);
+    return [];
+  }
+}
 
-        // Fetch single blog
-        const fetchedBlog = await getBlogBySlugFromAPI(slug);
-        
-        if (!fetchedBlog) {
-          setError('404');
-          setBlog(null);
-          setRelatedBlogs([]);
-          updateSEO404();
-          return;
-        }
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<BlogRouteParams>;
+}): Promise<Metadata> {
+  const { slug } = await params;
 
-        setBlog(fetchedBlog);
+  try {
+    const blog = await getBlogBySlugCached(slug);
 
-        // Update SEO metadata with blog data
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://edmarg.com';
-        const blogUrl = `${siteUrl}/blogs/${slug}`;
-        
-        updateSEOMetadata({
-          title: `${fetchedBlog.title} | EdMarg Blog`,
-          description: fetchedBlog.description || 'Read this insightful article on EdMarg Blog.',
-          url: blogUrl,
-          type: 'article',
-          image: fetchedBlog.image || `${siteUrl}/og-blog-image.png`,
-          author: fetchedBlog.author,
-          publishedDate: fetchedBlog.date,
-        });
-
-        // Inject Article structured data (JSON-LD)
-        injectArticleStructuredData({
-          title: fetchedBlog.title,
-          description: fetchedBlog.description || '',
-          image: fetchedBlog.image || `${siteUrl}/og-blog-image.png`,
-          author: fetchedBlog.author,
-          publishDate: fetchedBlog.date,
-          url: blogUrl,
-        });
-
-        // Fetch all blogs to find related ones
-        try {
-          const allBlogs = await getAllBlogsFromAPI();
-          const related = allBlogs
-            .filter((b) => b.slug !== slug)
-            .slice(0, 3);
-          setRelatedBlogs(related);
-        } catch (err) {
-          console.warn('Failed to fetch related blogs:', err);
-          // Don't fail if related blogs can't be loaded
-          setRelatedBlogs([]);
-        }
-      } catch (err) {
-        console.error('Failed to load blog:', err);
-        setError('Failed to load blog. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
+    if (!blog) {
+      return {
+        title: 'Blog not found | EdMarg',
+        robots: {
+          index: false,
+          follow: false,
+        },
+      };
     }
 
-    fetchBlogData();
-  }, [slug]);
+    const blogUrl = `${SITE_URL}/blogs/${slug}`;
+    const description = blog.description || fallbackDescription;
 
-  if (loading) {
-    return (
-      <BlogShell>
-        <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="h-64 animate-pulse bg-slate-200 sm:h-80 lg:h-112" />
-          <div className="space-y-4 p-6 sm:p-10">
-            <div className="h-4 w-1/3 animate-pulse rounded bg-slate-200" />
-            <div className="h-10 w-4/5 animate-pulse rounded bg-slate-200" />
-            <div className="h-4 w-full animate-pulse rounded bg-slate-200" />
-            <div className="h-4 w-11/12 animate-pulse rounded bg-slate-200" />
-            <div className="h-4 w-4/5 animate-pulse rounded bg-slate-200" />
-          </div>
-        </div>
-      </BlogShell>
-    );
+    return {
+      title: `${blog.title} | EdMarg Blog`,
+      description,
+      alternates: {
+        canonical: `/blogs/${slug}`,
+      },
+      openGraph: {
+        type: 'article',
+        title: `${blog.title} | EdMarg Blog`,
+        description,
+        url: blogUrl,
+        publishedTime: blog.date,
+        modifiedTime: blog.date,
+        images: blog.image ? [{ url: blog.image, alt: blog.title }] : undefined,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${blog.title} | EdMarg Blog`,
+        description,
+        images: blog.image ? [blog.image] : undefined,
+      },
+    };
+  } catch (error) {
+    console.error('Failed to generate blog metadata:', error);
+    return {
+      title: 'Blog | EdMarg',
+      description: fallbackDescription,
+      alternates: {
+        canonical: `/blogs/${slug}`,
+      },
+    };
+  }
+}
+
+export default async function BlogDetailPage({
+  params,
+}: {
+  params: Promise<BlogRouteParams>;
+}) {
+  const { slug } = await params;
+
+  const blog = await getBlogBySlugCached(slug);
+  if (!blog) {
+    notFound();
   }
 
-  if (error === '404' || !blog) {
-    return (
-      <BlogShell>
-        <section className="mx-auto max-w-3xl rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
-          <h1 className="text-3xl font-extrabold text-rose-900">Blog not found</h1>
-          <p className="mt-3 text-sm text-rose-700">
-            The article you are trying to read does not exist or may have been moved.
-          </p>
-          <Link
-            href="/blogs"
-            className="mt-6 inline-flex rounded-full bg-rose-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-rose-800"
-          >
-            Back to Blogs
-          </Link>
-        </section>
-      </BlogShell>
-    );
+  let relatedBlogs: BlogPost[] = [];
+
+  try {
+    const allBlogs = await getAllBlogsFromAPI();
+    relatedBlogs = allBlogs.filter((post) => post.slug !== slug).slice(0, 3);
+  } catch (error) {
+    console.warn('Failed to fetch related blogs:', error);
   }
 
-  if (error) {
-    return (
-      <BlogShell>
-        <section className="mx-auto max-w-3xl rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
-          <h1 className="text-3xl font-extrabold text-rose-900">Error Loading Blog</h1>
-          <p className="mt-3 text-sm text-rose-700">{error}</p>
-          <Link
-            href="/blogs"
-            className="mt-6 inline-flex rounded-full bg-rose-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-rose-800"
-          >
-            Back to Blogs
-          </Link>
-        </section>
-      </BlogShell>
-    );
-  }
+  const articleJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: blog.title,
+    description: blog.description || fallbackDescription,
+    image: blog.image || undefined,
+    datePublished: blog.date,
+    dateModified: blog.date,
+    author: {
+      '@type': 'Person',
+      name: blog.author || 'EdMarg',
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'EdMarg',
+      url: SITE_URL,
+    },
+    mainEntityOfPage: `${SITE_URL}/blogs/${slug}`,
+  };
+
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Blogs',
+        item: `${SITE_URL}/blogs`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: blog.title,
+        item: `${SITE_URL}/blogs/${slug}`,
+      },
+    ],
+  };
 
   return (
     <BlogShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+
       <BlogContent blog={blog} />
 
       {relatedBlogs.length > 0 && (

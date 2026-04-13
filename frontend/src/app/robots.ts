@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-const URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://edmarg.com';
+import { SITE_URL } from '@/utils/site-url';
 
 export const dynamic = 'force-static';
 
@@ -8,8 +8,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/student/', '/admin/', '/mentor/'],
+      disallow: ['/student/', '/admin/', '/mentor/', '/assessment'],
     },
-    sitemap: `${URL}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

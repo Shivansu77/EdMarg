@@ -36,7 +36,7 @@ const DashboardHeader = ({
   const unreadCount = notifications.filter(n => n.unread).length;
 
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const resolvedDisplayName = user?.name?.trim() || userName;
   const avatarLetter = resolvedDisplayName.charAt(0).toUpperCase() || 'U';
@@ -55,10 +55,14 @@ const DashboardHeader = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error('Logout failed:', e);
+    } finally {
+      router.push('/login');
+    }
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {

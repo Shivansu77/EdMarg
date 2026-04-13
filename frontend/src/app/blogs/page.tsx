@@ -1,51 +1,67 @@
-'use client';
-
-import { useEffect, useState } from 'react';
+import type { Metadata } from 'next';
 import { BlogShell } from '@/modules/blog/components/BlogShell';
 import { BlogList } from '@/modules/blog/components/BlogList';
-import { BlogListSkeleton } from '@/modules/blog/components/states/BlogListSkeleton';
 import { BlogPost } from '@/modules/blog/types';
 import { getAllBlogsFromAPI } from '@/services/blog.service';
-import { updateSEOMetadata, injectOrganizationStructuredData } from '@/utils/seo';
+import { SITE_URL } from '@/utils/site-url';
 
-export default function BlogsPage() {
-  const [blogs, setBlogs] = useState<BlogPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const metadata: Metadata = {
+  title: 'Blog | EdMarg - Career Insights & Mentorship Articles',
+  description:
+    'Explore practical articles on career clarity, education, mentorship, and growth strategies from EdMarg.',
+  alternates: {
+    canonical: '/blogs',
+  },
+  openGraph: {
+    title: 'Blog | EdMarg',
+    description:
+      'Explore practical articles on career clarity, education, mentorship, and growth strategies from EdMarg.',
+    url: `${SITE_URL}/blogs`,
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Blog | EdMarg',
+    description:
+      'Explore practical articles on career clarity, education, mentorship, and growth strategies from EdMarg.',
+  },
+};
 
-  useEffect(() => {
-    // Update SEO metadata for blog listing page
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://edmarg.com';
-    updateSEOMetadata({
-      title: 'Blog | EdMarg - Career Insights & Mentorship Articles',
-      description:
-        'Explore insightful articles on education, career growth, exams, and mentorship guidance from EdMarg experts.',
-      url: `${siteUrl}/blogs`,
-      type: 'website',
-      image: `${siteUrl}/og-blog-image.png`,
-    });
+export const revalidate = 3600;
 
-    // Inject organization structured data
-    injectOrganizationStructuredData();
-  }, []);
+export default async function BlogsPage() {
+  let blogs: BlogPost[] = [];
+  let error: string | null = null;
 
-  useEffect(() => {
-    async function fetchBlogs() {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getAllBlogsFromAPI();
-        setBlogs(data);
-      } catch (err) {
-        console.error('Failed to load blogs:', err);
-        setError('Failed to load blogs. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    }
+  try {
+    blogs = await getAllBlogsFromAPI();
+  } catch (fetchError) {
+    console.error('Failed to load blogs:', fetchError);
+    error = 'Failed to load blogs. Please try again later.';
+  }
 
-    fetchBlogs();
-  }, []);
+  const blogItemList = blogs
+    .filter((blog) => blog.slug)
+    .slice(0, 50)
+    .map((blog, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: `${SITE_URL}/blogs/${blog.slug}`,
+      name: blog.title,
+    }));
+
+  const collectionJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'EdMarg Blog',
+    description:
+      'Explore practical articles on career clarity, education, mentorship, and growth strategies from EdMarg.',
+    url: `${SITE_URL}/blogs`,
+    mainEntity: {
+      '@type': 'ItemList',
+      itemListElement: blogItemList,
+    },
+  };
 
   if (error) {
     return (
@@ -53,12 +69,6 @@ export default function BlogsPage() {
         <section className="rounded-2xl border border-rose-200 bg-rose-50 p-8 text-center">
           <h2 className="text-2xl font-bold text-rose-900">Unable to Load Blogs</h2>
           <p className="mt-3 text-sm text-rose-700">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-6 rounded-full bg-rose-700 px-5 py-2 text-sm font-semibold text-white transition hover:bg-rose-800"
-          >
-            Try Again
-          </button>
         </section>
       </BlogShell>
     );
@@ -66,6 +76,11 @@ export default function BlogsPage() {
 
   return (
     <BlogShell>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+
       <section className="mb-10 rounded-3xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur sm:p-8">
         <p className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-sky-700">
           EdMarg Blog
@@ -78,7 +93,7 @@ export default function BlogsPage() {
         </p>
       </section>
 
-      {loading ? <BlogListSkeleton /> : <BlogList blogs={blogs} />}
+      <BlogList blogs={blogs} />
     </BlogShell>
   );
 }

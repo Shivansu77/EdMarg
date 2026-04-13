@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Manrope } from 'next/font/google';
 import { Providers } from '@/context/Providers';
 import { NetworkStatus } from '@/components/NetworkStatus';
+import { SITE_URL } from '@/utils/site-url';
 import './globals.css';
 
 const manrope = Manrope({
@@ -18,6 +19,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Edmarg — AI-Powered Career Mentorship Platform',
   description: 'Find clarity and confidence through AI-driven assessments and expert mentorship. Your guide to the right career path. Connect with industry experts 1:1, get actionable feedback, and accelerate your career.',
+  metadataBase: new URL(SITE_URL),
   keywords: 'career mentorship, AI career guidance, career assessment, mentor platform, career clarity, professional guidance, 1:1 mentor video calls',
   authors: [{ name: 'Edmarg' }],
   creator: 'Edmarg',
@@ -25,7 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://www.edmarg.com',
+    url: SITE_URL,
     title: 'Edmarg — Career Mentorship & AI Guidance',
     description: 'Find clarity and confidence through AI-driven assessments and expert mentorship.',
     siteName: 'Edmarg',
