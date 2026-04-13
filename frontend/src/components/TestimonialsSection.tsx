@@ -36,24 +36,25 @@ const TESTIMONIALS = [
 
 const TestimonialsSection = () => {
   return (
-    <section id="success-stories" className="relative overflow-hidden bg-zinc-50/50 py-24 lg:py-32">
+    <section id="success-stories" className="relative overflow-hidden bg-linear-to-br from-emerald-50 via-green-50/50 to-white py-24 lg:py-32">
       {/* Background decorations */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent"></div>
-      <div className="absolute -left-40 top-40 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-50 mix-blend-multiply"></div>
-      <div className="absolute right-0 top-1/2 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50 mix-blend-multiply"></div>
+      <div className="absolute top-0 inset-x-0 h-px bg-linear-to-r from-transparent via-emerald-200 to-transparent"></div>
+      <div className="absolute -left-40 top-40 w-96 h-96 bg-emerald-100/50 rounded-full blur-3xl opacity-60 mix-blend-multiply"></div>
+      <div className="absolute right-0 top-1/2 w-96 h-96 bg-green-100/50 rounded-full blur-3xl opacity-50 mix-blend-multiply"></div>
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-cyan-100/40 rounded-full blur-3xl opacity-50 mix-blend-multiply"></div>
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         
         {/* Header */}
         <div className="mb-16 md:mb-24 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-zinc-200 shadow-sm mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-emerald-200 shadow-sm mb-6">
             <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-            <span className="text-xs font-semibold text-zinc-700 uppercase tracking-widest">Success Stories</span>
+            <span className="text-xs font-semibold text-emerald-700 uppercase tracking-widest">Success Stories</span>
           </div>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-zinc-900 tracking-tight leading-tight mb-6 max-w-2xl">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6 max-w-2xl">
             Real students who found their career path with EdMarg.
           </h2>
-          <p className="text-lg md:text-xl text-zinc-500 max-w-2xl leading-relaxed">
+          <p className="text-lg md:text-xl text-slate-600 max-w-2xl leading-relaxed">
             Don&apos;t just take our word for it. See how learners improved their career direction through guided assessments and mentor-led action plans.
           </p>
         </div>
@@ -63,7 +64,7 @@ const TestimonialsSection = () => {
           {TESTIMONIALS.map((t, idx) => (
             <div 
               key={idx} 
-              className="group relative flex flex-col rounded-3xl border border-zinc-200/80 bg-white p-8 shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1 transition-all duration-300"
+              className="group relative flex flex-col rounded-3xl border border-emerald-100/80 bg-gradient-to-br from-white to-emerald-50/30 p-8 shadow-md hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-2 transition-all duration-300"
             >
               {/* Stars */}
               <div className="flex items-center gap-1 mb-6">
@@ -74,24 +75,24 @@ const TestimonialsSection = () => {
 
               {/* Quote text */}
               <div className="flex-1 relative">
-                <Quote className="absolute -top-2 -left-3 h-8 w-8 text-indigo-50 opacity-50 transform -scale-x-100" />
-                <p className="relative z-10 text-base lg:text-lg leading-relaxed text-zinc-600 font-medium">
+                <Quote className="absolute -top-2 -left-3 h-8 w-8 text-emerald-100 opacity-60 transform -scale-x-100" />
+                <p className="relative z-10 text-base lg:text-lg leading-relaxed text-slate-700 font-medium">
                   &quot;{t.story.replace(t.highlight, '')}
-                  <span className="text-zinc-900 font-bold bg-indigo-50/50 rounded">{t.highlight}</span>&quot;
+                  <span className="text-slate-900 font-bold bg-emerald-100/60 rounded">{t.highlight}</span>&quot;
                 </p>
               </div>
 
               {/* Author Footer */}
-              <div className="mt-8 flex items-center gap-4 pt-6 border-t border-zinc-100">
+              <div className="mt-8 flex items-center gap-4 pt-6 border-t border-emerald-100">
                 <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${t.avatarBg} ${t.avatarText} font-bold tracking-wide ring-4 ring-white shadow-sm`}>
                   {t.initial}
                 </div>
                 <div className="flex flex-col">
-                  <p className="font-bold text-zinc-900 flex items-center gap-1.5">
+                  <p className="font-bold text-slate-900 flex items-center gap-1.5">
                     {t.name}
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                   </p>
-                  <p className="text-xs font-semibold text-indigo-600 mt-0.5">{t.outcome}</p>
+                  <p className="text-xs font-semibold text-emerald-600 mt-0.5">{t.outcome}</p>
                 </div>
               </div>
             </div>
@@ -99,18 +100,18 @@ const TestimonialsSection = () => {
         </div>
 
         {/* Deep CTA / Video Prompt */}
-        <div className="relative overflow-hidden rounded-3xl bg-zinc-900 px-6 py-16 sm:px-12 sm:py-20 lg:p-24 shadow-2xl group">
+        <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-slate-900 via-slate-800 to-slate-900 px-6 py-16 sm:px-12 sm:py-20 lg:p-24 shadow-2xl group">
           {/* Background effects for the dark card */}
           <div className="absolute inset-0 opacity-10 mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}></div>
-          <div className="absolute -top-24 -right-24 w-96 h-96 bg-indigo-500 rounded-full blur-3xl opacity-20 group-hover:bg-indigo-400 transition-colors duration-700"></div>
-          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-blue-500 rounded-full blur-3xl opacity-20 group-hover:bg-blue-400 transition-colors duration-700"></div>
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500 rounded-full blur-3xl opacity-20 group-hover:bg-emerald-400 transition-colors duration-700"></div>
+          <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-green-500 rounded-full blur-3xl opacity-20 group-hover:bg-green-400 transition-colors duration-700"></div>
 
           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10 md:gap-16 max-w-5xl mx-auto">
             <div className="flex-1 text-center md:text-left">
               <h3 className="text-3xl sm:text-4xl font-bold text-white tracking-tight leading-tight mb-4">
                 Watch Student Stories
               </h3>
-              <p className="text-lg text-zinc-400 max-w-lg mx-auto md:mx-0">
+              <p className="text-lg text-slate-300 max-w-lg mx-auto md:mx-0">
                 Dive deeper into our video library and see real transformations from confused students to confident professionals.
               </p>
             </div>

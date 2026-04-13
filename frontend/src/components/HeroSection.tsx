@@ -7,12 +7,13 @@ import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 
 const HeroSection = () => {
   return (
-    <section className="relative w-full overflow-hidden bg-linear-to-b from-emerald-50 via-green-50/40 to-white pt-24 pb-16 lg:pt-36 lg:pb-24">
-      {/* Layered background accents */}
+    <section className="relative w-full overflow-hidden bg-linear-to-br from-emerald-50 via-green-50 to-cyan-50 pt-24 pb-16 lg:pt-36 lg:pb-24">
+      {/* Rich layered background accents */}
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-emerald-200/55 blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-cyan-100/60 blur-3xl" />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-white to-transparent" />
+        <div className="absolute -top-32 right-1/3 h-[28rem] w-[28rem] rounded-full bg-emerald-300/40 blur-3xl" />
+        <div className="absolute -bottom-16 left-1/4 h-96 w-96 rounded-full bg-cyan-200/45 blur-3xl" />
+        <div className="absolute top-1/3 right-0 h-80 w-80 rounded-full bg-green-200/35 blur-3xl" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-white to-transparent" />
       </div>
 
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8">

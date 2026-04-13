@@ -48,9 +48,9 @@ const TopMentorsSection = () => {
 
   if (loading) {
     return (
-      <section id="mentors" className="py-20 lg:py-28 bg-white border-t border-gray-100">
+      <section id="mentors" className="py-20 lg:py-28 bg-linear-to-b from-white via-emerald-50/40 to-green-50/30 border-t border-emerald-100">
         <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
-          <div className="inline-block w-12 h-12 border-4 border-gray-200 border-t-black rounded-full animate-spin"></div>
+          <div className="inline-block w-12 h-12 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin"></div>
         </div>
       </section>
     );
@@ -61,30 +61,30 @@ const TopMentorsSection = () => {
   }
 
   return (
-    <section id="mentors" className="py-20 lg:py-28 bg-white border-t border-gray-100">
+    <section id="mentors" className="py-20 lg:py-28 bg-linear-to-b from-white via-emerald-50/40 to-green-50/30 border-t border-emerald-100">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12 lg:mb-16">
           <div className="max-w-2xl">
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">
               Learn from the Best
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-slate-600">
               Get direct access to mentors from the world&apos;s most innovative companies.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <Link
               href="/browse-mentors"
-              className="px-6 py-2.5 rounded-lg font-semibold text-sm bg-black text-white hover:bg-gray-800 transition-colors whitespace-nowrap"
+              className="px-6 py-2.5 rounded-full font-semibold text-sm bg-linear-to-r from-emerald-500 to-green-500 hover:from-emerald-600 hover:to-green-600 text-white transition-all shadow-[0_8px_20px_rgba(16,185,129,0.3)] whitespace-nowrap"
             >
               Browse All Mentors
             </Link>
             <div className="hidden items-center gap-2 md:flex">
-              <button onClick={() => scroll('left')} className="w-10 h-10 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors" aria-label="Previous mentor">
+              <button onClick={() => scroll('left')} className="w-10 h-10 rounded-lg border border-emerald-200 bg-white flex items-center justify-center text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors" aria-label="Previous mentor">
                 <ChevronLeft size={20} />
               </button>
-              <button onClick={() => scroll('right')} className="w-10 h-10 rounded-lg border border-gray-300 bg-white flex items-center justify-center text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors" aria-label="Next mentor">
+              <button onClick={() => scroll('right')} className="w-10 h-10 rounded-lg border border-emerald-200 bg-white flex items-center justify-center text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors" aria-label="Next mentor">
                 <ChevronRight size={20} />
               </button>
             </div>
@@ -108,10 +108,10 @@ const TopMentorsSection = () => {
             return (
             <div
               key={mentor._id}
-              className="group relative flex min-w-[85vw] snap-center flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:shadow-lg sm:min-w-87.5 lg:min-w-0"
+              className="group relative flex min-w-[85vw] snap-center flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/20 transition-all duration-300 hover:shadow-lg hover:border-emerald-300 sm:min-w-87.5 lg:min-w-0"
             >
               {/* Image */}
-              <div className="relative aspect-4/3 w-full overflow-hidden bg-gray-100">
+              <div className="relative aspect-4/3 w-full overflow-hidden bg-emerald-100">
                 <Image 
                   src={image} 
                   alt={mentor.name} 
@@ -121,14 +121,14 @@ const TopMentorsSection = () => {
                 />
                 
                 {/* Rating */}
-                <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg shadow-md border border-gray-200">
+                <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-lg shadow-md border border-emerald-100">
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                  <span className="text-sm font-bold text-gray-900">{rating}</span>
+                  <span className="text-sm font-bold text-slate-900">{rating}</span>
                 </div>
 
                 {/* Company Badge */}
-                <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-md">
-                  <BriefcaseBusiness className="h-3.5 w-3.5 text-black" />
+                <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-md border border-emerald-100">
+                  <BriefcaseBusiness className="h-3.5 w-3.5 text-emerald-600" />
                   {company}
                 </div>
               </div>
@@ -138,43 +138,43 @@ const TopMentorsSection = () => {
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 mb-4">
                   {tags.map((tag: string) => (
-                    <span key={tag} className="px-2.5 py-1 bg-gray-100 text-gray-700 text-xs font-semibold rounded border border-gray-200">
+                    <span key={tag} className="px-2.5 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded border border-emerald-200">
                       {tag}
                     </span>
                   ))}
                 </div>
 
                 {/* Name & Role */}
-                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                <h3 className="text-xl font-bold text-slate-900 mb-1">
                   {mentor.name}
                 </h3>
-                <p className="text-gray-600 text-sm mb-6">
-                  {role} <span className="text-gray-400">•</span> <span className="font-semibold text-gray-900">{company}</span>
+                <p className="text-slate-600 text-sm mb-6">
+                  {role} <span className="text-slate-400">•</span> <span className="font-semibold text-slate-900">{company}</span>
                 </p>
 
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-gray-900">
-                      <Users className="w-4 h-4 text-black" />
+                    <div className="flex items-center gap-2 text-slate-900">
+                      <Users className="w-4 h-4 text-emerald-600" />
                       <span className="font-bold">{students}+</span>
                     </div>
-                    <span className="text-xs text-gray-600">Students Guided</span>
+                    <span className="text-xs text-slate-600">Students Guided</span>
                   </div>
                   <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2 text-gray-900">
-                      <Award className="w-4 h-4 text-black" />
+                    <div className="flex items-center gap-2 text-slate-900">
+                      <Award className="w-4 h-4 text-emerald-600" />
                       <span className="font-bold">{successRate}%</span>
                     </div>
-                    <span className="text-xs text-gray-600">Success Rate</span>
+                    <span className="text-xs text-slate-600">Success Rate</span>
                   </div>
                 </div>
 
                 {/* Action */}
-                <div className="mt-auto pt-4 border-t border-gray-200">
+                <div className="mt-auto pt-4 border-t border-emerald-100">
                   <Link
                     href="/browse-mentors"
-                    className="w-full py-2.5 rounded-lg font-semibold text-sm text-gray-900 bg-gray-50 border border-gray-200 flex items-center justify-center gap-2 transition-all hover:bg-gray-100 hover:border-gray-300"
+                    className="w-full py-2.5 rounded-lg font-semibold text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 flex items-center justify-center gap-2 transition-all hover:bg-emerald-100 hover:border-emerald-300"
                   >
                     View Profile
                   </Link>
