@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -76,6 +76,7 @@ function MentorRequestsContent() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<BookingTab>(() => resolveActiveTab(searchParams.get('tab')));
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const inFlightActionsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -112,6 +113,11 @@ function MentorRequestsContent() {
   }, [searchParams]);
 
   const handleAction = async (bookingId: string, action: 'accept' | 'reject' | 'start' | 'complete', reason?: string) => {
+    if (inFlightActionsRef.current.has(bookingId)) {
+      return;
+    }
+
+    inFlightActionsRef.current.add(bookingId);
     setActionLoading(bookingId);
     try {
       const payload = reason ? { reason } : undefined;
@@ -128,11 +134,17 @@ function MentorRequestsContent() {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
+      inFlightActionsRef.current.delete(bookingId);
       setActionLoading(null);
     }
   };
 
   const handleRetryZoom = async (bookingId: string) => {
+    if (inFlightActionsRef.current.has(bookingId)) {
+      return;
+    }
+
+    inFlightActionsRef.current.add(bookingId);
     setActionLoading(bookingId);
     try {
       const res = await apiClient.put<{ startUrl?: string }>(`/api/v1/mentor/bookings/${bookingId}/start`);
@@ -148,6 +160,7 @@ function MentorRequestsContent() {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
     } finally {
+      inFlightActionsRef.current.delete(bookingId);
       setActionLoading(null);
     }
   };
@@ -158,6 +171,14 @@ function MentorRequestsContent() {
     if (activeTab === 'past') return b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected';
     return true;
   });
+
+  const hasPendingBookings = bookings.some((b) => b.status === 'pending');
+  const newPendingBookings = bookings.filter((b) => {
+    if (b.status !== 'pending') return false;
+    const createdAtTime = new Date(b.createdAt).getTime();
+    if (Number.isNaN(createdAtTime)) return false;
+    return Date.now() - createdAtTime <= 24 * 60 * 60 * 1000;
+  }).length;
 
   const formatDate = (dateStr: string) => {
     return new Intl.DateTimeFormat('en-US', {
@@ -170,7 +191,7 @@ function MentorRequestsContent() {
   const getStatusIndicator = (status: string) => {
     switch (status) {
       case 'pending':
-        return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-amber-400"></span> Pending</div>;
+        return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-amber-400"></span> New Request</div>;
       case 'confirmed':
         return <div className="flex items-center gap-2 text-xs font-semibold text-zinc-500 uppercase tracking-widest"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Confirmed</div>;
       case 'in-progress':
@@ -200,7 +221,20 @@ function MentorRequestsContent() {
         <header className="bg-white border-b border-zinc-200 sticky top-0 z-10">
            <div className="max-w-5xl mx-auto px-6 py-10 lg:px-8">
              <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Mentor Workspace</p>
-             <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Session Requests</h1>
+             <div className="flex items-center gap-3">
+               <h1 className="text-3xl font-bold tracking-tight text-zinc-900">Session Requests</h1>
+               {hasPendingBookings && (
+                 <div className="relative inline-flex h-3 w-3">
+                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-70" />
+                   <span className="relative inline-flex h-3 w-3 rounded-full bg-rose-500" />
+                 </div>
+               )}
+               {newPendingBookings > 0 && (
+                 <span className="inline-flex items-center rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-700">
+                   {newPendingBookings} new
+                 </span>
+               )}
+             </div>
              <p className="mt-2 text-sm text-zinc-500 max-w-2xl">
                Manage incoming applications, scheduled sessions, and review your past engagements.
              </p>
@@ -215,6 +249,7 @@ function MentorRequestsContent() {
                     if (tab === 'upcoming') return b.status === 'confirmed' || b.status === 'in-progress';
                     return b.status === 'completed' || b.status === 'cancelled' || b.status === 'rejected';
                   }).length;
+                  const tabLabel = tab === 'pending' ? 'Requests' : tab.charAt(0).toUpperCase() + tab.slice(1);
 
                  return (
                   <button
@@ -225,7 +260,7 @@ function MentorRequestsContent() {
                       ${isActive ? 'text-zinc-900' : 'text-zinc-500 hover:text-zinc-800'}
                     `}
                   >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    {tabLabel}
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isActive ? 'bg-zinc-100 text-zinc-900' : 'bg-zinc-100 text-zinc-500'}`}>
                       {count}
                     </span>
@@ -256,8 +291,8 @@ function MentorRequestsContent() {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-zinc-50 mb-4 border border-zinc-100">
                    <CalendarClock className="h-5 w-5 text-zinc-400" />
                 </div>
-                <h3 className="text-base font-bold text-zinc-900">No {activeTab} sessions</h3>
-                <p className="mt-1 text-sm text-zinc-500">You don&apos;t have any {activeTab} bookings actively scheduled.</p>
+                <h3 className="text-base font-bold text-zinc-900">{activeTab === 'pending' ? 'No requests' : `No ${activeTab} sessions`}</h3>
+                <p className="mt-1 text-sm text-zinc-500">{activeTab === 'pending' ? 'You don\'t have any new student requests right now.' : `You don\'t have any ${activeTab} bookings actively scheduled.`}</p>
               </div>
             ) : (
               filteredBookings.map((booking) => (
@@ -267,6 +302,16 @@ function MentorRequestsContent() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-4">
                         {getStatusIndicator(booking.status)}
+
+                        {booking.status === 'pending' && (
+                          <div className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-rose-700">
+                            <span className="relative inline-flex h-2 w-2">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-rose-500" />
+                            </span>
+                            New Booking
+                          </div>
+                        )}
                         
                         {/* Display Zoom meeting details seamlessly attached to status area if present */}
                         {booking.status === 'confirmed' || booking.status === 'in-progress' ? (

@@ -18,7 +18,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
-  DollarSign,
+  IndianRupee,
   Settings,
   MessageSquare
 } from 'lucide-react';
@@ -61,7 +61,7 @@ function MentorProfileContent() {
   // Form State - Session Settings
   const [pricePerSession, setPricePerSession] = useState<number | ''>('');
   const [sessionDuration, setSessionDuration] = useState<number>(45);
-  const [autoConfirm, setAutoConfirm] = useState<boolean>(true);
+  const [autoConfirm, setAutoConfirm] = useState<boolean>(false);
   const [sessionNotes, setSessionNotes] = useState('');
   
   // UI State
@@ -89,7 +89,7 @@ function MentorProfileContent() {
           
           setPricePerSession(mProfile.pricePerSession ?? '');
           setSessionDuration(mProfile.sessionDuration || 45);
-          setAutoConfirm(mProfile.autoConfirm ?? true);
+          setAutoConfirm(mProfile.autoConfirm ?? false);
           setSessionNotes(mProfile.sessionNotes || '');
         }
       } catch (err) {
@@ -299,7 +299,7 @@ function MentorProfileContent() {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-gray-900">Price Per Session</label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                    <IndianRupee className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
                     <input
                       type="number"
                       min="0"

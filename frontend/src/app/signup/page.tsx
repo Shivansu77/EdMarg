@@ -154,7 +154,10 @@ function SignupContent() {
       setExpertise("");
       setBio("");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Unable to create account";
+      const rawErrorMessage = err instanceof Error ? err.message : "Unable to create account";
+      const errorMessage = rawErrorMessage.toLowerCase().includes("failed to fetch")
+        ? `Unable to reach backend at ${API_BASE_URL}. Start backend server or update frontend/.env.local backend URL.`
+        : rawErrorMessage;
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {

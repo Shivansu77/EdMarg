@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import Link from 'next/link';
@@ -28,6 +28,7 @@ interface Student {
   name: string;
   email: string;
   profileImage?: string;
+  classLevel?: string;
 }
 
 interface Booking {
@@ -36,6 +37,7 @@ interface Booking {
   date: string;
   startTime: string;
   endTime: string;
+  sessionType?: string;
   status: string;
   meetingLink?: string;
   startUrl?: string;
@@ -78,6 +80,46 @@ function isPastDate(isoString: string) {
   }
 }
 
+function getBookingStart(booking: Booking) {
+  const start = new Date(booking.date);
+
+  if (Number.isNaN(start.getTime())) {
+    return null;
+  }
+
+  const [hours, minutes] = booking.startTime.split(':').map((value) => Number(value));
+  if (Number.isFinite(hours) && Number.isFinite(minutes)) {
+    start.setHours(hours, minutes, 0, 0);
+  }
+
+  return start;
+}
+
+function formatMeetingDate(date: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(date);
+}
+
+function formatMeetingDateTime(date: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+}
+
+function formatMeetingTimeOnly(date: Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
+}
+
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
     <div className={`rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}>
@@ -101,6 +143,8 @@ function MentorDashboardContent() {
   const [pendingRequests, setPendingRequests] = useState<Booking[]>([]);
   const [recentHistory, setRecentHistory] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const actionLockRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     async function loadDashboard() {
@@ -109,7 +153,7 @@ function MentorDashboardContent() {
         const [meRes, statsRes, upcomingRes, pendingRes, historyRes] = await Promise.all([
           apiClient.get('/api/v1/users/me'),
           apiClient.get('/api/v1/mentor/bookings/stats'),
-          apiClient.get('/api/v1/mentor/bookings/upcoming'),
+          apiClient.get('/api/v1/mentor/bookings/upcoming?limit=25'),
           apiClient.get('/api/v1/mentor/bookings?status=pending&limit=5'),
           apiClient.get('/api/v1/mentor/bookings?limit=5') // Get recent for history
         ]);
@@ -121,10 +165,16 @@ function MentorDashboardContent() {
         if (upcomingRes.data) {
            const allUpcoming = upcomingRes.data as Booking[];
            const strictlyUpcoming = allUpcoming.filter((b: Booking) => {
-              if (isPastDate(b.date)) return false;
+              const sessionStart = getBookingStart(b);
+              if (!sessionStart || sessionStart < new Date()) return false;
               return b.status === 'confirmed' || b.status === 'in-progress';
            });
-           setUpcomingBookings(strictlyUpcoming.slice(0, 5));
+            strictlyUpcoming.sort((left, right) => {
+             const leftStart = getBookingStart(left)?.getTime() || 0;
+             const rightStart = getBookingStart(right)?.getTime() || 0;
+             return leftStart - rightStart;
+            });
+            setUpcomingBookings(strictlyUpcoming);
         }
 
         if ((pendingRes.data as any)?.bookings) {
@@ -163,6 +213,32 @@ function MentorDashboardContent() {
     { label: 'Confirmed', value: stats?.confirmed?.toString() || '0', sub: 'upcoming', icon: CalendarDays },
     { label: 'Completed', value: stats?.completed?.toString() || '0', sub: 'sessions finished', icon: Activity },
   ];
+  const nextMeeting = upcomingBookings[0] || null;
+  const nextMeetingStart = nextMeeting ? getBookingStart(nextMeeting) : null;
+  const nextAfterMeeting = upcomingBookings[1] || null;
+  const nextAfterMeetingStart = nextAfterMeeting ? getBookingStart(nextAfterMeeting) : null;
+  const spotlightMeetings = upcomingBookings.slice(0, 2).filter((booking) => !!getBookingStart(booking));
+
+  const handleStartSession = async (bookingId: string) => {
+    if (actionLockRef.current.has(bookingId)) {
+      return;
+    }
+
+    actionLockRef.current.add(bookingId);
+    setActionLoadingId(bookingId);
+
+    try {
+      const response = await apiClient.put<{ startUrl?: string }>(`/api/v1/mentor/bookings/${bookingId}/start`);
+      if (response.success && response.data?.startUrl) {
+        window.open(response.data.startUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      console.error('Failed to start session:', error);
+    } finally {
+      actionLockRef.current.delete(bookingId);
+      setActionLoadingId(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-emerald-50/50 pb-16">
@@ -190,7 +266,7 @@ function MentorDashboardContent() {
               href="/mentor/schedule"
               className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-base font-semibold text-emerald-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
             >
-              View schedule
+              Set Availability
             </Link>
           </div>
         </div>
@@ -225,44 +301,75 @@ function MentorDashboardContent() {
           <div className="space-y-8">
             {/* Upcoming sessions */}
             <Card>
-              <div className="flex items-start justify-between gap-4 border-b border-emerald-50 bg-emerald-50/30 px-6 py-6">
+              <div className="flex flex-col gap-5 border-b border-emerald-200 bg-emerald-50/30 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <Label>This week</Label>
+                  <Label>Scheduled Sessions</Label>
                   <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
-                    Stay on top of your mentoring impact
+                    Separate session cards
                   </h2>
                 </div>
-                <span className="mt-1 shrink-0 rounded-full border border-emerald-100 bg-white/80 shadow-sm px-4 py-1.5 text-sm font-bold text-emerald-600">
-                  {upcomingBookings.length} upcoming
-                </span>
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-700">
+                  <span className="relative inline-flex h-2.5 w-2.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                  </span>
+                  {spotlightMeetings.length > 0 ? `${spotlightMeetings.length} upcoming` : 'No upcoming session'}
+                </div>
               </div>
 
-              {upcomingBookings.length === 0 ? (
-                <div className="p-12 text-center text-slate-600">No scheduled sessions in your timeline.</div>
+              {spotlightMeetings.length === 0 ? (
+                <div className="p-12 text-center text-slate-600">No upcoming confirmed sessions right now.</div>
               ) : (
-                <ul className="divide-y divide-emerald-50/50">
-                  {upcomingBookings.map((item) => (
-                    <li key={item._id} className="group flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-6 transition-colors hover:bg-emerald-50/30">
-                      <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 shrink-0 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
-                          {item.student?.name?.charAt(0) || 'S'}
+                <div className="grid gap-4 p-6 sm:p-8">
+                  {spotlightMeetings.map((meeting, index) => {
+                    const meetingStart = getBookingStart(meeting);
+
+                    if (!meetingStart) return null;
+
+                    const isPrimary = index === 0;
+
+                    return (
+                      <div
+                        key={meeting._id}
+                        className={`rounded-3xl border-2 ${isPrimary ? 'border-emerald-300 bg-linear-to-br from-white via-emerald-50/40 to-green-50/50' : 'border-emerald-200 bg-white'} p-6 shadow-[0_18px_40px_-28px_rgba(16,185,129,0.5)]`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div>
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">
+                              {isPrimary ? 'Upcoming Meeting' : 'Next After That'}
+                            </p>
+                            <p className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">
+                              {meeting.student?.name || 'Student'}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleStartSession(meeting._id)}
+                            disabled={actionLoadingId === meeting._id}
+                            className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {actionLoadingId === meeting._id ? 'Starting...' : 'Start Session'}
+                          </button>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-base font-semibold text-slate-900 group-hover:text-emerald-900 transition-colors">Session with {item.student?.name || 'Student'}</p>
-                          <p className="mt-1 text-sm leading-relaxed text-slate-600 font-medium">1-on-1 Mentorship Session</p>
+
+                        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                          <div className="rounded-2xl border border-emerald-300 bg-white px-5 py-4">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Meeting date</p>
+                            <p className="mt-2 text-xl font-bold text-slate-900">{formatMeetingDate(meetingStart)}</p>
+                          </div>
+                          <div className="rounded-2xl border border-emerald-300 bg-white px-5 py-4">
+                            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Meeting time</p>
+                            <p className="mt-2 text-xl font-bold text-slate-900">{formatMeetingTimeOnly(meetingStart)}</p>
+                          </div>
                         </div>
+
+                        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                          Session mode: {meeting.sessionType === 'chat' ? 'Chat' : 'Video'}
+                        </p>
                       </div>
-                      <div className="mt-2 sm:mt-0 flex gap-2 w-full justify-between items-center sm:w-auto">
-                        <span className="shrink-0 rounded-full bg-linear-to-r from-emerald-500 to-green-500 px-4 py-1.5 text-xs font-bold tracking-wide text-white shadow-sm">
-                            {formatDate(item.date)} · {item.startTime}
-                        </span>
-                        {(item.startUrl || item.meetingLink) && (
-                          <a href={item.startUrl || item.meetingLink} target="_blank" rel="noreferrer" className="text-xs bg-emerald-50 px-3 py-1.5 rounded-full text-emerald-700 font-bold border border-emerald-100 hover:bg-emerald-100">Start Session</a>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                    );
+                  })}
+                </div>
               )}
             </Card>
 

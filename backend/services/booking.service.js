@@ -172,9 +172,9 @@ class BookingService {
     // Capture price at booking time
     const price = mentor.mentorProfile?.pricePerSession || 0;
 
-    // Auto-confirm if mentor has autoConfirm enabled
-    const autoConfirm = mentor.mentorProfile?.autoConfirm !== false; // default true
-    const status = autoConfirm ? 'confirmed' : 'pending';
+    // Manual approval workflow: every new booking starts as a request.
+    const autoConfirm = false;
+    const status = 'pending';
 
     let zoomData = {};
     let zoomError = null;
@@ -331,7 +331,9 @@ class BookingService {
     }
 
     return bookingRepository.updateStatus(bookingId, 'rejected', {
-      cancellationReason: reason || 'Rejected by mentor',
+      cancellationReason:
+        reason ||
+        'Your requested slot was declined by the mentor. Please choose another available time.',
     });
   }
 

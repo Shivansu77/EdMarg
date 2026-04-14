@@ -2,10 +2,11 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Menu, Search, LogOut, User, MessageSquare, FileText, Calendar, Check } from 'lucide-react';
+import { Bell, Menu, Search, LogOut, User, MessageSquare, Calendar, Check } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
+import { apiClient } from '@/utils/api-client';
 
 
 import { getImageUrl } from '@/utils/imageUrl';
@@ -13,6 +14,45 @@ interface HeaderProps {
   userName?: string;
   onMenuClick: () => void;
 }
+
+interface BookingNotificationItem {
+  id: string;
+  type: 'meeting' | 'message';
+  title: string;
+  message: string;
+  time: string;
+  unread: boolean;
+}
+
+interface StudentBooking {
+  _id: string;
+  status: 'pending' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled' | 'rejected';
+  date: string;
+  startTime: string;
+  endTime: string;
+  cancellationReason?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  mentor?: {
+    name?: string;
+  };
+}
+
+const toRelativeTime = (isoDate?: string) => {
+  if (!isoDate) return 'just now';
+
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return 'just now';
+
+  const minutes = Math.max(1, Math.floor((Date.now() - date.getTime()) / 60000));
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+};
 
 const actionButtonClasses =
   'flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900 shadow-sm';
@@ -27,11 +67,7 @@ const DashboardHeader = ({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: 'assignment', title: 'New Assessment Assigned', message: 'You have a new Career Aptitude assessment to complete.', time: '2 hours ago', unread: true },
-    { id: 2, type: 'meeting', title: 'Upcoming Mentor Meeting', message: 'Reminder: Session with your mentor starts in 30 mins.', time: '1 day ago', unread: true },
-    { id: 3, type: 'message', title: 'New Message from Mentor', message: "Hey, I've reviewed your resume. Let's discuss it today.", time: '2 days ago', unread: false }
-  ]);
+  const [notifications, setNotifications] = useState<BookingNotificationItem[]>([]);
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
@@ -54,6 +90,52 @@ const DashboardHeader = ({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const fetchStudentNotifications = async () => {
+      if (user?.role !== 'student') return;
+
+      const response = await apiClient.get<{ bookings: StudentBooking[] }>('/api/v1/bookings/my-bookings?limit=25');
+      if (!response.success || !response.data?.bookings) return;
+
+      const derived = response.data.bookings
+        .filter((booking) => ['rejected', 'confirmed', 'in-progress'].includes(booking.status))
+        .map((booking): BookingNotificationItem => {
+          const mentorName = booking.mentor?.name || 'your mentor';
+
+          if (booking.status === 'rejected') {
+            const defaultRejection =
+              'Your requested session was declined by the mentor. Please choose another available slot.';
+            return {
+              id: `${booking._id}-rejected`,
+              type: 'message',
+              title: 'Session request declined',
+              message: `${mentorName} declined your request. ${booking.cancellationReason || defaultRejection}`,
+              time: toRelativeTime(booking.updatedAt || booking.createdAt),
+              unread: true,
+            };
+          }
+
+          return {
+            id: `${booking._id}-${booking.status}`,
+            type: 'meeting',
+            title: booking.status === 'in-progress' ? 'Session in progress' : 'Session confirmed',
+            message: `${mentorName} has ${booking.status === 'in-progress' ? 'started' : 'accepted'} your session on ${new Date(booking.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${booking.startTime}.`,
+            time: toRelativeTime(booking.updatedAt || booking.createdAt),
+            unread: true,
+          };
+        })
+        .sort((left, right) => {
+          const leftId = left.id;
+          const rightId = right.id;
+          return rightId.localeCompare(leftId);
+        });
+
+      setNotifications(derived.slice(0, 10));
+    };
+
+    fetchStudentNotifications();
+  }, [user?.role]);
 
   const handleLogout = async () => {
     try {
@@ -138,7 +220,7 @@ const DashboardHeader = ({
                     </button>
                   )}
                 </div>
-                <div className="max-h-[360px] overflow-y-auto">
+                <div className="max-h-90 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="p-8 text-center text-gray-500 text-sm">
                       <Bell size={24} className="mx-auto mb-2 opacity-20" />
@@ -148,12 +230,10 @@ const DashboardHeader = ({
                     <div className="divide-y divide-gray-50">
                       {notifications.map((notification) => (
                         <div key={notification.id} className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer ${notification.unread ? 'bg-emerald-50/40' : ''}`}>
-                          <div className={`mt-0.5 flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-full ${
-                            notification.type === 'assignment' ? 'bg-cyan-100 text-cyan-600' :
+                          <div className={`mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full ${
                             notification.type === 'meeting' ? 'bg-emerald-100 text-emerald-600' :
-                            'bg-green-100 text-green-600'
+                            'bg-amber-100 text-amber-700'
                           }`}>
-                            {notification.type === 'assignment' && <FileText size={14} />}
                             {notification.type === 'meeting' && <Calendar size={14} />}
                             {notification.type === 'message' && <MessageSquare size={14} />}
                           </div>
@@ -169,7 +249,7 @@ const DashboardHeader = ({
                             </p>
                           </div>
                           {notification.unread && (
-                            <div className="w-2 h-2 bg-emerald-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                            <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500"></div>
                           )}
                         </div>
                       ))}

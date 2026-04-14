@@ -98,17 +98,17 @@ const timeline = [
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-linear-to-b from-white via-emerald-50/35 to-green-50/25">
       <Navbar />
 
       <main className="mx-auto w-full max-w-7xl px-6 pb-16 pt-28 lg:px-8 lg:pt-32">
-        <section className="relative overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-cyan-50/60 p-8 shadow-sm sm:p-10 lg:p-14">
-          <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-cyan-200/35 blur-3xl" />
+        <section className="relative overflow-hidden rounded-3xl border border-emerald-200 bg-linear-to-br from-white via-emerald-50/50 to-green-50/50 p-8 shadow-[0_12px_40px_rgba(16,185,129,0.12)] sm:p-10 lg:p-14">
+          <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-emerald-200/35 blur-3xl" />
           <div className="absolute -left-16 bottom-0 h-52 w-52 rounded-full bg-emerald-200/35 blur-3xl" />
 
           <div className="relative z-10 grid gap-10 lg:grid-cols-[1fr_320px] lg:items-end">
             <div className="max-w-3xl">
-              <p className="mb-3 inline-flex rounded-full border border-cyan-200 bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-700">
+              <p className="mb-3 inline-flex rounded-full border border-emerald-200 bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
                 About Us
               </p>
               <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
@@ -121,26 +121,26 @@ export default function AboutPage() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   href="/signup"
-                  className="inline-flex items-center rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                  className="inline-flex items-center rounded-xl bg-linear-to-r from-emerald-500 to-green-500 px-5 py-3 text-sm font-semibold text-white transition-all hover:from-emerald-600 hover:to-green-600 shadow-[0_10px_22px_rgba(16,185,129,0.3)]"
                 >
                   Start Your Journey
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
                   href="/assessment"
-                  className="inline-flex items-center rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100"
+                  className="inline-flex items-center rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-50"
                 >
                   Take Assessment
                 </Link>
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-sm backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">What We Solve</p>
+            <div className="rounded-2xl border border-emerald-200 bg-linear-to-br from-white to-emerald-50/60 p-5 shadow-md shadow-emerald-500/10 backdrop-blur">
+              <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">What We Solve</p>
               <div className="mt-4 space-y-3">
                 {['Career indecision', 'Lack of structure', 'Generic advice', 'No accountability'].map((item) => (
-                  <div key={item} className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                    <BadgeCheck className="h-4 w-4 text-emerald-500" />
+                  <div key={item} className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                    <BadgeCheck className="h-4 w-4 text-emerald-600" />
                     {item}
                   </div>
                 ))}
@@ -153,7 +153,7 @@ export default function AboutPage() {
           {stats.map((item) => (
             <article
               key={item.label}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md"
+              className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:shadow-emerald-500/10"
             >
               <p className="text-2xl font-extrabold text-slate-900">{item.value}</p>
               <p className="mt-1 text-sm font-medium text-slate-600">{item.label}</p>
@@ -161,7 +161,7 @@ export default function AboutPage() {
           ))}
         </section>
 
-        <section className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+          <section className="mt-10 rounded-3xl border border-emerald-200 bg-white p-6 shadow-sm sm:p-8">
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">How EdMarg Works</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
             We are not an advice-only platform. We run an end-to-end progression loop that helps learners discover
@@ -172,8 +172,8 @@ export default function AboutPage() {
             {pillars.map((pillar) => {
               const Icon = pillar.icon;
               return (
-                <article key={pillar.title} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-900 ring-1 ring-slate-200">
+                <article key={pillar.title} className="rounded-2xl border border-emerald-200 bg-emerald-50/45 p-5">
+                  <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-emerald-700 ring-1 ring-emerald-200">
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="mt-4 text-lg font-bold text-slate-900">{pillar.title}</h3>
@@ -190,9 +190,9 @@ export default function AboutPage() {
             return (
               <article
                 key={value.title}
-                className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-cyan-200 hover:shadow-lg"
+                className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-500/10"
               >
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 text-cyan-700 ring-1 ring-cyan-100">
+                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
                   <Icon className="h-5 w-5" />
                 </div>
                 <h3 className="mt-4 text-xl font-bold text-slate-900">{value.title}</h3>
@@ -202,7 +202,7 @@ export default function AboutPage() {
           })}
         </section>
 
-        <section className="mt-10 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+        <section className="mt-10 rounded-3xl border border-emerald-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="mb-6">
             <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Our Story</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
@@ -212,8 +212,8 @@ export default function AboutPage() {
 
           <div className="grid gap-4 md:grid-cols-2">
             {timeline.map((item) => (
-              <article key={item.year} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-cyan-700">{item.year}</p>
+              <article key={item.year} className="rounded-2xl border border-emerald-200 bg-emerald-50/45 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">{item.year}</p>
                 <h3 className="mt-2 text-lg font-bold text-slate-900">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{item.description}</p>
               </article>
@@ -221,7 +221,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="mt-10 rounded-3xl border border-slate-900 bg-slate-900 p-6 text-white shadow-sm sm:p-8">
+        <section className="mt-10 rounded-3xl border border-emerald-700 bg-linear-to-br from-emerald-700 via-emerald-600 to-green-600 p-6 text-white shadow-sm sm:p-8">
           <h2 className="text-2xl font-extrabold tracking-tight">Our Mission</h2>
           <p className="mt-3 max-w-4xl text-sm leading-relaxed text-slate-200 sm:text-base">
             Every learner deserves career direction that is practical, personalized, and actionable. We are building

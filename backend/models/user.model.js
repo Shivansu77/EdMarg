@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
       experienceYears: Number,
       pricePerSession: Number,
       sessionDuration: { type: Number, default: 45, min: 15, max: 180 },
-      autoConfirm: { type: Boolean, default: true },
+      autoConfirm: { type: Boolean, default: false },
       sessionNotes: String,
       rating: { type: Number, default: 0 },
       totalSessions: { type: Number, default: 0 },

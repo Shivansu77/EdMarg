@@ -1,6 +1,14 @@
+const DEFAULT_API_BASE = 'https://edmarg-backend.vercel.app';
 
-// Force the API base to the reliable Render server to bypass Vercel Authentication SSO blockers
-const configuredApiBase = 'https://edmarg-backend.vercel.app';
+const normalizeApiBase = (value: string) =>
+  value.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
+
+const configuredApiBase = normalizeApiBase(
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    DEFAULT_API_BASE
+);
 
 
 /**
@@ -10,19 +18,21 @@ const configuredApiBase = 'https://edmarg-backend.vercel.app';
  * Local dev: honor configured backend URL (usually localhost:5000).
  */
 export const resolveApiBaseUrl = () => {
-  const isDev = process.env.NODE_ENV === 'development';
-
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    const isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('192.168.') || hostname.includes('10.0.');
-    
-    // In dev, prefer local backend
-    if (isDev || isLocal) {
+    const isLocalHost =
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname.includes('192.168.') ||
+      hostname.includes('10.0.');
+    const forceLocalBackend = process.env.NEXT_PUBLIC_USE_LOCAL_BACKEND === 'true';
+
+    if (isLocalHost && forceLocalBackend) {
       return 'http://localhost:5000';
     }
-    return configuredApiBase || 'https://edmarg-backend.vercel.app';
+
+    return configuredApiBase;
   }
 
-  // SSR fallback
-  return isDev ? 'http://localhost:5000' : (configuredApiBase || 'https://edmarg-backend.vercel.app');
+  return configuredApiBase;
 };

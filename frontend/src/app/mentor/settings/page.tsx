@@ -10,7 +10,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Clock3,
-  DollarSign,
+  IndianRupee,
   Loader2,
   MessageSquare,
   Settings2,
@@ -29,7 +29,7 @@ interface MentorSettings {
 const DEFAULT_SETTINGS: MentorSettings = {
   pricePerSession: 0,
   sessionDuration: 45,
-  autoConfirm: true,
+  autoConfirm: false,
   sessionNotes: '',
   totalSessions: 0,
   rating: 0,
@@ -155,7 +155,7 @@ function MentorSettingsContent() {
             <div className="grid gap-6 md:grid-cols-2">
               <label className="block rounded-2xl border border-gray-200 p-5">
                 <span className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                  <DollarSign className="h-4 w-4 text-gray-500" />
+                  <IndianRupee className="h-4 w-4 text-gray-500" />
                   Price per session
                 </span>
                 <input

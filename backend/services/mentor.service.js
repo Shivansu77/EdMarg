@@ -99,7 +99,7 @@ class MentorService {
     return {
       pricePerSession: mp.pricePerSession || 0,
       sessionDuration: mp.sessionDuration || 45,
-      autoConfirm: mp.autoConfirm !== false, // default true
+      autoConfirm: mp.autoConfirm === true,
       sessionNotes: mp.sessionNotes || '',
       totalSessions: mp.totalSessions || 0,
       rating: mp.rating || 0,
