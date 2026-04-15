@@ -242,150 +242,134 @@ function MentorsContent() {
         }
       `}} />
 
-      <div className="space-y-8 pb-16 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+      <div className="bg-white min-h-screen pb-16">
         
-        {/* Dynamic Header */}
-        <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
-          <div className="max-w-4xl">
-            <h1 className="text-4xl font-bold text-black">
-              Find Your Mentor
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Connect with industry experts curated for your career goals.
-            </p>
+        {/* Sub-header Banner */}
+        <div className="border-b border-gray-100 bg-white">
+          <div className="max-w-[1500px] mx-auto px-6 sm:px-8 py-5 text-gray-500 text-[15px]">
+            Connect with industry experts curated for your career goals.
           </div>
         </div>
 
-        <div className="px-6 sm:px-8 max-w-[1500px] mx-auto space-y-8">
+        <div className="max-w-[1500px] mx-auto px-6 sm:px-8 mt-8 space-y-6">
           
           {/* HORIZONTAL FILTER BAR */}
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 relative z-20">
-             
-             {/* Primary Row */}
-             <div className="flex flex-col lg:flex-row gap-4 items-center">
-                
-                {/* Search */}
-                <div className="relative w-full lg:w-[40%]">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search by name, role, or skill..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm font-medium focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
-                  />
-                </div>
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            
+            {/* Search */}
+            <div className="relative w-full lg:flex-1">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name, role, or skill..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 rounded-[12px] border border-gray-200 bg-white text-[15px] font-medium focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none"
+              />
+            </div>
 
-                {/* Domain */}
-                <div className="relative w-full lg:w-[25%] group">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                     <Briefcase className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" />
-                  </div>
-                  <select
-                    value={careerDomain}
-                    onChange={(e) => setCareerDomain(e.target.value)}
-                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
-                  >
-                    {DOMAIN_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+            {/* Domain */}
+            <div className="relative w-full lg:w-[220px] group">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                 <Briefcase className="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" />
+              </div>
+              <select
+                value={careerDomain}
+                onChange={(e) => setCareerDomain(e.target.value)}
+                className="w-full pl-11 pr-10 py-3 rounded-[12px] border border-gray-200 bg-white text-[15px] font-bold text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
+              >
+                {DOMAIN_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
 
-                {/* Rating */}
-                <div className="relative w-full lg:w-[20%] group">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                     <Star className="w-4 h-4 text-gray-400 group-hover:text-amber-500 transition-colors" />
-                  </div>
-                  <select
-                    value={minRating}
-                    onChange={(e) => setMinRating(Number(e.target.value))}
-                    className="w-full pl-11 pr-10 py-3 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
-                  >
-                    {RATING_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
+            {/* Rating */}
+            <div className="relative w-full lg:w-[180px] group">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                 <Star className="w-4 h-4 text-gray-400 group-hover:text-amber-500 transition-colors" />
+              </div>
+              <select
+                value={minRating}
+                onChange={(e) => setMinRating(Number(e.target.value))}
+                className="w-full pl-11 pr-10 py-3 rounded-[12px] border border-gray-200 bg-white text-[15px] font-bold text-gray-700 focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none appearance-none cursor-pointer"
+              >
+                {RATING_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+              </select>
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
 
-                {/* Advanced Toggle */}
-                <div className="w-full lg:w-auto flex items-center justify-end lg:ml-auto">
-                   <button
-                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                     className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-sm ${
-                       showAdvancedFilters || activeFilterCount > 0
-                       ? 'bg-gray-100 text-black border border-gray-300'
-                       : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
-                     }`}
-                   >
-                     <SlidersHorizontal size={16} />
-                     Filters
-                     {activeFilterCount > 0 && (
-                       <span className="bg-black text-white text-[10px] px-2 py-0.5 rounded-full ml-1">{activeFilterCount}</span>
-                     )}
-                   </button>
-                </div>
-             </div>
-
-             {/* Advanced Sliders Dropdown */}
-             {showAdvancedFilters && (
-               <div className="mt-5 pt-6 border-t border-gray-100 flex flex-col md:flex-row gap-8 animate-in slide-in-from-top-4 duration-200">
-                  
-                  {/* Experience Slider */}
-                  <div className="flex-1 bg-gray-50/80 p-5 rounded-2xl border border-gray-100">
-                     <div className="flex justify-between items-center mb-4">
-                        <label className="font-extrabold text-sm text-gray-900">Experience Cap</label>
-                        <span className="text-xs font-black text-black bg-gray-200 px-2 py-1 rounded-md">Up to {experienceMax} yrs</span>
-                     </div>
-                     <input
-                       type="range"
-                       min="0"
-                       max="30"
-                       value={experienceMax}
-                       onChange={(e) => setExperienceMax(Number(e.target.value))}
-                       className="h-range block"
-                     />
-                  </div>
-
-                  {/* Price Slider */}
-                  <div className="flex-1 bg-gray-50/80 p-5 rounded-2xl border border-gray-100">
-                     <div className="flex justify-between items-center mb-4">
-                        <label className="font-extrabold text-sm text-gray-900">Maximum Price (₹)</label>
-                        <span className="text-xs font-black text-black bg-gray-200 px-2 py-1 rounded-md">Max ₹{priceMax}</span>
-                     </div>
-                     <input
-                       type="range"
-                       min="0"
-                       max="10000"
-                       step="100"
-                       value={priceMax}
-                       onChange={(e) => setPriceMax(Number(e.target.value))}
-                       className="h-range block"
-                     />
-                  </div>
-
-                  {/* Active Filter Actions */}
-                  <div className="flex items-end justify-end flex-shrink-0">
-                     <button
-                        onClick={clearFilters}
-                        disabled={activeFilterCount === 0 && !searchQuery}
-                        className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 font-bold text-sm rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-fit"
-                     >
-                        <X size={16} /> Reset All
-                     </button>
-                  </div>
-               </div>
-             )}
+            {/* Advanced Toggle */}
+            <div className="w-full lg:w-auto flex items-center justify-end lg:ml-auto">
+               <button
+                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                 className={`flex items-center justify-center gap-2 px-6 py-3 rounded-[12px] border transition-all text-sm font-bold h-[46px] ${
+                   showAdvancedFilters || activeFilterCount > 0
+                   ? 'bg-black text-white border-black'
+                   : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                 }`}
+               >
+                 <SlidersHorizontal size={16} />
+                 Filters
+                 {activeFilterCount > 0 && (
+                   <span className="bg-white text-black text-[10px] px-2 py-0.5 rounded-full ml-1">{activeFilterCount}</span>
+                 )}
+               </button>
+            </div>
           </div>
+
+          {/* Advanced Sliders Dropdown */}
+          {showAdvancedFilters && (
+            <div className="mt-5 pt-6 border-t border-gray-100 flex flex-col md:flex-row gap-8 animate-in slide-in-from-top-4 duration-200">
+               {/* Experience Slider */}
+               <div className="flex-1 bg-gray-50/80 p-5 rounded-2xl border border-gray-100">
+                  <div className="flex justify-between items-center mb-4">
+                     <label className="font-extrabold text-sm text-gray-900">Experience Cap</label>
+                     <span className="text-xs font-black text-black bg-gray-200 px-2 py-1 rounded-md">Up to {experienceMax} yrs</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="30"
+                    value={experienceMax}
+                    onChange={(e) => setExperienceMax(Number(e.target.value))}
+                    className="h-range block"
+                  />
+               </div>
+
+               {/* Price Slider */}
+               <div className="flex-1 bg-gray-50/80 p-5 rounded-2xl border border-gray-100">
+                  <div className="flex justify-between items-center mb-4">
+                     <label className="font-extrabold text-sm text-gray-900">Maximum Price (₹)</label>
+                     <span className="text-xs font-black text-black bg-gray-200 px-2 py-1 rounded-md">Max ₹{priceMax}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000"
+                    step="100"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(Number(e.target.value))}
+                    className="h-range block"
+                  />
+               </div>
+
+               {/* Active Filter Actions */}
+               <div className="flex items-end justify-end flex-shrink-0">
+                  <button
+                     onClick={clearFilters}
+                     disabled={activeFilterCount === 0 && !searchQuery}
+                     className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-600 font-bold text-sm rounded-xl hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed h-fit"
+                  >
+                     <X size={16} /> Reset All
+                  </button>
+               </div>
+            </div>
+          )}
 
           {/* MAIN RESULTS AREA */}
           {loading ? (
             <div className="flex items-center justify-center py-32">
-              <div className="text-center">
-                <div className="inline-block relative">
-                   <div className="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
-                   <div className="w-12 h-12 border-4 border-black rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
-                </div>
-                <p className="mt-4 text-sm font-bold text-gray-600 uppercase tracking-widest">Loading mentors...</p>
-              </div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
             </div>
           ) : error ? (
             <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm">
@@ -395,14 +379,12 @@ function MentorsContent() {
           ) : (
             <>
               {/* Results Count Header */}
-              <div className="flex items-center justify-between mb-2 px-2">
-                <div className="text-gray-500 font-medium text-sm">
-                  Showing <span className="font-black text-gray-900">{shownMentors.length}</span> of <span className="font-black text-gray-900">{filteredMentors.length}</span> mentors
-                </div>
+              <div className="pt-2 text-gray-400 text-[15px]">
+                Showing <span className="font-bold text-black">{shownMentors.length}</span> of <span className="font-bold text-black">{filteredMentors.length}</span> mentors
               </div>
 
               {filteredMentors.length === 0 ? (
-                <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-20 text-center">
+                <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-20 text-center mt-4">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 ring-8 ring-gray-50/50">
                     <Search className="h-8 w-8 text-gray-400" />
                   </div>
@@ -417,8 +399,8 @@ function MentorsContent() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {shownMentors.map((mentor) => {
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
+                    {shownMentors.map((mentor, index) => {
                       const tags = mentor.mentorProfile?.expertise?.slice(0, 3) || [];
                       const rating = mentor.mentorProfile?.rating ?? 0;
                       const bio = mentor.mentorProfile?.bio || 'Career mentor available for personalized sessions.';
@@ -428,32 +410,39 @@ function MentorsContent() {
                       return (
                         <div
                           key={mentor._id}
-                          className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-black transition-all duration-300 flex flex-col"
+                          className="rounded-[20px] border border-gray-200 bg-white flex flex-col overflow-hidden hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300"
                         >
-                          <div className="relative h-48 bg-gradient-to-br from-gray-700 via-gray-800 to-black overflow-hidden">
-                            <Image
-                              src={getImageUrl(mentor.profileImage, mentor.name)}
-                              alt={mentor.name}
-                              fill
-                              sizes="(max-width: 1024px) 100vw, 25vw"
-                              className="object-cover object-top group-hover:scale-110 transition-transform duration-300"
-                            />
+                          <div className="relative h-56 bg-[#f4f6f8] border-b border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                            {mentor.profileImage ? (
+                              <Image
+                                src={getImageUrl(mentor.profileImage, mentor.name)}
+                                alt={mentor.name}
+                                fill
+                                priority={index < 6}
+                                sizes="(max-width: 1024px) 100vw, 25vw"
+                                className="object-cover object-top hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <span className="text-[120px] font-black text-[#0f172a] tracking-tight uppercase select-none">
+                                {mentor.name.slice(0, 2)}
+                              </span>
+                            )}
                             {rating > 0 && (
-                              <div className="absolute top-3 right-3 bg-white rounded-full px-3 py-1.5 shadow-lg flex items-center gap-1">
-                                <Star size={16} className="fill-yellow-400 text-yellow-400" />
+                              <div className="absolute top-4 right-4 bg-white rounded-full px-3 py-1.5 shadow-sm border border-gray-100 flex items-center gap-1.5 z-10">
+                                <Star size={14} className="fill-emerald-500 text-emerald-500" />
                                 <span className="text-sm font-bold text-gray-900">{Number(rating).toFixed(1)}</span>
                               </div>
                             )}
                           </div>
 
-                          <div className="p-5 flex flex-col flex-1">
-                            <div className="mb-3">
-                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors">
+                          <div className="p-6 flex flex-col flex-1">
+                            <div className="mb-4">
+                              <h3 className="text-2xl font-bold text-black truncate">
                                 {mentor.name}
                               </h3>
-                              <p className="text-xs text-gray-500 font-medium mt-1">
+                              <p className="text-[15px] text-gray-500 mt-1">
                                 {experience > 0
-                                  ? `${experience} ${experience === 1 ? 'year' : 'years'} of experience`
+                                  ? `${experience} ${experience === 1 ? 'yr' : 'yrs'} of experience`
                                   : 'Industry Expert'}
                               </p>
                             </div>
@@ -463,40 +452,42 @@ function MentorsContent() {
                                 tags.map((tag) => (
                                   <span
                                     key={`${mentor._id}-${tag}`}
-                                    className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-black border border-gray-300"
+                                    className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700"
                                     title={tag}
                                   >
                                     {tag}
                                   </span>
                                 ))
                               ) : (
-                                <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 border border-gray-200">
+                                <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200 text-xs font-semibold text-gray-700">
                                   General
                                 </span>
                               )}
                             </div>
 
-                            <p className="text-sm text-gray-600 line-clamp-2 mb-4 flex-1">{bio}</p>
+                            <p className="text-[15px] text-gray-600 line-clamp-2 mb-6 flex-1 pr-4">{bio}</p>
 
-                            <div className="border-t border-gray-200 pt-4 mb-4">
-                              <p className="text-xs text-gray-500 font-medium mb-1">Starting from</p>
-                              <p className="text-xl font-bold text-gray-900">
-                                {price ? `₹${price}` : 'Free'}
-                                <span className="text-sm font-medium text-gray-600">/session</span>
-                              </p>
-                            </div>
+                            <div className="mt-auto pt-5 border-t border-gray-100">
+                              <div className="mb-4">
+                                <p className="text-sm text-gray-400">Starting from</p>
+                                <p className="text-xl font-bold text-black mt-0.5">
+                                  {price ? `₹${price}` : 'Free'}
+                                  <span className="text-sm font-normal text-gray-500">/session</span>
+                                </p>
+                              </div>
 
-                            <div className="flex gap-3">
-                              <Link href={`/student/mentors/${mentor._id}`} className="flex-1">
-                                <button className="w-full rounded-lg bg-gray-100 hover:bg-gray-200 px-4 py-2.5 text-sm font-bold text-gray-700 transition-all duration-200 border border-gray-200">
-                                  View Profile
-                                </button>
-                              </Link>
-                              <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
-                                <button className="w-full rounded-lg bg-black hover:bg-gray-800 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-md hover:shadow-lg">
-                                  {isLoggedIn ? 'Connect' : 'Sign in'}
-                                </button>
-                              </Link>
+                              <div className="flex gap-3">
+                                <Link href={`/student/mentors/${mentor._id}`} className="flex-1">
+                                  <button className="w-full text-center py-3 bg-white text-gray-700 font-bold rounded-xl text-[15px] border border-gray-200 transition-colors hover:bg-gray-50 hover:border-gray-300">
+                                    View Profile
+                                  </button>
+                                </Link>
+                                <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
+                                  <button className="w-full text-center py-3 bg-black text-white font-bold rounded-xl text-[15px] transition-colors hover:bg-gray-800 border border-black shadow-sm">
+                                    {isLoggedIn ? 'Connect' : 'Sign in'}
+                                  </button>
+                                </Link>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -509,7 +500,7 @@ function MentorsContent() {
                     <button
                       onClick={loadMoreMentors}
                       disabled={!canLoadMore}
-                      className="px-7 py-3 rounded-xl text-sm font-extrabold shadow-md transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 bg-black text-white hover:bg-gray-800 hover:shadow-lg"
+                      className="px-7 py-3 rounded-xl text-[15px] font-bold shadow-sm transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
                     >
                       {loadingMore
                         ? 'Loading more...'

@@ -71,7 +71,7 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
     const fetchReviews = async () => {
       try {
         setLoadingReviews(true);
-        
+
         const reviewsResponse = await fetch(`${API_BASE_URL}/api/v1/reviews/mentor/${mentor._id}?limit=50`);
         if (reviewsResponse.ok) {
           const reviewsData = await reviewsResponse.json();
@@ -126,19 +126,19 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
 
   const ratingDistribution = reviewStats?.ratingDistribution
     ? [
-        { stars: 5, count: reviewStats.ratingDistribution[5] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[5] / reviewStats.totalReviews) * 100) : 0 },
-        { stars: 4, count: reviewStats.ratingDistribution[4] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[4] / reviewStats.totalReviews) * 100) : 0 },
-        { stars: 3, count: reviewStats.ratingDistribution[3] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[3] / reviewStats.totalReviews) * 100) : 0 },
-        { stars: 2, count: reviewStats.ratingDistribution[2] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[2] / reviewStats.totalReviews) * 100) : 0 },
-        { stars: 1, count: reviewStats.ratingDistribution[1] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[1] / reviewStats.totalReviews) * 100) : 0 },
-      ]
+      { stars: 5, count: reviewStats.ratingDistribution[5] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[5] / reviewStats.totalReviews) * 100) : 0 },
+      { stars: 4, count: reviewStats.ratingDistribution[4] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[4] / reviewStats.totalReviews) * 100) : 0 },
+      { stars: 3, count: reviewStats.ratingDistribution[3] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[3] / reviewStats.totalReviews) * 100) : 0 },
+      { stars: 2, count: reviewStats.ratingDistribution[2] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[2] / reviewStats.totalReviews) * 100) : 0 },
+      { stars: 1, count: reviewStats.ratingDistribution[1] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[1] / reviewStats.totalReviews) * 100) : 0 },
+    ]
     : [
-        { stars: 5, count: 0, percentage: 0 },
-        { stars: 4, count: 0, percentage: 0 },
-        { stars: 3, count: 0, percentage: 0 },
-        { stars: 2, count: 0, percentage: 0 },
-        { stars: 1, count: 0, percentage: 0 },
-      ];
+      { stars: 5, count: 0, percentage: 0 },
+      { stars: 4, count: 0, percentage: 0 },
+      { stars: 3, count: 0, percentage: 0 },
+      { stars: 2, count: 0, percentage: 0 },
+      { stars: 1, count: 0, percentage: 0 },
+    ];
 
   const reviewCount = totalSessions || reviews.length;
 
@@ -154,10 +154,10 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
 
       <div className="max-w-6xl mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-10 items-start">
-          
+
           {/* Main Content Area */}
           <div className="space-y-12">
-            
+
             {/* Profile Header */}
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="w-28 h-28 md:w-32 md:h-32 shrink-0 rounded-2xl overflow-hidden border border-slate-200 bg-white shadow-sm relative">
@@ -251,7 +251,7 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                       <div className="mb-2">{renderStars(Math.round(rating), 20)}</div>
                       <p className="text-sm font-medium text-slate-500">Based on {reviewCount} reviews</p>
                     </div>
-                    
+
                     <div className="flex-1 w-full max-w-sm space-y-2">
                       {ratingDistribution.map((item) => (
                         <div key={item.stars} className="flex items-center gap-3 text-sm">
@@ -313,11 +313,11 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
 
           {/* Right Sidebar - Sticky Booking Card */}
           <div className="lg:sticky lg:top-8 mt-8 lg:mt-0 space-y-6">
-            
+
             {/* Booking Card */}
             <div className="bg-white rounded-3xl border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.06)] p-6 sm:p-8 overflow-hidden relative">
               <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-900 border-x border-slate-900"></div>
-              
+
               <div className="mb-6 mt-1">
                 <p className="text-sm font-medium text-slate-500 mb-1">Session investment</p>
                 <div className="flex items-baseline gap-2">
@@ -342,7 +342,7 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                   <span className="text-sm font-medium">Flexible scheduling</span>
                 </div>
               </div>
-              
+
               <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : `/login?redirect=/student/booking?id=${mentor._id}`} className="block">
                 <button className="w-full bg-slate-900 hover:bg-slate-800 text-white px-6 py-4 rounded-xl text-sm font-semibold shadow-md shadow-slate-900/10 transition-all focus:ring-4 focus:ring-slate-900/10 flex items-center justify-center gap-2">
                   {isLoggedIn ? 'Book a Session' : 'Sign in to Book'}

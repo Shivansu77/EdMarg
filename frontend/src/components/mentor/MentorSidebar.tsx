@@ -65,12 +65,12 @@ const MentorSidebar = ({
           {!isCollapsed && (
             <Link href="/" onClick={onClose} className="group block">
               <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-300 to-green-400 text-xs font-extrabold text-slate-900 shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-black text-xs font-extrabold text-white shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
                   E
                 </span>
-                <span className="text-xl font-extrabold tracking-tight text-slate-900">EdMarg</span>
+                <span className="text-xl font-extrabold tracking-tight text-black">EdMarg</span>
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mt-1 pl-1">
                 Mentor Hub
               </p>
             </Link>
@@ -122,15 +122,15 @@ const MentorSidebar = ({
                   onClick={onClose}
                   className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
                     isActive
-                      ? 'bg-emerald-50/80 text-emerald-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                      ? 'bg-gray-100 text-black font-bold border border-gray-200 shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold border border-transparent'
                   }`}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <span
                     className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors duration-300 ${
                       isActive
-                        ? 'bg-gradient-to-br from-emerald-400 to-green-500 text-slate-900 shadow-sm shadow-emerald-500/20'
+                        ? 'bg-black text-white shadow-sm'
                         : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
                     }`}
                   >
@@ -145,7 +145,7 @@ const MentorSidebar = ({
                         size={14}
                         className={`transition-all duration-200 ${
                           isActive
-                            ? 'text-emerald-700 opacity-100'
+                            ? 'text-black opacity-100'
                             : 'text-slate-400 opacity-0 group-hover:opacity-100'
                         }`}
                       />
@@ -158,10 +158,10 @@ const MentorSidebar = ({
 
           {/* Pro tip card */}
           {!isCollapsed && (
-            <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/50 p-4 mt-6 shadow-[0_4px_20px_rgba(16,185,129,0.03)]">
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 mt-6 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                <Zap size={14} className="text-emerald-600" />
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                <Zap size={14} className="text-black" />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-black">
                   Mentor Tip
                 </p>
               </div>

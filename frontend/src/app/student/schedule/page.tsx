@@ -98,200 +98,208 @@ function ScheduleContent() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
+        return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200"><Clock className="w-3 h-3 mr-1" /> Pending</span>;
       case 'confirmed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Confirmed</span>;
+        return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-900 border border-emerald-200"><CheckCircle2 className="w-3 h-3 mr-1" /> Confirmed</span>;
       case 'in-progress':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-800 border border-cyan-200 animate-pulse"><PlayCircle className="w-3 h-3 mr-1" /> In Progress</span>;
+        return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-cyan-50 text-cyan-900 border border-cyan-200 animate-pulse"><PlayCircle className="w-3 h-3 mr-1" /> In Progress</span>;
       case 'completed':
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">Completed</span>;
+        return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-900 border border-gray-300">Completed</span>;
       default:
-        return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
+        return <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-900 border border-red-200">{status.charAt(0).toUpperCase() + status.slice(1)}</span>;
     }
   };
 
   return (
     <DashboardLayout userName={user?.name || "Student Schedule"}>
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8 overflow-hidden rounded-3xl border border-emerald-100/50 bg-linear-to-br from-white via-slate-50 to-emerald-50/60 p-6 shadow-[0_4px_30px_rgba(16,185,129,0.03)] sm:p-8 relative">
-          <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-emerald-200/55 blur-[100px] pointer-events-none" />
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between relative z-10">
+      <div className="space-y-8 pb-16 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+
+        {/* Dynamic Header */}
+        <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
+          <div className="max-w-4xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
-              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">
                 Session Planner
               </p>
-              <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">Your Schedule</h1>
-              <p className="mt-2 text-sm text-slate-600">
-                Keep track of confirmed calls, live sessions, and completed mentorship meetings in one clean timeline.
+              <h1 className="text-4xl font-bold text-black">
+                Your Schedule
+              </h1>
+              <p className="text-gray-600 mt-2">
+                Keep track of confirmed calls, live sessions, and completed mentorship meetings.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Upcoming</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{upcomingCount}</p>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 shadow-sm text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Upcoming</p>
+                <p className="mt-1 text-2xl font-black text-black">{upcomingCount}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Today</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{todayCount}</p>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 shadow-sm text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Today</p>
+                <p className="mt-1 text-2xl font-black text-black">{todayCount}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Completed</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{completedCount}</p>
+              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 shadow-sm text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Completed</p>
+                <p className="mt-1 text-2xl font-black text-black">{completedCount}</p>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Session Timeline</h2>
-            <p className="mt-1 text-sm text-slate-500">View and manage your mentorship bookings.</p>
-          </div>
-        </div>
+        <div className="px-6 sm:px-8 max-w-[1500px] mx-auto space-y-8">
 
-        {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start">
-            <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 shrink-0" />
-            <p className="text-sm text-red-800">{error}</p>
-          </div>
-        )}
+          {error && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 shadow-sm flex items-start">
+              <AlertCircle className="w-5 h-5 text-red-500 mt-0.5 mr-3 shrink-0" />
+              <p className="text-sm font-bold text-red-900">{error}</p>
+            </div>
+          )}
 
-        <div className="mb-8 inline-flex rounded-2xl border border-slate-200 bg-slate-100 p-1.5">
-          <nav className="flex gap-1.5" aria-label="Tabs">
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-4 pt-4 shadow-sm relative z-20">
             <button
               onClick={() => setActiveTab('upcoming')}
-              className={`
-                whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all
-                ${activeTab === 'upcoming'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-                }
-              `}
+              className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'upcoming'
+                  ? 'border-black text-black'
+                  : 'border-transparent text-gray-500 hover:text-black hover:border-gray-300'
+                }`}
             >
               Upcoming
             </button>
             <button
               onClick={() => setActiveTab('past')}
-              className={`
-                whitespace-nowrap rounded-xl px-4 py-2.5 text-sm font-semibold transition-all
-                ${activeTab === 'past'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-                }
-              `}
+              className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'past'
+                  ? 'border-black text-black'
+                  : 'border-transparent text-gray-500 hover:text-black hover:border-gray-300'
+                }`}
             >
               Past Sessions
             </button>
-          </nav>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
           </div>
-        ) : filteredBookings.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 text-center">
-            <CalendarClock className="mx-auto h-12 w-12 text-slate-400" />
-            <h3 className="mt-4 text-sm font-semibold text-slate-900">No {activeTab} sessions</h3>
-            <p className="mt-1 text-sm text-slate-500">You don&apos;t have any {activeTab} sessions at the moment.</p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {filteredBookings.map((booking) => (
-              <div key={booking._id} className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5">
-                <div className="p-6 sm:p-7">
-                  <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">
-                        {booking.mentor.profileImage ? (
-                          <Image src={getImageUrl(booking.mentor.profileImage, booking.mentor.name)} alt={booking.mentor.name} width={56} height={56} className="h-14 w-14 object-cover object-top" />
-                        ) : (
-                          <UserIcon className="h-6 w-6 text-emerald-500" />
-                        )}
-                      </div>
 
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900">{booking.mentor.name}</h3>
-                        <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
-                          <MessageSquare className="h-3.5 w-3.5" />
-                          {booking.mentor.email}
-                        </p>
-
-                        <div className="mt-3 flex flex-wrap items-center gap-2">
-                          {getStatusBadge(booking.status)}
-                          <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
-                            ${booking.price}
-                          </span>
-                        </div>
-
-                        {booking.notes && (
-                          <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
-                            <span className="mb-1 block font-semibold text-slate-900">Your notes</span>
-                            &ldquo;{booking.notes}&rdquo;
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid min-w-57.5 gap-3 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        <Calendar className="h-4 w-4 text-slate-400" />
-                        {formatDate(booking.date)}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        <Clock className="h-4 w-4 text-slate-400" />
-                        {booking.startTime} - {booking.endTime} ({booking.sessionDuration} min)
-                      </div>
-                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        <Video className="h-4 w-4 text-slate-400" />
-                        {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1)} Session
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-5">
-                    {activeTab === 'upcoming' && booking.status === 'confirmed' && booking.joinUrl && (
-                      <a
-                        href={booking.joinUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-emerald-600"
-                      >
-                        <Video className="mr-2 h-4 w-4" />
-                        Join Zoom Meeting
-                        <ExternalLink className="ml-2 h-3 w-3" />
-                      </a>
-                    )}
-                    
-                    {activeTab === 'upcoming' && booking.status === 'in-progress' && booking.joinUrl && (
-                      <a
-                        href={booking.joinUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex animate-pulse items-center rounded-xl bg-cyan-600 px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-cyan-700"
-                      >
-                        <PlayCircle className="mr-2 h-4 w-4" />
-                        Session in Progress - Join Now
-                        <ExternalLink className="ml-2 h-3 w-3" />
-                      </a>
-                    )}
-
-                    {activeTab === 'past' && booking.recordingUrl && (
-                      <Link
-                        href={`/student/recordings/${booking._id}`}
-                        className="inline-flex items-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 transition-colors hover:bg-emerald-100"
-                      >
-                        <Video className="mr-2 h-4 w-4" />
-                        Watch Recording
-                      </Link>
-                    )}
-                  </div>
+          {loading ? (
+            <div className="flex items-center justify-center py-32">
+              <div className="text-center">
+                <div className="inline-block relative">
+                  <div className="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
+                  <div className="w-12 h-12 border-4 border-black rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
+                </div>
+                <p className="mt-4 text-sm font-bold text-gray-600 uppercase tracking-widest">Loading schedule...</p>
+              </div>
+            </div>
+          ) : filteredBookings.length === 0 ? (
+            <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-20 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 ring-8 ring-gray-50/50">
+                <CalendarClock className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="mt-4 text-xl font-extrabold text-gray-900">No {activeTab} sessions</h3>
+              <p className="mt-2 text-sm font-medium text-gray-500 max-w-sm mx-auto">You don&apos;t have any {activeTab} sessions at the moment.</p>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between mb-4 px-2">
+                <div className="text-gray-500 font-medium text-sm">
+                  Showing <span className="font-black text-gray-900">{filteredBookings.length}</span> sessions
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+
+              <div className="space-y-5">
+                {filteredBookings.map((booking) => (
+                  <div key={booking._id} className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-black transition-all duration-300">
+                    <div className="p-6">
+                      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="flex items-start gap-4">
+                          <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 border border-gray-200">
+                            {booking.mentor.profileImage ? (
+                              <Image src={getImageUrl(booking.mentor.profileImage, booking.mentor.name)} alt={booking.mentor.name} width={56} height={56} className="h-14 w-14 object-cover object-top" />
+                            ) : (
+                              <UserIcon className="h-6 w-6 text-gray-400" />
+                            )}
+                          </div>
+
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors">{booking.mentor.name}</h3>
+                            <p className="mt-1 flex items-center gap-1 text-sm font-medium text-gray-500">
+                              <MessageSquare className="h-3.5 w-3.5" />
+                              {booking.mentor.email}
+                            </p>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              {getStatusBadge(booking.status)}
+                              <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-bold text-gray-700 border border-gray-200">
+                                ${booking.price}
+                              </span>
+                            </div>
+
+                            {booking.notes && (
+                              <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+                                <span className="mb-1 block font-bold text-gray-900">Your notes:</span>
+                                &ldquo;{booking.notes}&rdquo;
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="grid min-w-57.5 gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                          <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            {formatDate(booking.date)}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            {booking.startTime} - {booking.endTime} ({booking.sessionDuration} min)
+                          </div>
+                          <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                            <Video className="h-4 w-4 text-gray-400" />
+                            {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1)} Session
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
+                        {activeTab === 'upcoming' && booking.status === 'confirmed' && booking.joinUrl && (
+                          <a
+                            href={booking.joinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center rounded-xl bg-black px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-gray-800"
+                          >
+                            <Video className="mr-2 h-4 w-4" />
+                            Join Zoom Meeting
+                            <ExternalLink className="ml-2 h-3 w-3" />
+                          </a>
+                        )}
+
+                        {activeTab === 'upcoming' && booking.status === 'in-progress' && booking.joinUrl && (
+                          <a
+                            href={booking.joinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex animate-pulse items-center rounded-xl bg-cyan-600 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-cyan-700"
+                          >
+                            <PlayCircle className="mr-2 h-4 w-4" />
+                            Session in Progress
+                            <ExternalLink className="ml-2 h-3 w-3" />
+                          </a>
+                        )}
+
+                        {activeTab === 'past' && booking.recordingUrl && (
+                          <Link
+                            href={`/student/recordings/${booking._id}`}
+                            className="inline-flex items-center rounded-xl border border-gray-200 bg-gray-100 px-6 py-2.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-200"
+                          >
+                            <Video className="mr-2 h-4 w-4" />
+                            Watch Recording
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );

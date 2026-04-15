@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
-import { Briefcase, GraduationCap, ShieldCheck, UserCog, CheckCircle, XCircle, Clipboard } from 'lucide-react';
+import { Briefcase, GraduationCap, ShieldCheck, UserCog, CheckCircle, XCircle, Clipboard, Download, CheckSquare } from 'lucide-react';
 
 type DashboardStats = {
   totalStudents: number;
@@ -49,6 +49,10 @@ function AdminDashboardContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Bulk action states
+  const [selectedMentors, setSelectedMentors] = useState<Set<string>>(new Set());
+  const [isProcessingBulk, setIsProcessingBulk] = useState(false);
+
   const loadDashboard = async (page: number) => {
     const statsRes = await apiClient.get<DashboardStats>('/api/v1/admin/stats');
     const pendingRes = await apiClient.get<Mentor[]>(`/api/v1/admin/mentors/pending?page=${page}`);
@@ -61,6 +65,7 @@ function AdminDashboardContent() {
     setPendingPage(pendingRes.page || page);
     setPendingPages(pendingRes.pages || 1);
     setPendingTotal(pendingRes.total || 0);
+    setSelectedMentors(new Set()); // Reset selections on page change
   };
 
   const loadAssessments = async (page: number) => {
@@ -138,50 +143,132 @@ function AdminDashboardContent() {
     }
   };
 
+  const toggleAllMentors = () => {
+    if (selectedMentors.size === pendingMentors.length && pendingMentors.length > 0) {
+      setSelectedMentors(new Set());
+    } else {
+      setSelectedMentors(new Set(pendingMentors.map((m) => m._id)));
+    }
+  };
+
+  const toggleMentor = (id: string) => {
+    const newSet = new Set(selectedMentors);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedMentors(newSet);
+  };
+
+  const handleBulkApprove = async () => {
+    if (!selectedMentors.size) return;
+    setIsProcessingBulk(true);
+    try {
+      await Promise.all(
+        Array.from(selectedMentors).map((id) =>
+          apiClient.put(`/api/v1/admin/mentors/${id}/approve`, {})
+        )
+      );
+      setSelectedMentors(new Set());
+      setPendingPage(1);
+      await loadDashboard(1);
+    } catch (err) {
+      console.error('Error in bulk approval:', err);
+    } finally {
+      setIsProcessingBulk(false);
+    }
+  };
+
+  const handleBulkReject = async () => {
+    if (!selectedMentors.size) return;
+    setIsProcessingBulk(true);
+    try {
+      await Promise.all(
+        Array.from(selectedMentors).map((id) =>
+          apiClient.put(`/api/v1/admin/mentors/${id}/reject`, { reason: 'Bulk rejected by admin' })
+        )
+      );
+      setSelectedMentors(new Set());
+      setPendingPage(1);
+      await loadDashboard(1);
+    } catch (err) {
+      console.error('Error in bulk rejection:', err);
+    } finally {
+      setIsProcessingBulk(false);
+    }
+  };
+
+  const exportAssessmentsToCSV = () => {
+    if (!assessments.length) return;
+    
+    const headers = ['Student Name', 'Student Email', 'Responses Logged', 'Submission Date'];
+    const csvRows = [headers.join(',')];
+
+    assessments.forEach((sub) => {
+      const answers = sub.answers || {};
+      const keys = typeof answers === 'object' && answers ? Object.keys(answers) : [];
+      const name = `"${(sub.student?.name || 'Unknown').replace(/"/g, '""')}"`;
+      const email = `"${(sub.student?.email || '').replace(/"/g, '""')}"`;
+      const date = sub.createdAt ? `"${new Date(sub.createdAt).toLocaleDateString()}"` : '""';
+      csvRows.push([name, email, keys.length, date].join(','));
+    });
+
+    const csvData = csvRows.join('\n');
+    const blob = new Blob([csvData], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `edmarg_assessments_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <DashboardLayout userName="Admin Team">
-      <div className="space-y-8 pb-12">
+      <div className="space-y-8 pb-16 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
         {/* ======== Header Section ======== */}
-        <section className="relative overflow-hidden rounded-3xl border border-emerald-100/50 bg-linear-to-br from-white via-slate-50 to-emerald-50/50 p-8 shadow-sm sm:p-10">
-          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
+          <div className="max-w-4xl flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-widest text-emerald-700">
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">
                 Admin Control Center
               </p>
-              <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+              <h1 className="text-4xl font-bold text-black">
                 Platform Overview
               </h1>
-              <p className="mt-3 max-w-2xl text-lg font-medium text-slate-600">
+              <p className="mt-2 text-gray-600">
                 Manage mentor approvals, track assessments, and monitor platform-wide growth metrics.
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 mt-4 lg:mt-0">
               <Link href="/admin/users">
-                <button className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:-translate-y-0.5 hover:bg-emerald-600 active:scale-95">
+                <button className="inline-flex items-center gap-2 rounded-lg bg-black px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-gray-800 active:scale-95">
                   <UserCog size={18} />
                   Manage Users
                 </button>
               </Link>
             </div>
           </div>
-          
-          {/* Subtle Background Accent */}
-          <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-200/20 blur-3xl" />
-          <div className="absolute -bottom-20 left-20 h-64 w-64 rounded-full bg-cyan-200/20 blur-3xl" />
-        </section>
+        </div>
 
+        <div className="px-6 sm:px-8 max-w-[1500px] mx-auto space-y-8">
         {error && (
-          <div className="rounded-2xl border border-red-200 bg-red-50 p-4 flex items-center gap-3">
-            <XCircle className="text-red-500" size={20} />
-            <p className="text-red-700 font-bold text-sm">
-              {error}
-            </p>
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 flex items-center gap-3 shadow-sm">
+            <XCircle className="text-red-500" size={24} />
+            <div>
+              <p className="font-bold text-red-900">Error</p>
+              <p className="mt-1 text-sm font-medium text-red-700">{error}</p>
+            </div>
           </div>
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="h-10 w-10 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+          <div className="flex items-center justify-center py-32">
+            <div className="text-center">
+              <div className="inline-block relative">
+                 <div className="w-12 h-12 border-4 border-gray-200 rounded-full"></div>
+                 <div className="w-12 h-12 border-4 border-black rounded-full border-t-transparent animate-spin absolute top-0 left-0"></div>
+              </div>
+              <p className="mt-4 text-sm font-bold text-gray-600 uppercase tracking-widest">Loading data...</p>
+            </div>
           </div>
         ) : (
           <>
@@ -190,17 +277,17 @@ function AdminDashboardContent() {
               {adminStats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-900/5"
+                  className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-black hover:shadow-xl flex flex-col"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-400 to-cyan-500 text-slate-900 shadow-md transition-transform group-hover:scale-110">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-black shadow-sm transition-transform group-hover:scale-110 border border-gray-200">
                       <stat.icon size={22} strokeWidth={2.5} />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                      <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
                         {stat.label}
                       </p>
-                      <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-slate-900">
+                      <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-black">
                         {stat.value}
                       </h2>
                     </div>
@@ -209,67 +296,108 @@ function AdminDashboardContent() {
               ))}
             </section>
 
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-5">
-                <h2 className="text-xl font-bold text-slate-900">Pending Mentor Approvals</h2>
-                <p className="mt-1 text-sm font-medium text-slate-500">
-                  <span className="text-slate-900 font-bold">{pendingTotal}</span> applications awaiting review
-                </p>
+            <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm relative z-20">
+              <div className="border-b border-gray-200 bg-white px-6 py-5 flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-black">Pending Mentor Approvals</h2>
+                  <p className="mt-1 text-sm font-medium text-gray-500">
+                    <span className="text-black font-bold">{pendingTotal}</span> applications awaiting review
+                  </p>
+                </div>
+                {selectedMentors.size > 0 && (
+                  <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                    <span className="text-sm font-bold text-black bg-gray-100 px-3 py-1 rounded-full border border-gray-300">
+                      {selectedMentors.size} selected
+                    </span>
+                    <button
+                      onClick={handleBulkApprove}
+                      disabled={isProcessingBulk}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
+                    >
+                      <CheckSquare size={16} />
+                      Approve All
+                    </button>
+                    <button
+                      onClick={handleBulkReject}
+                      disabled={isProcessingBulk}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-200 active:scale-95 disabled:opacity-50"
+                    >
+                      <XCircle size={16} />
+                      Reject All
+                    </button>
+                  </div>
+                )}
               </div>
 
               {pendingMentors.length === 0 ? (
-                <div className="p-12 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
-                    <UserCog size={32} />
+                <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-20 text-center m-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 ring-8 ring-gray-50/50">
+                    <UserCog className="h-8 w-8 text-gray-400" />
                   </div>
-                  <h3 className="mt-4 text-lg font-bold text-slate-900">All caught up!</h3>
-                  <p className="mt-1 text-slate-500">No new mentor registrations require approval.</p>
+                  <h3 className="mt-4 text-xl font-extrabold text-gray-900">All caught up!</h3>
+                  <p className="mt-2 text-sm font-medium text-gray-500 max-w-sm mx-auto">No new mentor registrations require approval.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/50 text-left">
-                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Mentor Details</th>
-                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Expertise</th>
-                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Actions</th>
+                      <tr className="bg-gray-50/80 text-left border-y border-gray-200">
+                        <th className="px-6 py-4 w-12">
+                          <input 
+                            type="checkbox" 
+                            className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
+                            checked={pendingMentors.length > 0 && selectedMentors.size === pendingMentors.length}
+                            onChange={toggleAllMentors}
+                          />
+                        </th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Mentor Details</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Expertise</th>
+                        <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-gray-100">
                       {pendingMentors.map((mentor) => (
-                        <tr key={mentor._id} className="group transition-colors hover:bg-slate-50/50">
+                        <tr key={mentor._id} className="group transition-colors hover:bg-gray-50/50">
+                          <td className="px-6 py-4">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
+                              checked={selectedMentors.has(mentor._id)}
+                              onChange={() => toggleMentor(mentor._id)}
+                            />
+                          </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="h-10 w-10 rounded-full bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center">
+                              <div className="h-10 w-10 rounded-full bg-gray-100 border border-gray-200 text-black font-bold flex items-center justify-center">
                                 {mentor.name.charAt(0)}
                               </div>
                               <div>
-                                <div className="font-bold text-slate-900">{mentor.name}</div>
-                                <div className="text-xs text-slate-500 font-medium">{mentor.email}</div>
+                                <div className="font-bold text-gray-900">{mentor.name}</div>
+                                <div className="text-xs text-gray-500 font-medium mt-0.5">{mentor.email}</div>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex flex-wrap gap-1.5">
                               {mentor.mentorProfile?.expertise?.slice(0, 3).map((exp) => (
-                                <span key={exp} className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[10px] font-bold text-slate-600">
+                                <span key={exp} className="rounded-full bg-gray-100 border border-gray-200 px-2.5 py-0.5 text-[10px] font-bold text-gray-700">
                                   {exp}
                                 </span>
-                              )) || <span className="text-slate-400">—</span>}
+                              )) || <span className="text-gray-400 font-medium text-sm">—</span>}
                             </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleApproveMentor(mentor._id)}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-95"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-black px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95"
                               >
                                 <CheckCircle size={14} />
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleRejectMentor(mentor._id)}
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 active:scale-95"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95 shadow-sm"
                               >
                                 <XCircle size={14} />
                                 Reject
@@ -284,79 +412,90 @@ function AdminDashboardContent() {
               )}
 
               {/* Pagination */}
-              <div className="flex items-center justify-center gap-2 border-t border-slate-100 p-4">
+              <div className="flex items-center justify-center gap-2 border-t border-gray-200 bg-gray-50/50 p-4">
                 <button
                   onClick={() => setPendingPage((p) => Math.max(1, p - 1))}
                   disabled={pendingPage <= 1}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-40"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Prev
                 </button>
-                <span className="text-xs font-bold text-slate-900 mx-2">
-                  Page {pendingPage} / {pendingPages}
+                <span className="text-xs font-bold text-gray-900 mx-2">
+                  Page {pendingPage} of {pendingPages}
                 </span>
                 <button
                   onClick={() => setPendingPage((p) => Math.min(pendingPages, p + 1))}
                   disabled={pendingPage >= pendingPages}
-                  className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-40"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>
               </div>
             </section>
 
-            <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-5">
-                <div className="flex items-center gap-2">
-                  <Clipboard className="w-5 h-5 text-emerald-600" />
-                  <h2 className="text-xl font-bold text-slate-900">Recent Assessments</h2>
+            <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+              <div className="border-b border-gray-200 bg-white px-6 py-5 flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <Clipboard className="w-5 h-5 text-gray-900" />
+                    <h2 className="text-xl font-bold text-black">Recent Assessments</h2>
+                  </div>
+                  <p className="mt-1 text-sm font-medium text-gray-500">
+                    <span className="text-black font-bold">{assessmentTotal}</span> total submissions tracked
+                  </p>
                 </div>
-                <p className="mt-1 text-sm font-medium text-slate-500">
-                  <span className="text-slate-900 font-bold">{assessmentTotal}</span> total submissions tracked
-                </p>
+                {assessments.length > 0 && (
+                  <button
+                    onClick={exportAssessmentsToCSV}
+                    className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-300 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-100 hover:text-black active:scale-95"
+                  >
+                    <Download size={16} />
+                    Export to CSV
+                  </button>
+                )}
               </div>
 
               {assessments.length === 0 ? (
-                <div className="p-12 text-center">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
-                    <Clipboard size={32} />
+                <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-20 text-center m-6">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 ring-8 ring-gray-50/50">
+                    <Clipboard className="h-8 w-8 text-gray-400" />
                   </div>
-                  <h3 className="mt-4 text-lg font-bold text-slate-900">No submissions yet</h3>
-                  <p className="mt-1 text-slate-500">Submissions will appear here as students complete them.</p>
+                  <h3 className="mt-4 text-xl font-extrabold text-gray-900">No submissions yet</h3>
+                  <p className="mt-2 text-sm font-medium text-gray-500 max-w-sm mx-auto">Submissions will appear here as students complete them.</p>
                 </div>
               ) : (
                 <>
                   <div className="overflow-x-auto">
                     <table className="w-full border-collapse">
                       <thead>
-                        <tr className="bg-slate-50/50 text-left">
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Student</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Responses</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-slate-500">Date Submitted</th>
+                        <tr className="bg-gray-50/80 text-left border-y border-gray-200">
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Student</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Responses</th>
+                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Date Submitted</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-gray-100">
                         {assessments.map((submission) => {
                           const answers = submission.answers || {};
                           const keys = typeof answers === 'object' && answers ? Object.keys(answers) : [];
                           return (
-                            <tr key={submission._id} className="group transition-colors hover:bg-slate-50/50">
+                            <tr key={submission._id} className="group transition-colors hover:bg-gray-50/50">
                               <td className="px-6 py-4">
                                 <div>
-                                  <div className="font-bold text-slate-900">
+                                  <div className="font-bold text-gray-900">
                                     {submission.student?.name || 'Unknown Student'}
                                   </div>
-                                  <div className="text-xs text-slate-500 font-medium">
+                                  <div className="text-xs text-gray-500 font-medium mt-0.5">
                                     {submission.student?.email || '—'}
                                   </div>
                                 </div>
                               </td>
                               <td className="px-6 py-4">
-                                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                                <span className="inline-flex items-center rounded-full bg-gray-100 border border-gray-200 px-2.5 py-1 text-xs font-bold text-black">
                                   {keys.length} Data Points
                                 </span>
                               </td>
-                              <td className="px-6 py-4 text-sm font-medium text-slate-600">
+                              <td className="px-6 py-4 text-sm font-medium text-gray-600">
                                 {submission.createdAt ? new Date(submission.createdAt).toLocaleDateString('en-US', {
                                   month: 'short',
                                   day: 'numeric',
@@ -371,21 +510,21 @@ function AdminDashboardContent() {
                   </div>
 
                   {/* Pagination */}
-                  <div className="flex items-center justify-center gap-2 border-t border-slate-100 p-4">
+                  <div className="flex items-center justify-center gap-2 border-t border-gray-200 bg-gray-50/50 p-4">
                     <button
                       onClick={() => setAssessmentPage((p) => Math.max(1, p - 1))}
                       disabled={assessmentPage <= 1}
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-40"
+                      className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Prev
                     </button>
-                    <span className="text-xs font-bold text-slate-900 mx-2">
-                      Page {assessmentPage} / {assessmentPages}
+                    <span className="text-xs font-bold text-gray-900 mx-2">
+                      Page {assessmentPage} of {assessmentPages}
                     </span>
                     <button
                       onClick={() => setAssessmentPage((p) => Math.min(assessmentPages, p + 1))}
                       disabled={assessmentPage >= assessmentPages}
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-40"
+                      className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       Next
                     </button>
@@ -395,6 +534,7 @@ function AdminDashboardContent() {
             </section>
           </>
         )}
+        </div>
       </div>
     </DashboardLayout>
   );
