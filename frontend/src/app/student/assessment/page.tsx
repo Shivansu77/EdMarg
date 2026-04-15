@@ -260,10 +260,13 @@ function AssessmentContent() {
     // Auto advance without triggering stale validation
     if (slide.type !== 'multi-select') {
       setTimeout(() => {
-        if (currentStep < QUIZ_SLIDES.length - 1) {
-          setCurrentStep(p => p + 1);
-        }
-        // If last step, don't auto-submit. Let user click 'Finish' manually to avoid stale state bugs on submit.
+        setCurrentStep((p) => {
+          if (p < QUIZ_SLIDES.length - 1) {
+            return p + 1;
+          }
+          return p;
+        });
+        // If last step, don't auto-submit. Let user click 'Finish' manually.
       }, 350);
     }
   };
@@ -283,15 +286,18 @@ function AssessmentContent() {
   };
 
   const getAnswerValue = () => {
+    if (!slide) return undefined;
     const catData = answers[slide.cat as keyof AssessmentAnswers] as any;
+    if (!catData) return undefined;
     return catData[slide.key];
   };
 
   const vBeforeStepNext = () => {
+    if (!slide) return null;
     const val = getAnswerValue();
     if (slide.type === 'rating' && (!val || val < 1 || val > 5)) return 'Please select a rating.';
     if (slide.type === 'choice' && !val) return 'Please choose an option.';
-    if (slide.type === 'multi-select' && val.length === 0) return 'Please select at least one.';
+    if (slide.type === 'multi-select' && (!val || val.length === 0)) return 'Please select at least one.';
     return null;
   };
 
@@ -341,7 +347,7 @@ function AssessmentContent() {
   }
 
   // RESULT VIEW
-  if (result && currentStep === QUIZ_SLIDES.length - 1 && !submitting && !error) {
+  if (result && currentStep >= QUIZ_SLIDES.length - 1 && !submitting && !error) {
     const recs = result.step4Output?.top3CareerRecommendations || [];
     const dominantTags = result.step3CareerMapping?.dominantTags || [];
     const tagScores = result.step2TagScores || {};
@@ -419,6 +425,16 @@ function AssessmentContent() {
   }
 
   // QUIZ VIEW
+  if (!slide) {
+    return (
+      <DashboardLayout userName="Career Discovery">
+        <div className="flex min-h-[70vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   const val = getAnswerValue();
   const progressPercent = ((currentStep) / QUIZ_SLIDES.length) * 100;
 
