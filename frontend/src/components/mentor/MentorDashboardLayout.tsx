@@ -54,12 +54,15 @@ const MentorDashboardLayout = ({ children }: MentorDashboardLayoutProps) => {
 
   const toggleSidebarCollapsed = () => {
     const nextSidebarCollapsed = !isSidebarCollapsed;
-    window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, nextSidebarCollapsed ? 'true' : 'false');
+    window.localStorage.setItem(
+      SIDEBAR_COLLAPSED_STORAGE_KEY,
+      nextSidebarCollapsed ? 'true' : 'false'
+    );
     window.dispatchEvent(new Event(SIDEBAR_COLLAPSED_EVENT));
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50/50">
       <div className="flex min-h-screen">
         <MentorSidebar
           isOpen={isSidebarOpen}
@@ -68,8 +71,8 @@ const MentorDashboardLayout = ({ children }: MentorDashboardLayoutProps) => {
           onToggleCollapsed={toggleSidebarCollapsed}
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <MentorHeader onMenuClick={() => setIsSidebarOpen((currentValue) => !currentValue)} />
-          <main className="flex-1 px-6 py-8 lg:px-10">
+          <MentorHeader onMenuClick={() => setIsSidebarOpen((v) => !v)} />
+          <main className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-10 lg:pb-10 lg:pt-8">
             <div className="mx-auto max-w-7xl">{children}</div>
           </main>
         </div>

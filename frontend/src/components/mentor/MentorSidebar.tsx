@@ -13,6 +13,8 @@ import {
   Settings,
   X,
   ChevronLeft,
+  ChevronRight,
+  History,
   Zap,
 } from 'lucide-react';
 
@@ -29,6 +31,7 @@ const navItems = [
   { name: 'Schedule', href: '/mentor/schedule', icon: Calendar },
   { name: 'Students', href: '/mentor/students', icon: Users },
   { name: 'Results', href: '/mentor/results', icon: BarChart3 },
+  { name: 'History', href: '/mentor/history', icon: History },
   { name: 'Profile', href: '/mentor/profile', icon: User },
   { name: 'Settings', href: '/mentor/settings', icon: Settings },
 ];
@@ -43,8 +46,9 @@ const MentorSidebar = ({
 
   return (
     <>
+      {/* Mobile overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-slate-950/30 transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
@@ -52,99 +56,124 @@ const MentorSidebar = ({
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-gray-200 transition-all duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200/80 pb-4 pt-4 shadow-sm transition-all duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:shadow-none ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } ${isCollapsed ? 'w-20' : 'w-64'}`}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between px-4 py-6 border-b border-gray-200 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
+        <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
           {!isCollapsed && (
-            <Link href="/" onClick={onClose} className="block">
-              <p className="text-lg font-bold text-gray-900">Edmarg</p>
-              <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 mt-1">
-                Career Curator
+            <Link href="/" onClick={onClose} className="group block">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-300 to-green-400 text-xs font-extrabold text-slate-900 shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
+                  E
+                </span>
+                <span className="text-xl font-extrabold tracking-tight text-slate-900">EdMarg</span>
+              </div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
+                Mentor Hub
               </p>
             </Link>
           )}
 
           <div className="flex items-center gap-2">
+            {/* Close button — mobile only */}
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 lg:hidden"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
               aria-label="Close navigation"
             >
               <X size={16} />
             </button>
 
+            {/* Collapse button — desktop only */}
             <button
               type="button"
               onClick={onToggleCollapsed}
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
+              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
               aria-label="Toggle sidebar"
             >
-              <ChevronLeft size={16} className={`transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+              <ChevronLeft
+                size={16}
+                className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}
+              />
             </button>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-2 py-6 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            const Icon = item.icon;
+        <div className="flex h-full flex-col px-2 overflow-y-auto">
+          {!isCollapsed && (
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 px-2 mb-4">
+              Navigation
+            </p>
+          )}
 
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                onClick={onClose}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
-                  isActive
-                    ? 'bg-purple-100 text-purple-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-                title={isCollapsed ? item.name : undefined}
-              >
-                <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 ${
+          <nav className="space-y-1 flex-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
                     isActive
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
+                      ? 'bg-emerald-50/80 text-emerald-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
                   }`}
+                  title={isCollapsed ? item.name : undefined}
                 >
-                  <Icon size={18} strokeWidth={2} />
-                </span>
-                {!isCollapsed && (
-                  <span className="flex-1 text-sm font-medium">{item.name}</span>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+                  <span
+                    className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors duration-300 ${
+                      isActive
+                        ? 'bg-gradient-to-br from-emerald-400 to-green-500 text-slate-900 shadow-sm shadow-emerald-500/20'
+                        : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
+                    }`}
+                  >
+                    <Icon size={18} strokeWidth={2} />
+                  </span>
+                  {!isCollapsed && (
+                    <>
+                      <span className={`flex-1 text-sm ${isActive ? 'font-bold' : 'font-semibold'}`}>
+                        {item.name}
+                      </span>
+                      <ChevronRight
+                        size={14}
+                        className={`transition-all duration-200 ${
+                          isActive
+                            ? 'text-emerald-700 opacity-100'
+                            : 'text-slate-400 opacity-0 group-hover:opacity-100'
+                        }`}
+                      />
+                    </>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Upgrade Card */}
-        {!isCollapsed && (
-          <div className="px-4 py-4 border-t border-gray-200">
-            <div className="rounded-lg bg-linear-to-br from-purple-50 to-purple-100 p-4 space-y-3">
-              <div className="flex items-center gap-2">
-                <Zap size={16} className="text-purple-600" />
-                <p className="text-xs font-bold uppercase tracking-widest text-purple-900">
-                  Pro Mentor Plan
+          {/* Pro tip card */}
+          {!isCollapsed && (
+            <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/50 p-4 mt-6 shadow-[0_4px_20px_rgba(16,185,129,0.03)]">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap size={14} className="text-emerald-600" />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                  Mentor Tip
                 </p>
               </div>
-              <div className="space-y-2">
-                <div className="h-2 w-full rounded-full bg-purple-200 overflow-hidden">
-                  <div className="h-full w-[65%] rounded-full bg-purple-600" />
-                </div>
-                <p className="text-xs text-purple-700">65% storage used</p>
-              </div>
-              <button className="w-full text-xs font-semibold text-purple-600 hover:text-purple-700 transition-colors">
-                Upgrade Storage →
-              </button>
+              <p className="mt-1 text-sm font-extrabold text-slate-900">
+                Keep your schedule up to date
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600 font-medium">
+                Update your availability weekly so students can always find and book sessions with you.
+              </p>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </aside>
     </>
   );

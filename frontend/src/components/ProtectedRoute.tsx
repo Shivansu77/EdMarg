@@ -98,14 +98,22 @@ export default function ProtectedRoute({
     const loadingMessage = !hasHydrated
       ? 'Preparing your session...'
       : isSessionChecking
-        ? 'Waking up the server...'
+        ? 'Verifying your session...'
         : 'Redirecting to login...';
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
-        <div className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 shadow-sm">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-          <p className="text-sm font-medium text-gray-700">{loadingMessage}</p>
+      <div className="flex min-h-screen items-center justify-center bg-slate-50/50 px-4">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-slate-200 border-t-emerald-500" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="h-3 w-3 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm shadow-emerald-500/30" />
+            </div>
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-semibold text-slate-700">{loadingMessage}</p>
+            <p className="text-xs text-slate-400 mt-1">This may take a moment</p>
+          </div>
         </div>
       </div>
     );
