@@ -186,7 +186,7 @@ function SignupContent() {
       {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md animate-fade-up">
-          <div className="bg-white/85 backdrop-blur-xl border border-white/60 p-8 rounded-[2rem] shadow-[0_30px_70px_rgba(16,185,129,0.12)]">
+          <div className="bg-white/85 backdrop-blur-xl border border-white/60 p-8 rounded-4xl shadow-[0_30px_70px_rgba(16,185,129,0.12)]">
             {/* Heading */}
             <div className="mb-8">
               <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Create account</h1>
@@ -273,7 +273,7 @@ function SignupContent() {
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="+1 (555) 000-0000"
+                      placeholder="+91 xxxxx-xxxxx"
                     className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
                   />
                 </div>
