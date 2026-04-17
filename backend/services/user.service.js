@@ -135,6 +135,36 @@ class UserService {
   async getAssessmentSubmission(userId) {
     return studentAssessmentRepository.findByStudent(userId);
   }
+
+  async googleLogin(googlePayload) {
+    const { email, name, picture, sub: googleId } = googlePayload;
+    const normalizedEmail = email.trim().toLowerCase();
+
+    let user = await userRepository.findByEmail(normalizedEmail);
+
+    if (!user) {
+      // Create new user if not exists
+      // Using a random long password for OAuth users
+      const dummyPassword = await bcrypt.hash(Math.random().toString(36) + googleId, 10);
+      
+      user = await userRepository.create({
+        name,
+        email: normalizedEmail,
+        password: dummyPassword,
+        role: 'student', // Default role for Google signup
+        profileImage: picture,
+      });
+      console.log(`[AUTH_GOOGLE] New user created: ${normalizedEmail}`);
+    } else {
+      // Update profile picture if user exists but has no picture
+      if (!user.profileImage && picture) {
+        await userRepository.updateUserProfile(user._id, { profileImage: picture });
+      }
+      console.log(`[AUTH_GOOGLE] Existing user logged in: ${normalizedEmail}`);
+    }
+
+    return user;
+  }
 }
 
 module.exports = new UserService();

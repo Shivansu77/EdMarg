@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 
 import { getImageUrl } from '@/utils/imageUrl';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 type Mentor = {
   _id: string;
   name: string;
@@ -43,8 +44,7 @@ export default function BrowseMentorsPage() {
         setLoading(true);
         setError(null);
 
-        const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
-        const response = await fetch(`${API_URL}/api/v1/users/browsementor`, {
+        const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/browsementor`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

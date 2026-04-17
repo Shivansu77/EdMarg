@@ -41,9 +41,10 @@ function setCorsHeaders(req, res) {
   const requestedHeaders = req.headers['access-control-request-headers'];
   res.setHeader(
     'Access-Control-Allow-Headers',
-    requestedHeaders || 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    requestedHeaders || 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie'
   );
   res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Access-Control-Expose-Headers', 'Set-Cookie');
 }
 
 function withCors(handler) {

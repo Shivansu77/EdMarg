@@ -1,10 +1,12 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, @next/next/no-img-element, react/no-unescaped-entities */
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Loader2, ArrowLeft } from 'lucide-react';
 import { apiClient } from '@/utils/api-client';
+import { getImageUrl } from '@/utils/imageUrl';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 import Link from 'next/link';
 
 export default function ProfileImageUpload() {
@@ -13,8 +15,7 @@ export default function ProfileImageUpload() {
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
+  const apiBaseUrl = resolveApiBaseUrl();
 
   useEffect(() => {
     // Load current user context
@@ -25,7 +26,7 @@ export default function ProfileImageUpload() {
           setUserName(response.data.name);
           setUserRole(response.data.role);
           if (response.data.profileImage) {
-            setImagePreview(`${API_URL}${response.data.profileImage}`);
+            setImagePreview(getImageUrl(response.data.profileImage, response.data.name));
           }
         }
       } catch (err) {
@@ -33,7 +34,7 @@ export default function ProfileImageUpload() {
       }
     }
     fetchUser();
-  }, [API_URL]);
+  }, []);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -63,7 +64,7 @@ export default function ProfileImageUpload() {
       
       // Need standard fetch because apiClient specifically forces JSON usually
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/v1/profile/update-image`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/profile/update-image`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -74,7 +75,7 @@ export default function ProfileImageUpload() {
       const result = await response.json();
 
       if (result.success) {
-        setImagePreview(`${API_URL}${result.profileImage}`);
+        setImagePreview(getImageUrl(result.profileImage, userName));
         alert('Profile picture updated successfully!');
       } else {
         throw new Error(result.message);

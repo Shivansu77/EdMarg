@@ -26,9 +26,9 @@
   --color-on-tertiary: #ffffff;
   --color-input: #d8dee3;
   --color-ring: #4e45e2;
-  --font-inter: var(--font-inter-var), sans-serif;
-  --font-manrope: var(--font-manrope-var), sans-serif;
-  --font-plus-jakarta: var(--font-manrope-var), sans-serif;
+  --font-inter: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  --font-manrope: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --font-plus-jakarta: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
   --shadow-ambient: 0 8px 24px rgba(45, 51, 55, 0.04);
 }
 

@@ -1,20 +1,8 @@
 import type { Metadata } from 'next';
-import { Inter, Manrope } from 'next/font/google';
 import { Providers } from '@/context/Providers';
-import { NetworkStatus } from '@/components/NetworkStatus';
+import { NetworkStatusLoader } from '@/components/NetworkStatusLoader';
 import { SITE_URL } from '@/utils/site-url';
 import './globals.css';
-
-const manrope = Manrope({
-  variable: '--font-manrope-var',
-  subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
-});
-
-const inter = Inter({
-  variable: '--font-inter-var',
-  subsets: ['latin'],
-});
 
 export const metadata: Metadata = {
   title: 'Edmarg — AI-Powered Career Mentorship Platform',
@@ -53,10 +41,10 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${manrope.variable} ${inter.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">
-        <Providers>{children}<NetworkStatus /></Providers>
+        <Providers>{children}<NetworkStatusLoader /></Providers>
       </body>
     </html>
   );

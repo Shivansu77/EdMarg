@@ -290,6 +290,10 @@ class BookingService {
       throw new ValidationError('You are not authorized to manage this booking');
     }
 
+    if (booking.status === 'confirmed') {
+      return this._sanitizeBookingForClient(booking);
+    }
+
     if (booking.status !== 'pending') {
       throw new ValidationError(`Cannot accept a booking with status "${booking.status}"`);
     }

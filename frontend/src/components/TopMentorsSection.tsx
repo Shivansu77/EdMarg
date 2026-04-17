@@ -1,5 +1,6 @@
 'use client';
 import { getImageUrl } from '@/utils/imageUrl';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users } from 'lucide-react';
@@ -28,8 +29,7 @@ const TopMentorsSection = () => {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
-        const response = await fetch(`${API_URL}/api/v1/users/browsementor`);
+        const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/browsementor`);
         if (response.ok) {
           const result = await response.json();
           const mentorData = Array.isArray(result?.data) ? result.data.slice(0, 3) : [];

@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -56,11 +56,16 @@ interface Booking {
 type BookingTab = 'pending' | 'upcoming' | 'past';
 
 const actionSuccessMessages: Record<'accept' | 'reject' | 'start' | 'complete', string> = {
-  accept: 'Booking confirmed successfully.',
+  accept: 'Booking confirmed and Zoom link generated.',
   reject: 'Booking rejected.',
   start: 'Session started successfully.',
   complete: 'Session marked as completed.',
 };
+
+const NO_CACHE_HEADERS = {
+  'x-bypass-cache': '1',
+  'Cache-Control': 'no-cache',
+} as const;
 
 const resolveActiveTab = (value: string | null): BookingTab => {
   if (value === 'upcoming' || value === 'past') return value;
@@ -136,12 +141,17 @@ function MentorRequestsContent() {
     setLoading(true);
     try {
       const response = await apiClient.get<{ bookings: Booking[] }>(
-        '/api/v1/mentor/bookings?limit=50'
+        '/api/v1/mentor/bookings?limit=50',
+        {
+          headers: NO_CACHE_HEADERS,
+        }
       );
       if (response.success && response.data?.bookings) {
         setBookings(response.data.bookings);
+        setError('');
       } else {
-        setError(response.message || 'Failed to load bookings');
+        setBookings([]);
+        setError(response.error || response.message || 'Failed to load bookings');
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An unexpected error occurred');
@@ -168,18 +178,24 @@ function MentorRequestsContent() {
     setActionLoading(bookingId);
     try {
       const payload = reason ? { reason } : undefined;
-      const res = await apiClient.put<{ startUrl?: string }>(
+      const res = await apiClient.put<Booking>(
         `/api/v1/mentor/bookings/${bookingId}/${action}`,
         payload
       );
       if (res.success) {
+        if (res.data?._id) {
+          setBookings((current) =>
+            current.map((booking) => (booking._id === res.data?._id ? res.data : booking))
+          );
+        }
         toast.success(actionSuccessMessages[action]);
-        if ((action === 'start' || action === 'accept') && res.data?.startUrl) {
+        if (action === 'start' && res.data?.startUrl) {
           window.open(res.data.startUrl, '_blank');
         }
-        fetchBookings();
+        await fetchBookings();
       } else {
-        toast.error(res.message || `Failed to ${action} booking`);
+        await fetchBookings();
+        toast.error(res.error || res.message || `Failed to ${action} booking`);
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');
@@ -194,15 +210,21 @@ function MentorRequestsContent() {
     inFlightActionsRef.current.add(bookingId);
     setActionLoading(bookingId);
     try {
-      const res = await apiClient.put<{ startUrl?: string }>(
+      const res = await apiClient.put<Booking>(
         `/api/v1/mentor/bookings/${bookingId}/start`
       );
       if (res.success) {
+        if (res.data?._id) {
+          setBookings((current) =>
+            current.map((booking) => (booking._id === res.data?._id ? res.data : booking))
+          );
+        }
         toast.success('Zoom link generated successfully.');
         if (res.data?.startUrl) window.open(res.data.startUrl, '_blank');
-        fetchBookings();
+        await fetchBookings();
       } else {
-        toast.error(res.message || 'Failed to generate Zoom link');
+        await fetchBookings();
+        toast.error(res.error || res.message || 'Failed to generate Zoom link');
       }
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'An error occurred');

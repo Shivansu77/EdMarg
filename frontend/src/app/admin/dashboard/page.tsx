@@ -6,13 +6,22 @@ import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
-import { Briefcase, GraduationCap, ShieldCheck, UserCog, CheckCircle, XCircle, Clipboard, Download, CheckSquare } from 'lucide-react';
+import { Briefcase, GraduationCap, ShieldCheck, UserCog, CheckCircle, XCircle, Clipboard, Download, CheckSquare, CalendarDays, BookOpen, Users } from 'lucide-react';
 
 type DashboardStats = {
   totalStudents: number;
   approvedMentors: number;
   pendingMentors: number;
   totalUsers: number;
+};
+
+type BookingStats = {
+  pending?: number;
+  confirmed?: number;
+  completed?: number;
+  cancelled?: number;
+  rejected?: number;
+  [key: string]: number | undefined;
 };
 
 type Mentor = {
@@ -38,6 +47,7 @@ type AssessmentSubmission = {
 
 function AdminDashboardContent() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [bookingStats, setBookingStats] = useState<BookingStats | null>(null);
   const [pendingMentors, setPendingMentors] = useState<Mentor[]>([]);
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingPages, setPendingPages] = useState(1);
@@ -56,11 +66,13 @@ function AdminDashboardContent() {
   const loadDashboard = async (page: number) => {
     const statsRes = await apiClient.get<DashboardStats>('/api/v1/admin/stats');
     const pendingRes = await apiClient.get<Mentor[]>(`/api/v1/admin/mentors/pending?page=${page}`);
+    const bookingStatsRes = await apiClient.get<BookingStats>('/api/v1/admin/bookings/stats');
 
     if (!statsRes.success) throw new Error('Failed to fetch stats');
     if (!pendingRes.success) throw new Error('Failed to fetch pending mentors');
 
     setStats(statsRes.data || null);
+    setBookingStats(bookingStatsRes.success ? (bookingStatsRes.data ?? null) : null);
     setPendingMentors(pendingRes.data || []);
     setPendingPage(pendingRes.page || page);
     setPendingPages(pendingRes.pages || 1);
@@ -113,10 +125,18 @@ function AdminDashboardContent() {
   }, [assessmentPage]);
 
   const adminStats = [
-    { label: 'Students Active', value: stats?.totalStudents || '0', icon: GraduationCap },
-    { label: 'Mentors Verified', value: stats?.approvedMentors || '0', icon: ShieldCheck },
-    { label: 'Pending Approval', value: stats?.pendingMentors || '0', icon: UserCog },
-    { label: 'Total Users', value: stats?.totalUsers || '0', icon: Briefcase },
+    { label: 'Students Active', value: stats?.totalStudents || '0', icon: GraduationCap, href: '/admin/users' },
+    { label: 'Mentors Verified', value: stats?.approvedMentors || '0', icon: ShieldCheck, href: '/admin/users?tab=mentor' },
+    { label: 'Pending Approval', value: stats?.pendingMentors || '0', icon: UserCog, href: '/admin/users?tab=mentor' },
+    { label: 'Total Users', value: stats?.totalUsers || '0', icon: Users, href: '/admin/users' },
+    {
+      label: 'Total Sessions',
+      value: bookingStats
+        ? Object.values(bookingStats).reduce((a, b) => (a ?? 0) + (b ?? 0), 0) ?? 0
+        : '—',
+      icon: CalendarDays,
+      href: '/admin/bookings',
+    },
   ];
 
   const handleApproveMentor = async (mentorId: string) => {
@@ -238,11 +258,23 @@ function AdminDashboardContent() {
                 Manage mentor approvals, track assessments, and monitor platform-wide growth metrics.
               </p>
             </div>
-            <div className="flex gap-3 mt-4 lg:mt-0">
+            <div className="flex flex-wrap gap-3 mt-4 lg:mt-0">
               <Link href="/admin/users">
-                <button className="inline-flex items-center gap-2 rounded-lg bg-black px-6 py-3 text-sm font-bold text-white shadow-md transition-all hover:bg-gray-800 active:scale-95">
-                  <UserCog size={18} />
-                  Manage Users
+                <button className="inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-gray-800 active:scale-95">
+                  <Users size={16} />
+                  Users
+                </button>
+              </Link>
+              <Link href="/admin/bookings">
+                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-800 shadow-sm transition-all hover:bg-gray-50 active:scale-95">
+                  <CalendarDays size={16} />
+                  Sessions
+                </button>
+              </Link>
+              <Link href="/admin/blogs">
+                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-800 shadow-sm transition-all hover:bg-gray-50 active:scale-95">
+                  <BookOpen size={16} />
+                  Blogs
                 </button>
               </Link>
             </div>
@@ -273,26 +305,27 @@ function AdminDashboardContent() {
         ) : (
           <>
             {/* Stats Grid */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {adminStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-black hover:shadow-xl flex flex-col"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-black shadow-sm transition-transform group-hover:scale-110 border border-gray-200">
-                      <stat.icon size={22} strokeWidth={2.5} />
-                    </div>
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
-                        {stat.label}
-                      </p>
-                      <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-black">
-                        {stat.value}
-                      </h2>
+                <Link key={stat.label} href={stat.href}>
+                  <div
+                    className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-black hover:shadow-xl flex flex-col cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-black shadow-sm transition-transform group-hover:scale-110 border border-gray-200">
+                        <stat.icon size={22} strokeWidth={2.5} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-gray-500">
+                          {stat.label}
+                        </p>
+                        <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-black">
+                          {stat.value}
+                        </h2>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </Link>
               ))}
             </section>
 

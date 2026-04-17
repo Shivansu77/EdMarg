@@ -1,4 +1,61 @@
 const userService = require('../services/user.service');
+const googleAuthUtil = require('../utils/google-auth');
+
+const resolveFrontendBase = () => {
+  const candidates = [
+    process.env.FRONTEND_ORIGIN,
+    process.env.FRONTEND_ORIGINS,
+    process.env.NEXT_PUBLIC_APP_URL,
+    'http://localhost:3000',
+  ]
+    .filter(Boolean)
+    .flatMap((value) => String(value).split(','))
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  return candidates[0] || 'http://localhost:3000';
+};
+
+/* ================= GOOGLE AUTH ================= */
+exports.googleAuth = (req, res) => {
+  try {
+    const url = googleAuthUtil.getGoogleAuthUrl();
+    res.redirect(url);
+  } catch (err) {
+    console.error('Google Auth Init Error:', err);
+    res.redirect(`${resolveFrontendBase()}/login?error=Google%20login%20is%20not%20configured`);
+  }
+};
+
+exports.googleAuthCallback = async (req, res, next) => {
+  try {
+    const { code } = req.query;
+    if (!code) {
+      return res.redirect(`${resolveFrontendBase()}/login?error=Google%20auth%20failed`);
+    }
+
+    const tokens = await googleAuthUtil.getTokensFromCode(code);
+    const googleUser = await googleAuthUtil.verifyGoogleIdToken(tokens.id_token);
+    
+    const user = await userService.googleLogin(googleUser);
+    const token = await userService.generateToken(user._id);
+
+    // Set cookie
+    res.cookie('accessToken', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    const frontendBase = resolveFrontendBase();
+    res.redirect(`${frontendBase}/login?token=${token}&role=${user.role}`);
+  } catch (err) {
+    console.error('Google Auth Error:', err);
+    res.redirect(`${resolveFrontendBase()}/login?error=Google%20login%20failed`);
+  }
+};
 
 /* ================= SIGNUP ================= */
 exports.signupUser = async (req, res) => {

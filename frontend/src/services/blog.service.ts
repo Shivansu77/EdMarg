@@ -6,6 +6,7 @@ const API_BASE_URL = resolveApiBaseUrl();
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1600&q=80';
+const BLOG_REVALIDATE_SECONDS = 3600;
 
 export interface BlogInput {
   title: string;
@@ -54,7 +55,7 @@ export async function getAllBlogsFromAPI(): Promise<BlogPost[]> {
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store', // Don't cache to get fresh data
+      next: { revalidate: BLOG_REVALIDATE_SECONDS },
     });
 
     if (!response.ok) {
@@ -88,7 +89,7 @@ export async function getBlogBySlugFromAPI(slug: string): Promise<BlogPost | nul
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store',
+      next: { revalidate: BLOG_REVALIDATE_SECONDS },
     });
 
     if (response.status === 404) {

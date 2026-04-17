@@ -91,6 +91,59 @@ class BookingRepository {
       .limit(limit)
       .lean();
   }
+
+  // ── Admin: platform-wide booking access ──────────────────────────────────
+
+  async findAll({ skip = 0, limit = 20, status, search } = {}) {
+    const query = {};
+    if (status && status !== 'all') query.status = status;
+
+    const base = Booking.find(query)
+      .populate('student', 'name email profileImage')
+      .populate('mentor', 'name email profileImage mentorProfile.expertise')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const results = await base.lean();
+
+    // Post-filter by name search if provided (MongoDB text index not guaranteed)
+    if (search) {
+      const lower = search.toLowerCase();
+      return results.filter(
+        (b) =>
+          b.student?.name?.toLowerCase().includes(lower) ||
+          b.student?.email?.toLowerCase().includes(lower) ||
+          b.mentor?.name?.toLowerCase().includes(lower)
+      );
+    }
+
+    return results;
+  }
+
+  async countAll({ status, search } = {}) {
+    const query = {};
+    if (status && status !== 'all') query.status = status;
+    // For exact counts with search we'd need aggregation; keep simple count for now
+    return Booking.countDocuments(query);
+  }
+
+  async countByStatus() {
+    return Booking.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } },
+    ]);
+  }
+
+  async cancelById(id, reason = 'Cancelled by admin') {
+    return Booking.findByIdAndUpdate(
+      id,
+      { status: 'cancelled', cancellationReason: reason },
+      { new: true }
+    )
+      .populate('student', 'name email')
+      .populate('mentor', 'name email')
+      .lean();
+  }
 }
 
 module.exports = new BookingRepository();

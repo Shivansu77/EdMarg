@@ -1,10 +1,17 @@
 const userRepository = require('../repositories/user.repository');
 const studentAssessmentRepository = require('../repositories/studentAssessment.repository');
+const bookingRepository = require('../repositories/booking.repository');
+const { User } = require('../models/user.model');
 
 class AdminService {
-  async getAllUsers(page = 1, limit = 20, role = null) {
+  async getAllUsers(page = 1, limit = 20, role = null, search = '') {
     const skip = (page - 1) * limit;
     const query = role ? { role } : {};
+
+    if (search) {
+      const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      query.$or = [{ name: regex }, { email: regex }];
+    }
 
     const [users, total] = await Promise.all([
       userRepository.findByQuery(query, skip, limit),
@@ -93,6 +100,43 @@ class AdminService {
     const user = await userRepository.findById(userId);
     if (!user) throw new Error('User not found');
     return user;
+  }
+
+  async deleteUser(userId) {
+    const user = await User.findById(userId);
+    if (!user) throw new Error('User not found');
+    if (user.role === 'admin') throw new Error('Cannot delete admin accounts');
+    await User.findByIdAndDelete(userId);
+    return { deleted: true, id: userId };
+  }
+
+  async getAllBookings(page = 1, limit = 20, { status, search } = {}) {
+    const skip = (page - 1) * limit;
+    const [bookings, total] = await Promise.all([
+      bookingRepository.findAll({ skip, limit, status, search }),
+      bookingRepository.countAll({ status, search }),
+    ]);
+    return {
+      bookings,
+      total,
+      page,
+      pages: Math.max(1, Math.ceil(total / limit)),
+    };
+  }
+
+  async cancelBooking(bookingId, reason) {
+    const booking = await bookingRepository.cancelById(bookingId, reason);
+    if (!booking) throw new Error('Booking not found');
+    return booking;
+  }
+
+  async getBookingStatusBreakdown() {
+    const groups = await bookingRepository.countByStatus();
+    const breakdown = {};
+    for (const g of groups) {
+      breakdown[g._id] = g.count;
+    }
+    return breakdown;
   }
 }
 

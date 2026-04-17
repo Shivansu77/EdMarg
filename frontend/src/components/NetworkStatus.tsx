@@ -1,29 +1,34 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 import { WifiOff, RefreshCcw } from 'lucide-react';
 
+const subscribe = (callback: () => void) => {
+  if (typeof window === 'undefined') {
+    return () => undefined;
+  }
+
+  window.addEventListener('online', callback);
+  window.addEventListener('offline', callback);
+
+  return () => {
+    window.removeEventListener('online', callback);
+    window.removeEventListener('offline', callback);
+  };
+};
+
+const getSnapshot = () => {
+  if (typeof window === 'undefined') {
+    return true;
+  }
+
+  return window.navigator.onLine;
+};
+
 export function NetworkStatus() {
-  const [isOffline, setIsOffline] = useState(false);
+  const isOnline = useSyncExternalStore(subscribe, getSnapshot, () => true);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsOffline(!navigator.onLine);
-
-      const handleOnline = () => setIsOffline(false);
-      const handleOffline = () => setIsOffline(true);
-
-      window.addEventListener('online', handleOnline);
-      window.addEventListener('offline', handleOffline);
-
-      return () => {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
-      };
-    }
-  }, []);
-
-  if (!isOffline) return null;
+  if (isOnline) return null;
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/90 backdrop-blur-sm px-4">
@@ -35,7 +40,7 @@ export function NetworkStatus() {
         </div>
         <h2 className="text-2xl font-bold text-gray-900 mb-3">No Internet Connection</h2>
         <p className="text-gray-600 mb-8">
-          It looks like you've lost your network connection. Please check your Wi-Fi or mobile data and try again.
+          It looks like you&apos;ve lost your network connection. Please check your Wi-Fi or mobile data and try again.
         </p>
         <button
           onClick={() => window.location.reload()}

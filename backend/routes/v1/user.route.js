@@ -11,10 +11,14 @@ const {
   updateUserProfile,
   submitAssessment,
   getMyAssessment,
+  googleAuth,
+  googleAuthCallback,
 } = require('../../controllers/user.controller');
 
 const router = express.Router();
 
+router.get('/auth/google', googleAuth);
+router.get('/auth/google/callback', googleAuthCallback);
 router.post('/', signupUser);
 router.post('/login', loginUser);
 router.get('/me', protect, cacheResponse({ ttlSeconds: 30 }), getCurrentUser);

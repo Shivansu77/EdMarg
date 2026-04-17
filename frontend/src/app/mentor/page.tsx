@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 
 import { getImageUrl } from '@/utils/imageUrl';
@@ -77,8 +78,7 @@ function PublicMentorPageContent() {
         setLoading(true);
         setError(null);
 
-        const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
-        const response = await fetch(`${API_URL}/api/v1/users/browsementor`, {
+        const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/browsementor`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,
             'Content-Type': 'application/json'

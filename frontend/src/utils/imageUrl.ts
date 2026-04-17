@@ -1,3 +1,5 @@
+import { resolveBackendBaseUrl } from '@/utils/api-base';
+
 const withVersion = (value: string, version?: number) => {
   if (!version) {
     return value;
@@ -17,6 +19,6 @@ export const getImageUrl = (url?: string, defaultName?: string, size = 300, vers
   if (url.startsWith('http') || url.startsWith('data:')) {
     return withVersion(url, version);
   }
-  const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/api\/v1\/?$/, '');
-  return withVersion(`${API_URL}${url.startsWith('/') ? '' : '/'}${url}`, version);
+  const backendBaseUrl = resolveBackendBaseUrl();
+  return withVersion(`${backendBaseUrl}${url.startsWith('/') ? '' : '/'}${url}`, version);
 };

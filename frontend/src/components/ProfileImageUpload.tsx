@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, @next/next/no-img-element, react/no-unescaped-entities */
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -8,6 +8,7 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from '@/utils/cropImage';
 import { useAuth } from '@/context/AuthContext';
 import { getImageUrl } from '@/utils/imageUrl';
+import { resolveApiBaseUrl } from '@/utils/api-base';
 
 interface ProfileImageUploadProps {
   currentImage?: string;
@@ -31,8 +32,7 @@ export default function ProfileImageUpload({
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
-
-  const API_URL = (process.env.NEXT_PUBLIC_API_URL || "").replace(/\/api\/v1\/?$/, "");
+  const apiBaseUrl = resolveApiBaseUrl();
 
   useEffect(() => {
     if (currentImage) {
@@ -89,7 +89,7 @@ export default function ProfileImageUpload({
       formData.append('profileImage', croppedFile);
 
       const token = localStorage.getItem('token');
-      const response = await fetch(`${API_URL}/api/v1/profile/update-image`, {
+      const response = await fetch(`${apiBaseUrl}/api/v1/profile/update-image`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`

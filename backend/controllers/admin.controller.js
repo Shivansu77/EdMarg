@@ -5,8 +5,9 @@ exports.getAllUsers = async (req, res, next) => {
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(50, parseInt(req.query.limit) || 20);
     const role = req.query.role || null;
+    const search = req.query.search || '';
 
-    const result = await adminService.getAllUsers(page, limit, role);
+    const result = await adminService.getAllUsers(page, limit, role, search);
 
     res.status(200).json({
       success: true,
@@ -20,6 +21,7 @@ exports.getAllUsers = async (req, res, next) => {
     next(err);
   }
 };
+
 
 exports.getPendingMentors = async (req, res, next) => {
   try {
@@ -115,6 +117,58 @@ exports.getUserDetail = async (req, res, next) => {
       success: true,
       data: user,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.deleteUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const result = await adminService.deleteUser(id);
+    res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getAllBookings = async (req, res, next) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+    const status = req.query.status || 'all';
+    const search = req.query.search || '';
+
+    const result = await adminService.getAllBookings(page, limit, { status, search });
+
+    res.status(200).json({
+      success: true,
+      count: result.bookings.length,
+      total: result.total,
+      page: result.page,
+      pages: result.pages,
+      data: result.bookings,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.cancelBooking = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const reason = req.body.reason || 'Cancelled by admin';
+    const booking = await adminService.cancelBooking(id, reason);
+    res.status(200).json({ success: true, data: booking });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.getBookingStats = async (req, res, next) => {
+  try {
+    const breakdown = await adminService.getBookingStatusBreakdown();
+    res.status(200).json({ success: true, data: breakdown });
   } catch (err) {
     next(err);
   }

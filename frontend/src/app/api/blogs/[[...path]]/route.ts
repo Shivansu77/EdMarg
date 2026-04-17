@@ -1,30 +1,28 @@
 import { resolveBackendBaseUrl } from '@/utils/api-base';
 
-const buildTargetUrl = (path: string[], requestUrl: string) => {
+const buildTargetUrl = (path: string[] | undefined, requestUrl: string) => {
   const incomingUrl = new URL(requestUrl);
-  const joinedPath = path.join('/');
+  const joinedPath = (path || []).join('/');
+  const suffix = joinedPath ? `/${joinedPath}` : '';
   const search = incomingUrl.search || '';
-  return `${resolveBackendBaseUrl(requestUrl)}/api/v1/${joinedPath}${search}`;
+  return `${resolveBackendBaseUrl(requestUrl)}/api/blogs${suffix}${search}`;
 };
 
 const methodAllowsBody = (method: string) => !['GET', 'HEAD'].includes(method.toUpperCase());
 
-const forwardRequest = async (request: Request, path: string[]) => {
+const forwardRequest = async (request: Request, path: string[] | undefined) => {
   const targetUrl = buildTargetUrl(path, request.url);
   const headers = new Headers(request.headers);
 
-  // Host/length are recalculated by fetch runtime.
   headers.delete('host');
   headers.delete('content-length');
-  // Avoid compressed upstream payloads; Vercel/undici can auto-decode and
-  // leave stale content-encoding headers, causing ERR_CONTENT_DECODING_FAILED.
   headers.delete('accept-encoding');
 
   const init: RequestInit = {
     method: request.method,
     headers,
     body: undefined,
-    redirect: 'follow', // Let undici follow up to its native limit to avoid browser ERR_TOO_MANY_REDIRECTS
+    redirect: 'manual',
   };
 
   if (methodAllowsBody(request.method)) {
@@ -32,17 +30,11 @@ const forwardRequest = async (request: Request, path: string[]) => {
   }
 
   const backendResponse = await fetch(targetUrl, init);
-
   const responseHeaders = new Headers(backendResponse.headers);
   responseHeaders.delete('content-length');
   responseHeaders.delete('content-encoding');
   responseHeaders.delete('transfer-encoding');
   responseHeaders.delete('connection');
-
-  // Next.js Dev debugging for redirect loops
-  if (backendResponse.status >= 300 && backendResponse.status < 400) {
-    console.log(`[PROXY REDIRECT ALERT] ${request.url} -> ${targetUrl} (Status: ${backendResponse.status}, Location: ${responseHeaders.get('location')})`);
-  }
 
   return new Response(backendResponse.body, {
     status: backendResponse.status,
@@ -52,7 +44,7 @@ const forwardRequest = async (request: Request, path: string[]) => {
 };
 
 type RouteContext = {
-  params: Promise<{ path: string[] }>;
+  params: Promise<{ path?: string[] }>;
 };
 
 export const dynamic = 'force-dynamic';

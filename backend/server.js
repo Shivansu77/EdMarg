@@ -4,50 +4,43 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const cors = require('cors');
 const mongoose = require('mongoose');
-const { ALLOWED_ORIGINS } = require('./lib/withCors');
+const { ALLOWED_ORIGINS, setCorsHeaders } = require('./lib/withCors');
 const connectDB = require('./lib/db');
 const { invalidateCacheOnMutation } = require('./middlewares/cache.middleware');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 0. Base Configuration - Root level fixes for Vercel
+// Preserve proxy-aware behavior for secure cookies, rate limiting, and deployment headers.
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
-const configuredFrontendOrigins = [
-  process.env.FRONTEND_ORIGIN,
-  process.env.FRONTEND_ORIGINS,
-  process.env.NEXT_PUBLIC_APP_URL,
-].filter(Boolean);
+console.log('\n=========================================');
+console.log('EDMARG BACKEND STARTING...');
+console.log('Time:', new Date().toISOString());
+console.log('=========================================\n');
 
-console.log('✅ CORS Frontend Origin Env:', configuredFrontendOrigins.length ? configuredFrontendOrigins : 'none');
+console.log('✅ CORS Frontend Origin Env:', ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS : 'none');
 console.log('🚀 CORS middleware active (supports allow-list + *.vercel.app previews)');
 
-// 1. CORS Middleware
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl)
-    if (!origin) return callback(null, true);
-    
-    const isVercelApp = typeof origin === 'string' && origin.endsWith('.vercel.app');
-    const isListedOrigin = typeof origin === 'string' && ALLOWED_ORIGINS.includes(origin);
-    const isLocalOrigin = typeof origin === 'string' && (origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1'));
-    const isProduction = process.env.NODE_ENV === 'production';
+// 1. Manual CORS Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log(`[CORS] ${req.method} ${req.url} | origin: ${origin || 'none'}`);
 
-    if (isVercelApp || isListedOrigin || (!isProduction && isLocalOrigin)) {
-      callback(null, true);
-    } else {
-      callback(null, false);
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization']
-};
-app.use(cors(corsOptions));
+  setCorsHeaders(req, res);
+
+  if (origin && !res.getHeader('Access-Control-Allow-Origin')) {
+    console.warn(`[CORS] ❌ Rejected origin: ${origin}`);
+  }
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  next();
+});
 
 // 2. Security middleware
 app.use(helmet({
@@ -69,6 +62,10 @@ if (!process.env.MONGODB_URI) {
 }
 
 const HEALTH_ROUTE_PATHS = new Set(['/health', '/api/v1/health', '/api/status', '/status']);
+const NO_DATABASE_ROUTE_PATHS = new Set([
+  '/api/v1/users/auth/google',
+  '/api/users/auth/google',
+]);
 let dbConnectPromise = null;
 
 const getDatabaseStatus = () => {
@@ -119,7 +116,7 @@ const ensureDatabaseConnection = async () => {
 
 // 1.5 Database Connection Middleware - avoid gating health checks
 app.use(async (req, res, next) => {
-  if (HEALTH_ROUTE_PATHS.has(req.path)) {
+  if (HEALTH_ROUTE_PATHS.has(req.path) || NO_DATABASE_ROUTE_PATHS.has(req.path)) {
     return next();
   }
 
