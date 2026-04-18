@@ -1,4 +1,4 @@
-const DEFAULT_REMOTE_API_BASE = 'https://edmarg-backend.vercel.app';
+const DEFAULT_REMOTE_API_BASE = 'https://edmarg.onrender.com';
 const DEFAULT_LOCAL_API_BASE = 'http://localhost:5000';
 
 const normalizeApiBase = (value: string) =>
