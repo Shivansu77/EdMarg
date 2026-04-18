@@ -53,10 +53,11 @@ exports.verifyGoogleIdToken = async (idToken, origin) => {
 /**
  * Get Google Auth URL
  */
-exports.getGoogleAuthUrl = (origin) => {
+exports.getGoogleAuthUrl = (origin, state) => {
   return getClient(origin).generateAuthUrl({
     access_type: 'offline',
     prompt: 'select_account',
+    state: state, // Store the original frontend domain here
     scope: [
       'https://www.googleapis.com/auth/userinfo.profile',
       'https://www.googleapis.com/auth/userinfo.email',

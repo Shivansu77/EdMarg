@@ -34,7 +34,9 @@ exports.googleAuth = (req, res) => {
     const host = req.get('host');
     const origin = `${protocol}://${host}`;
     
-    const url = googleAuthUtil.getGoogleAuthUrl(origin);
+    // Resolve which frontend domain we are coming from and pass it as 'state'
+    const frontendOrigin = resolveFrontendBase(req);
+    const url = googleAuthUtil.getGoogleAuthUrl(origin, frontendOrigin);
     res.redirect(url);
   } catch (err) {
     console.error('Google Auth Init Error:', err);
@@ -44,9 +46,9 @@ exports.googleAuth = (req, res) => {
 
 exports.googleAuthCallback = async (req, res, next) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
     if (!code) {
-      return res.redirect(`${resolveFrontendBase(req)}/login?error=Google%20auth%20failed`);
+      return res.redirect(`${state || resolveFrontendBase(req)}/login?error=Google%20auth%20failed`);
     }
 
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
@@ -68,11 +70,12 @@ exports.googleAuthCallback = async (req, res, next) => {
       path: '/',
     });
 
-    const frontendBase = resolveFrontendBase(req);
+    const frontendBase = state || resolveFrontendBase(req);
     res.redirect(`${frontendBase}/login?token=${token}&role=${user.role}`);
   } catch (err) {
     console.error('Google Auth Error:', err);
-    res.redirect(`${resolveFrontendBase(req)}/login?error=Google%20login%20failed`);
+    const { state } = req.query;
+    res.redirect(`${state || resolveFrontendBase(req)}/login?error=Google%20login%20failed`);
   }
 };
 

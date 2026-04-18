@@ -53,11 +53,16 @@ const LoginContent: React.FC = () => {
   const handleGoogleLogin = () => {
     setLoading(true);
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+
     if (clientId) {
       const redirectUri = encodeURIComponent(`${backendBaseUrl}/api/v1/users/auth/google/callback`);
-      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&access_type=offline&prompt=select_account`;
+      const state = encodeURIComponent(currentOrigin);
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&access_type=offline&prompt=select_account`;
       window.location.assign(authUrl);
     } else {
+      // If we go to the backend first, we can append the origin as a query param if we wanted, 
+      // but the backend's resolveFrontendBase(req) will now handle it via referer/origin headers
       window.location.assign(`${backendBaseUrl}/api/v1/users/auth/google`);
     }
   };
