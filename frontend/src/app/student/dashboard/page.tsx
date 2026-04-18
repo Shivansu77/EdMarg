@@ -142,6 +142,12 @@ function StudentDashboardContent() {
               >
                 Browse Mentors
               </Link>
+              <Link
+                href="/student/assessments"
+                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-base font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
+              >
+                Take Assessment
+              </Link>
             </div>
           </div>
         </div>
