@@ -1,29 +1,44 @@
 const userService = require('../services/user.service');
 const googleAuthUtil = require('../utils/google-auth');
 
-const resolveFrontendBase = () => {
+const resolveFrontendBase = (req) => {
+  const originHeader = req ? (req.headers.origin || req.headers.referer) : null;
+  
   const candidates = [
     process.env.FRONTEND_ORIGIN,
     process.env.FRONTEND_ORIGINS,
     process.env.NEXT_PUBLIC_APP_URL,
+    'https://edmarg.com',
+    'https://www.edmarg.com',
     'http://localhost:3000',
   ]
     .filter(Boolean)
     .flatMap((value) => String(value).split(','))
-    .map((value) => value.trim())
+    .map((value) => value.trim().replace(/\/$/, ''))
     .filter(Boolean);
 
+  // 1. If we have a request origin/referer, see if it's one of our allowed candidates
+  if (originHeader) {
+    const matchingCandidate = candidates.find(c => originHeader.startsWith(c));
+    if (matchingCandidate) return matchingCandidate;
+  }
+
+  // 2. Fallback to the first candidate (usually FRONTEND_ORIGIN) or localhost
   return candidates[0] || 'http://localhost:3000';
 };
 
 /* ================= GOOGLE AUTH ================= */
 exports.googleAuth = (req, res) => {
   try {
-    const url = googleAuthUtil.getGoogleAuthUrl();
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const origin = `${protocol}://${host}`;
+    
+    const url = googleAuthUtil.getGoogleAuthUrl(origin);
     res.redirect(url);
   } catch (err) {
     console.error('Google Auth Init Error:', err);
-    res.redirect(`${resolveFrontendBase()}/login?error=Google%20login%20is%20not%20configured`);
+    res.redirect(`${resolveFrontendBase(req)}/login?error=Google%20login%20is%20not%20configured`);
   }
 };
 
@@ -31,11 +46,15 @@ exports.googleAuthCallback = async (req, res, next) => {
   try {
     const { code } = req.query;
     if (!code) {
-      return res.redirect(`${resolveFrontendBase()}/login?error=Google%20auth%20failed`);
+      return res.redirect(`${resolveFrontendBase(req)}/login?error=Google%20auth%20failed`);
     }
 
-    const tokens = await googleAuthUtil.getTokensFromCode(code);
-    const googleUser = await googleAuthUtil.verifyGoogleIdToken(tokens.id_token);
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.get('host');
+    const origin = `${protocol}://${host}`;
+
+    const tokens = await googleAuthUtil.getTokensFromCode(code, origin);
+    const googleUser = await googleAuthUtil.verifyGoogleIdToken(tokens.id_token, origin);
     
     const user = await userService.googleLogin(googleUser);
     const token = await userService.generateToken(user._id);
@@ -49,11 +68,11 @@ exports.googleAuthCallback = async (req, res, next) => {
       path: '/',
     });
 
-    const frontendBase = resolveFrontendBase();
+    const frontendBase = resolveFrontendBase(req);
     res.redirect(`${frontendBase}/login?token=${token}&role=${user.role}`);
   } catch (err) {
     console.error('Google Auth Error:', err);
-    res.redirect(`${resolveFrontendBase()}/login?error=Google%20login%20failed`);
+    res.redirect(`${resolveFrontendBase(req)}/login?error=Google%20login%20failed`);
   }
 };
 
