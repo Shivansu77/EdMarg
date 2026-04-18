@@ -24,6 +24,8 @@ interface SignupResponse {
   };
 }
 
+import Logo from "@/components/Logo";
+
 function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -175,12 +177,7 @@ function SignupContent() {
 
       {/* Header */}
       <div className="relative z-10 px-6 py-4 border-b border-emerald-100/50 bg-white/70 backdrop-blur-md">
-        <Link href="/" className="group flex items-center gap-3">
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-linear-to-br from-emerald-300 to-green-400 text-sm font-extrabold text-slate-900 shadow-[0_10px_24px_rgba(16,185,129,0.3)] transition-transform duration-300 group-hover:-translate-y-0.5">
-            E
-          </span>
-          <span className="text-xl font-extrabold tracking-tight text-slate-900">EdMarg</span>
-        </Link>
+        <Logo />
       </div>
 
       {/* Main Content */}

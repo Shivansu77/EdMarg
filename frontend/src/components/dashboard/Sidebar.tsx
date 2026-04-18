@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
+import Logo from '@/components/Logo';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -85,17 +86,12 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
         {/* Header */}
         <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
           {!isCollapsed && (
-            <Link href="/" onClick={onClose} className="group block">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-linear-to-br from-emerald-300 to-green-400 text-xs font-extrabold text-slate-900 shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
-                  E
-                </span>
-                <span className="text-xl font-extrabold tracking-tight text-slate-900">EdMarg</span>
-              </div>
+            <div className="group block">
+              <Logo imgClassName="h-8 w-auto" className="mb-0" />
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
                 Workspace
               </p>
-            </Link>
+            </div>
           )}
           
           <div className="flex items-center gap-2">

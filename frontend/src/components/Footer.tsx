@@ -2,6 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Twitter, Linkedin, Globe } from 'lucide-react';
 
+import Logo from '@/components/Logo';
+
 const Footer = () => {
   const y = new Date().getFullYear();
   return (
@@ -12,12 +14,11 @@ const Footer = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 mb-8">
           <div className="flex flex-col items-center lg:items-start group">
-            <Link href="/" className="text-2xl font-extrabold tracking-tight mb-1 flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/20 text-sm font-extrabold text-emerald-400 group-hover:bg-emerald-500/30 transition-colors">
-                E
-              </span>
-              EdMarg
-            </Link>
+            <Logo 
+              className="mb-1" 
+              imgClassName="h-8 w-auto" 
+              textColor="text-white"
+            />
             <p className="text-xs text-emerald-200/80 font-medium">Find Your Career North Star</p>
           </div>
           
