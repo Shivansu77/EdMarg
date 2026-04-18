@@ -1,18 +1,4 @@
 {
-  "version": 2,
-  "functions": {
-    "api/*.js": {
-      "includeFiles": "backend/**"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
-    },
-    {
-      "source": "/status",
-      "destination": "/api/index.js"
-    }
-  ]
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/.next"
 }
