@@ -135,6 +135,7 @@ const LoginContent: React.FC = () => {
             </div>
 
             <button
+              type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:border-emerald-200 transition-all shadow-sm group/google mb-6"
