@@ -10,11 +10,11 @@ const resolveFrontendBase = (req) => {
   }
 
   const candidates = [
+    'https://www.edmarg.com',
+    'https://edmarg.com',
     process.env.FRONTEND_ORIGIN,
     process.env.FRONTEND_ORIGINS,
     process.env.NEXT_PUBLIC_APP_URL,
-    'https://edmarg.com',
-    'https://www.edmarg.com',
     'http://localhost:3000',
   ]
     .filter(Boolean)
