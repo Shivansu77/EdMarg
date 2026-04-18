@@ -18,9 +18,9 @@ services:
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: FRONTEND_ORIGIN
-        value: https://edmarg.onrender.com
+        value: https://www.edmarg.com,https://edmarg.onrender.com
       - key: FRONTEND_ORIGINS
-        value: https://edmarg.onrender.com,https://frontend-alpha-nine-92.vercel.app
+        value: https://www.edmarg.com,https://edmarg.com,https://edmarg.onrender.com
       - key: LOG_LEVEL
         value: info
     healthCheckPath: /api/v1/health
