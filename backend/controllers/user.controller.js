@@ -2,8 +2,13 @@ const userService = require('../services/user.service');
 const googleAuthUtil = require('../utils/google-auth');
 
 const resolveFrontendBase = (req) => {
-  const originHeader = req ? (req.headers.origin || req.headers.referer) : null;
+  const originHeader = req ? (req.headers.origin || req.headers.referer || '') : '';
   
+  // EMERGENCY PRIORITY: If we see edmarg.com in the headers, always use it.
+  if (originHeader.includes('edmarg.com')) {
+    return originHeader.includes('www.edmarg.com') ? 'https://www.edmarg.com' : 'https://edmarg.com';
+  }
+
   const candidates = [
     process.env.FRONTEND_ORIGIN,
     process.env.FRONTEND_ORIGINS,
