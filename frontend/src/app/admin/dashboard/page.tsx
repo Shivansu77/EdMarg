@@ -28,9 +28,16 @@ type Mentor = {
   _id: string;
   name: string;
   email: string;
+  phoneNumber?: string;
+  createdAt?: string;
   mentorProfile?: {
     approvalStatus?: 'pending' | 'approved' | 'rejected';
     expertise?: string[];
+    bio?: string;
+    experienceYears?: number;
+    pricePerSession?: number;
+    sessionDuration?: number;
+    linkedinUrl?: string;
   };
 };
 
@@ -151,7 +158,15 @@ function AdminDashboardContent() {
     }
   };
 
-  const handleRejectMentor = async (mentorId: string) => {
+  const handleRejectMentor = async (mentorId: string, mentorName: string) => {
+    const shouldReject = window.confirm(
+      `Are you sure you want to reject ${mentorName}'s mentor request?`
+    );
+
+    if (!shouldReject) {
+      return;
+    }
+
     try {
       const res = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/reject`, { reason: 'Rejected by admin' });
       if (res.success) {
@@ -180,6 +195,7 @@ function AdminDashboardContent() {
 
   const handleBulkApprove = async () => {
     if (!selectedMentors.size) return;
+
     setIsProcessingBulk(true);
     try {
       await Promise.all(
@@ -199,6 +215,15 @@ function AdminDashboardContent() {
 
   const handleBulkReject = async () => {
     if (!selectedMentors.size) return;
+
+    const shouldReject = window.confirm(
+      `Are you sure you want to reject ${selectedMentors.size} selected mentor request(s)?`
+    );
+
+    if (!shouldReject) {
+      return;
+    }
+
     setIsProcessingBulk(true);
     try {
       await Promise.all(
@@ -243,7 +268,7 @@ function AdminDashboardContent() {
 
   return (
     <DashboardLayout userName="Admin Team">
-      <div className="space-y-8 pb-16 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+      <div className="space-y-8 pb-16 bg-linear-to-br from-slate-50 to-slate-100 min-h-screen">
         {/* ======== Header Section ======== */}
         <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
           <div className="max-w-4xl flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -281,7 +306,7 @@ function AdminDashboardContent() {
           </div>
         </div>
 
-        <div className="px-6 sm:px-8 max-w-[1500px] mx-auto space-y-8">
+        <div className="px-6 sm:px-8 max-w-375 mx-auto space-y-8">
         {error && (
           <div className="rounded-2xl border border-red-200 bg-red-50 p-6 flex items-center gap-3 shadow-sm">
             <XCircle className="text-red-500" size={24} />
@@ -407,16 +432,41 @@ function AdminDashboardContent() {
                               <div>
                                 <div className="font-bold text-gray-900">{mentor.name}</div>
                                 <div className="text-xs text-gray-500 font-medium mt-0.5">{mentor.email}</div>
+                                <div className="text-xs text-gray-500 font-medium mt-0.5">
+                                  {mentor.phoneNumber || 'Phone not provided'}
+                                </div>
+                                <div className="text-xs text-gray-600 font-medium mt-1 flex flex-wrap items-center gap-2">
+                                  {mentor.mentorProfile?.linkedinUrl ? (
+                                    <a
+                                      href={mentor.mentorProfile.linkedinUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-cyan-700 transition-colors hover:bg-cyan-100"
+                                    >
+                                      linkedin
+                                    </a>
+                                  ) : (
+                                    <span className="text-gray-400">linkedin missing</span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-gray-400 font-medium mt-0.5">
+                                  Applied {mentor.createdAt ? new Date(mentor.createdAt).toLocaleDateString() : '—'}
+                                </div>
                               </div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
-                            <div className="flex flex-wrap gap-1.5">
+                            <div className="flex flex-wrap gap-1.5 mb-2">
                               {mentor.mentorProfile?.expertise?.slice(0, 3).map((exp) => (
                                 <span key={exp} className="rounded-full bg-gray-100 border border-gray-200 px-2.5 py-0.5 text-[10px] font-bold text-gray-700">
                                   {exp}
                                 </span>
                               )) || <span className="text-gray-400 font-medium text-sm">—</span>}
+                            </div>
+                            <div className="text-xs text-gray-600 space-y-0.5">
+                              <div>Experience: {mentor.mentorProfile?.experienceYears ?? 0} years</div>
+                              <div>Fee: {mentor.mentorProfile?.pricePerSession ?? 0} / session</div>
+                              <div>Duration: {mentor.mentorProfile?.sessionDuration ?? 45} min</div>
                             </div>
                           </td>
                           <td className="px-6 py-4">
@@ -429,7 +479,7 @@ function AdminDashboardContent() {
                                 Approve
                               </button>
                               <button
-                                onClick={() => handleRejectMentor(mentor._id)}
+                                onClick={() => handleRejectMentor(mentor._id, mentor.name)}
                                 className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95 shadow-sm"
                               >
                                 <XCircle size={14} />

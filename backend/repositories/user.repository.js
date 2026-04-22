@@ -2,12 +2,8 @@ const { User } = require('../models/user.model');
 
 const buildPublicMentorQuery = () => ({
   role: 'mentor',
-  // Include approved, pending, and legacy mentors (missing status).
-  // Only hide explicitly rejected mentors from student browse.
-  $or: [
-    { 'mentorProfile.approvalStatus': { $ne: 'rejected' } },
-    { 'mentorProfile.approvalStatus': { $exists: false } },
-  ],
+  // Students should only see mentors explicitly approved by admins.
+  'mentorProfile.approvalStatus': 'approved',
 });
 
 class UserRepository {
@@ -64,9 +60,13 @@ class UserRepository {
 
     return User.find({
       role: 'mentor',
-      'mentorProfile.approvalStatus': 'pending',
+      $or: [
+        { 'mentorProfile.approvalStatus': 'pending' },
+        { 'mentorProfile.approvalStatus': { $exists: false } },
+      ],
     })
       .select('-password')
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(safeLimit)
       .lean();
@@ -75,7 +75,10 @@ class UserRepository {
   async countPendingMentors() {
     return User.countDocuments({
       role: 'mentor',
-      'mentorProfile.approvalStatus': 'pending',
+      $or: [
+        { 'mentorProfile.approvalStatus': 'pending' },
+        { 'mentorProfile.approvalStatus': { $exists: false } },
+      ],
     });
   }
 
@@ -128,6 +131,7 @@ class UserRepository {
     const updateObj = {};
     if (profileData.name !== undefined) updateObj.name = profileData.name;
     if (profileData.profileImage !== undefined) updateObj.profileImage = profileData.profileImage;
+    if (profileData.phoneNumber !== undefined) updateObj.phoneNumber = profileData.phoneNumber;
     
     // Manage nested studentProfile fields
     if (profileData.studentProfile) {
@@ -143,7 +147,8 @@ class UserRepository {
     if (profileData.mentorProfile) {
       const mentorFields = [
         'expertise', 'bio', 'experienceYears', 'pricePerSession',
-        'sessionDuration', 'autoConfirm', 'sessionNotes'
+        'sessionDuration', 'autoConfirm', 'sessionNotes',
+        'linkedinUrl'
       ];
       
       for (const field of mentorFields) {

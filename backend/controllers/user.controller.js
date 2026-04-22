@@ -86,14 +86,45 @@ exports.googleAuthCallback = async (req, res, next) => {
 
 /* ================= SIGNUP ================= */
 exports.signupUser = async (req, res) => {
+  const parseProfileField = (rawValue, fallbackValue) => {
+    if (typeof rawValue !== 'string' || !rawValue.trim()) {
+      return fallbackValue;
+    }
+
+    try {
+      return JSON.parse(rawValue);
+    } catch {
+      throw new Error('Invalid profile payload');
+    }
+  };
+
   try {
-    const { name, email, password, phoneNumber, role, studentProfile, mentorProfile } = req.body;
+    const { name, email, password, phoneNumber, role } = req.body;
+
+    const studentProfileRaw = req.body.studentProfile;
+    const mentorProfileRaw = req.body.mentorProfile;
+
+    const studentProfile = parseProfileField(studentProfileRaw, studentProfileRaw || undefined);
+
+    const mentorProfile = parseProfileField(mentorProfileRaw, mentorProfileRaw || {});
 
     if (!name || !email || !password || !role) {
       return res.status(400).json({
         success: false,
         message: 'Name, email, password, and role are required',
       });
+    }
+
+    if (role === 'mentor') {
+      const linkedinUrl = String(req.body.linkedinUrl || '').trim();
+      if (!linkedinUrl) {
+        return res.status(400).json({
+          success: false,
+          message: 'LinkedIn profile link is required for mentor accounts',
+        });
+      }
+
+      mentorProfile.linkedinUrl = linkedinUrl;
     }
 
     const user = await userService.signupUser({
@@ -128,10 +159,22 @@ exports.signupUser = async (req, res) => {
       },
     });
   } catch (err) {
-    if (err.message.includes('already exists')) {
+    if (err.message === 'Invalid profile payload') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid profile payload',
+      });
+    }
+    if (String(err.message || '').includes('already exists')) {
       return res.status(409).json({
         success: false,
         message: err.message,
+      });
+    }
+    if (err.statusCode && Number.isInteger(err.statusCode)) {
+      return res.status(err.statusCode).json({
+        success: false,
+        message: err.message || 'Unable to create account',
       });
     }
     return res.status(500).json({
@@ -199,8 +242,9 @@ exports.getCurrentUser = async (req, res, next) => {
 exports.updateUserProfile = async (req, res, next) => {
   try {
     const userId = req.user._id;
+    const userRole = req.user.role;
     const { 
-      name, profileImage, 
+      name, profileImage, phoneNumber,
       classLevel, interests,
       expertise, bio, experienceYears, pricePerSession, sessionDuration, autoConfirm, sessionNotes
     } = req.body;
@@ -208,20 +252,38 @@ exports.updateUserProfile = async (req, res, next) => {
     const profileData = {
       name,
       profileImage,
-      studentProfile: {
+      phoneNumber,
+    };
+
+    if (userRole === 'student' && (classLevel !== undefined || interests !== undefined)) {
+      profileData.studentProfile = {
         classLevel,
         interests,
-      },
-      mentorProfile: {
+      };
+    }
+
+    if (
+      userRole === 'mentor' &&
+      (
+        expertise !== undefined ||
+        bio !== undefined ||
+        experienceYears !== undefined ||
+        pricePerSession !== undefined ||
+        sessionDuration !== undefined ||
+        autoConfirm !== undefined ||
+        sessionNotes !== undefined
+      )
+    ) {
+      profileData.mentorProfile = {
         expertise,
         bio,
         experienceYears,
         pricePerSession,
         sessionDuration,
         autoConfirm,
-        sessionNotes
-      }
-    };
+        sessionNotes,
+      };
+    }
 
     const updatedUser = await userService.updateUserProfile(userId, profileData);
 

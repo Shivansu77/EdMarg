@@ -1,5 +1,5 @@
 const express = require('express');
-const { protect, authorize } = require('../../middlewares/auth.middleware');
+const { protect, authorize, requireApprovedMentor } = require('../../middlewares/auth.middleware');
 const { cacheResponse } = require('../../middlewares/cache.middleware');
 const {
   getProfile,
@@ -22,9 +22,14 @@ const router = express.Router();
 // All mentor routes require authentication + mentor role
 router.use(protect, authorize('mentor'));
 
-/* ---------- Profile & Settings ---------- */
+/* ---------- Profile (always accessible to mentors, even pending/rejected) ---------- */
 router.get('/profile', cacheResponse({ ttlSeconds: 30 }), getProfile);
 router.put('/profile', updateProfile);
+
+/* ---------- Everything below requires admin approval ---------- */
+router.use(requireApprovedMentor);
+
+/* ---------- Settings ---------- */
 router.get('/settings', cacheResponse({ ttlSeconds: 60 }), getSettings);
 
 /* ---------- Availability ---------- */

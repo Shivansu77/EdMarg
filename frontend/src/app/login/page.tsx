@@ -123,7 +123,7 @@ const LoginContent: React.FC = () => {
 
       <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-sm animate-fade-up">
-          <div className="bg-white/85 backdrop-blur-xl border border-white/60 p-8 rounded-[2rem] shadow-[0_30px_70px_rgba(16,185,129,0.12)]">
+          <div className="bg-white/85 backdrop-blur-xl border border-white/60 p-8 rounded-4xl shadow-[0_30px_70px_rgba(16,185,129,0.12)]">
             <div className="mb-8">
               <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-bold text-emerald-700 tracking-wide">
                 Sign in to continue
@@ -191,7 +191,7 @@ const LoginContent: React.FC = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     required
-                    minLength={8}
+                    minLength={4}
                     className="w-full pl-10 pr-10 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
                   />
                   <button

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { X, Mail, Briefcase, GraduationCap, Star, Award, Clock } from 'lucide-react';
+import { X, Mail, Briefcase, GraduationCap, Star, Award, Clock, Phone } from 'lucide-react';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 import Image from 'next/image';
@@ -16,6 +16,7 @@ interface FullUser {
   _id: string;
   name: string;
   email: string;
+  phoneNumber?: string;
   role: 'student' | 'mentor' | 'admin';
   profileImage?: string;
   createdAt: string;
@@ -28,9 +29,14 @@ interface FullUser {
     bio?: string;
     experienceYears?: number;
     pricePerSession?: number;
+    sessionDuration?: number;
+    autoConfirm?: boolean;
+    sessionNotes?: string;
     totalSessions?: number;
     rating?: number;
     approvalStatus?: string;
+    rejectionReason?: string;
+    linkedinUrl?: string;
   };
 }
 
@@ -65,7 +71,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-slate-900/40 backdrop-blur-md transition-opacity" 
@@ -73,7 +79,7 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-[2rem] border border-emerald-100/50 bg-white shadow-2xl transition-all">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-4xl border border-emerald-100/50 bg-white shadow-2xl transition-all">
         {/* Header/Banner */}
         <div className="relative h-32 bg-linear-to-r from-emerald-500 to-cyan-600">
           <button 
@@ -138,6 +144,13 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                     <p className="text-sm font-bold text-slate-900">{userData.email}</p>
                   </div>
                 </div>
+                <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
+                  <Phone className="h-5 w-5 text-emerald-600" />
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Phone Number</p>
+                    <p className="text-sm font-bold text-slate-900">{userData.phoneNumber || 'Not provided'}</p>
+                  </div>
+                </div>
                 {userData.role === 'mentor' && (
                   <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/50 p-4">
                     <Award className="h-5 w-5 text-cyan-600" />
@@ -199,6 +212,44 @@ export default function UserProfileModal({ userId, isOpen, onClose }: UserProfil
                           <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Total Sessions</p>
                           <p className="mt-1 font-bold text-slate-900">{userData.mentorProfile.totalSessions || 0}</p>
                         </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Price Per Session</p>
+                          <p className="mt-1 font-bold text-slate-900">{userData.mentorProfile.pricePerSession || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Session Duration</p>
+                          <p className="mt-1 font-bold text-slate-900">{userData.mentorProfile.sessionDuration || 45} min</p>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Approval Status</p>
+                        <p className="mt-1 font-bold text-slate-900">{userData.mentorProfile.approvalStatus || 'pending'}</p>
+                        {userData.mentorProfile.rejectionReason && (
+                          <p className="mt-1 text-sm text-red-600">Reason: {userData.mentorProfile.rejectionReason}</p>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-widest text-slate-400">LinkedIn</p>
+                          {userData.mentorProfile.linkedinUrl ? (
+                            <a
+                              href={userData.mentorProfile.linkedinUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="mt-1 inline-flex font-bold text-cyan-700 underline decoration-cyan-300 underline-offset-4"
+                            >
+                              linkedin
+                            </a>
+                          ) : (
+                            <p className="mt-1 font-bold text-slate-900">Not provided</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Session Notes</p>
+                        <p className="mt-1 text-sm leading-relaxed text-slate-600">{userData.mentorProfile.sessionNotes || 'No notes provided'}</p>
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Expertise</p>

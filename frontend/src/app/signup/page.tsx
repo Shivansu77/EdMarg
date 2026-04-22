@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff } from "lucide-react";
-import toast from 'react-hot-toast';
+import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff, Link2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { getRoleDashboardPath, getSafePostAuthPath } from "@/utils/auth-redirect";
 import { resolveApiBaseUrl } from "@/utils/api-base";
+import Logo from "@/components/Logo";
 
 interface SignupResponse {
   success?: boolean;
@@ -24,12 +25,11 @@ interface SignupResponse {
   };
 }
 
-import Logo from "@/components/Logo";
-
 function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -46,6 +46,7 @@ function SignupContent() {
   const [interests, setInterests] = useState("");
   const [expertise, setExpertise] = useState("");
   const [bio, setBio] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
 
   const API_BASE_URL = resolveApiBaseUrl();
   const redirectParam = searchParams.get("redirect") ?? searchParams.get("callbackUrl");
@@ -59,11 +60,98 @@ function SignupContent() {
     router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
   }, [redirectParam, router, user]);
 
+  const handleRoleChange = (nextRole: "student" | "mentor") => {
+    if (nextRole === role) {
+      return;
+    }
+
+    setRole(nextRole);
+    setError("");
+
+    if (nextRole === "student") {
+      setExpertise("");
+      setBio("");
+      setLinkedinUrl("");
+    } else {
+      setClassLevel("");
+      setInterests("");
+    }
+  };
+
+  const readSignupResponse = async (response: Response) => {
+    const rawBody = await response.text();
+    let result: SignupResponse = {};
+
+    if (rawBody) {
+      try {
+        result = JSON.parse(rawBody) as SignupResponse;
+      } catch {
+        throw new Error("Received an invalid signup response");
+      }
+    }
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || result.message || "Signup failed");
+    }
+
+    if (!result.data?._id || !result.data.name || !result.data.email || !result.data.role) {
+      throw new Error("Signup response was incomplete");
+    }
+
+    return result;
+  };
+
+  const applySuccessfulSignup = (result: SignupResponse) => {
+    if (!result.data) {
+      throw new Error("Signup response was incomplete");
+    }
+
+    const createdUser = {
+      _id: result.data._id,
+      name: result.data.name,
+      email: result.data.email,
+      role: result.data.role,
+      profileImage: result.data.profileImage,
+    };
+
+    const token = result.token || result.data.token;
+
+    localStorage.setItem("user", JSON.stringify(createdUser));
+    if (token) {
+      localStorage.setItem("token", token);
+      document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
+    } else {
+      localStorage.removeItem("token");
+      document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax";
+    }
+
+    window.dispatchEvent(new Event("edmarg-auth-user-change"));
+
+    setSuccess(`Welcome, ${createdUser.name || name}! Your account was created.`);
+    toast.success(`Welcome, ${createdUser.name || name}! Your account was created.`);
+
+    const fallbackPath = getRoleDashboardPath(createdUser.role);
+    router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
+
+    setName("");
+    setEmail("");
+    setPhoneNumber("");
+    setPassword("");
+    setConfirmPassword("");
+    setClassLevel("");
+    setInterests("");
+    setExpertise("");
+    setBio("");
+    setLinkedinUrl("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
     setSuccess("");
+
+    const normalizedPhoneNumber = phoneNumber.replace(/\D/g, "");
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -71,27 +159,40 @@ function SignupContent() {
       return;
     }
 
-    const payload: Record<string, unknown> = {
-      name,
-      email,
-      password,
-      phoneNumber,
-      role,
-    };
+    if (password.length < 4) {
+      setError("Password must be at least 4 characters");
+      setLoading(false);
+      return;
+    }
 
-    if (role === "student") {
-      payload.studentProfile = {
-        classLevel,
-        interests: interests.split(",").map((i) => i.trim()).filter((i) => i !== ""),
-      };
-    } else {
-      payload.mentorProfile = {
-        expertise: expertise.split(",").map((e) => e.trim()).filter((e) => e !== ""),
-        bio,
-      };
+    if (normalizedPhoneNumber && normalizedPhoneNumber.length !== 10) {
+      setError("Phone number must be exactly 10 digits");
+      setLoading(false);
+      return;
     }
 
     try {
+      const payload: Record<string, unknown> = {
+        name,
+        email,
+        password,
+        phoneNumber: normalizedPhoneNumber,
+        role,
+      };
+
+      if (role === "student") {
+        payload.studentProfile = {
+          classLevel,
+          interests: interests.split(",").map((value) => value.trim()).filter((value) => value !== ""),
+        };
+      } else {
+        payload.mentorProfile = {
+          expertise: expertise.split(",").map((value) => value.trim()).filter((value) => value !== ""),
+          bio,
+          linkedinUrl: linkedinUrl.trim(),
+        };
+      }
+
       const response = await fetch(`${API_BASE_URL}/api/v1/users`, {
         method: "POST",
         credentials: "include",
@@ -99,62 +200,8 @@ function SignupContent() {
         body: JSON.stringify(payload),
       });
 
-      const rawBody = await response.text();
-      let result: SignupResponse = {};
-
-      if (rawBody) {
-        try {
-          result = JSON.parse(rawBody) as SignupResponse;
-        } catch {
-          throw new Error("Received an invalid signup response");
-        }
-      }
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || result.message || "Signup failed");
-      }
-
-      if (!result.data?._id || !result.data.name || !result.data.email || !result.data.role) {
-        throw new Error("Signup response was incomplete");
-      }
-
-      const createdUser = {
-        _id: result.data._id,
-        name: result.data.name,
-        email: result.data.email,
-        role: result.data.role,
-        profileImage: result.data.profileImage,
-      };
-
-      const token = result.token || result.data?.token;
-
-      // Save to localStorage
-      localStorage.setItem("user", JSON.stringify(createdUser));
-      if (token) {
-        localStorage.setItem("token", token);
-        document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
-      } else {
-        localStorage.removeItem("token");
-        document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax";
-      }
-
-      window.dispatchEvent(new Event("edmarg-auth-user-change"));
-
-      setSuccess(`Welcome, ${createdUser.name || name}! Your account was created.`);
-      toast.success(`Welcome, ${createdUser.name || name}! Your account was created.`);
-
-      const fallbackPath = getRoleDashboardPath(createdUser.role);
-      router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
-
-      setName("");
-      setEmail("");
-      setPhoneNumber("");
-      setPassword("");
-      setConfirmPassword("");
-      setClassLevel("");
-      setInterests("");
-      setExpertise("");
-      setBio("");
+      const result = await readSignupResponse(response);
+      applySuccessfulSignup(result);
     } catch (err) {
       const rawErrorMessage = err instanceof Error ? err.message : "Unable to create account";
       const errorMessage = rawErrorMessage.toLowerCase().includes("failed to fetch")
@@ -169,34 +216,28 @@ function SignupContent() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-linear-to-b from-emerald-50 via-green-50/40 to-white flex flex-col">
-      {/* Layered background accents */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-emerald-200/55 blur-[100px]" />
         <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-cyan-100/60 blur-[100px]" />
       </div>
 
-      {/* Header */}
       <div className="relative z-10 px-6 py-4 border-b border-emerald-100/50 bg-white/70 backdrop-blur-md">
         <Logo />
       </div>
 
-      {/* Main Content */}
       <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-md animate-fade-up">
           <div className="bg-white/85 backdrop-blur-xl border border-white/60 p-8 rounded-4xl shadow-[0_30px_70px_rgba(16,185,129,0.12)]">
-            {/* Heading */}
             <div className="mb-8">
               <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Create account</h1>
               <p className="text-slate-600 text-sm leading-relaxed">Join EdMarg to start learning or mentoring</p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Role Selection */}
               <div className="flex gap-3 p-1.5 bg-slate-100/80 rounded-xl mb-6">
                 <button
                   type="button"
-                  onClick={() => setRole("student")}
+                  onClick={() => handleRoleChange("student")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-bold text-sm transition-all ${
                     role === "student"
                       ? "bg-white text-emerald-600 shadow-sm"
@@ -208,7 +249,7 @@ function SignupContent() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setRole("mentor")}
+                  onClick={() => handleRoleChange("mentor")}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-bold text-sm transition-all ${
                     role === "mentor"
                       ? "bg-white text-emerald-600 shadow-sm"
@@ -220,7 +261,6 @@ function SignupContent() {
                 </button>
               </div>
 
-              {/* Full Name */}
               <div>
                 <label htmlFor="name" className="block text-sm font-semibold text-slate-900 mb-2">
                   Full name
@@ -239,7 +279,6 @@ function SignupContent() {
                 </div>
               </div>
 
-              {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-900 mb-2">
                   Email address
@@ -258,7 +297,6 @@ function SignupContent() {
                 </div>
               </div>
 
-              {/* Phone Number */}
               <div>
                 <label htmlFor="phone" className="block text-sm font-semibold text-slate-900 mb-2">
                   Phone number
@@ -269,14 +307,16 @@ function SignupContent() {
                     id="phone"
                     type="tel"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+91 xxxxx-xxxxx"
+                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                    placeholder="10-digit phone number"
+                    inputMode="numeric"
+                    pattern="[0-9]{10}"
+                    maxLength={10}
                     className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
                   />
                 </div>
               </div>
 
-              {/* Dynamic Profile Fields */}
               {role === "student" ? (
                 <>
                   <div>
@@ -336,10 +376,26 @@ function SignupContent() {
                       rows={3}
                     />
                   </div>
+                  <div>
+                    <label htmlFor="linkedinUrl" className="block text-sm font-semibold text-slate-900 mb-2">
+                      LinkedIn profile link
+                    </label>
+                    <div className="relative">
+                      <Link2 size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <input
+                        id="linkedinUrl"
+                        type="url"
+                        value={linkedinUrl}
+                        onChange={(e) => setLinkedinUrl(e.target.value)}
+                        placeholder="https://www.linkedin.com/in/your-profile"
+                        className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
+                        required={role === "mentor"}
+                      />
+                    </div>
+                  </div>
                 </>
               )}
 
-              {/* Password */}
               <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-slate-900 mb-2">
                   Password
@@ -353,7 +409,7 @@ function SignupContent() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="w-full pl-10 pr-10 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                    minLength={8}
+                    minLength={4}
                     required
                   />
                   <button
@@ -367,7 +423,6 @@ function SignupContent() {
                 </div>
               </div>
 
-              {/* Confirm Password */}
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900 mb-2">
                   Confirm password
@@ -381,7 +436,7 @@ function SignupContent() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••"
                     className="w-full pl-10 pr-10 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                    minLength={8}
+                    minLength={4}
                     required
                   />
                   <button
@@ -395,21 +450,18 @@ function SignupContent() {
                 </div>
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="p-3 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl">
                   <p className="text-sm font-medium text-red-700">{error}</p>
                 </div>
               )}
 
-              {/* Success Message */}
               {success && (
                 <div className="p-3 bg-emerald-50/80 backdrop-blur-sm border border-emerald-200 rounded-xl">
                   <p className="text-sm font-medium text-emerald-700">{success}</p>
                 </div>
               )}
 
-              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={loading}

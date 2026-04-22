@@ -135,3 +135,26 @@ exports.authorize = (...roles) => {
     next();
   };
 };
+
+/* ================= MENTOR APPROVAL GATE ================= */
+exports.requireApprovedMentor = (req, res, next) => {
+  if (!req.user || req.user.role !== 'mentor') {
+    return res.status(403).json({
+      success: false,
+      message: 'Forbidden: mentor account required',
+    });
+  }
+
+  const approvalStatus = req.user.mentorProfile?.approvalStatus || 'pending';
+  if (approvalStatus !== 'approved') {
+    return res.status(403).json({
+      success: false,
+      message: 'Your mentor account is pending admin approval. You can only access your profile right now.',
+      data: {
+        approvalStatus,
+      },
+    });
+  }
+
+  next();
+};

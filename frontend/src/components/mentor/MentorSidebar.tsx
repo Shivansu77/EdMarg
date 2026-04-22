@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { apiClient } from '@/utils/api-client';
 import {
   LayoutGrid,
   MessageSquare,
@@ -43,6 +44,31 @@ const MentorSidebar = ({
   onToggleCollapsed,
 }: MentorSidebarProps) => {
   const pathname = usePathname();
+  const [isRestrictedMentor, setIsRestrictedMentor] = React.useState(true);
+
+  React.useEffect(() => {
+    let isMounted = true;
+
+    const loadApprovalStatus = async () => {
+      const res = await apiClient.get<{ mentorProfile?: { approvalStatus?: string } }>('/api/v1/users/me');
+      if (!isMounted || !res.success) {
+        return;
+      }
+
+      const approvalStatus = res.data?.mentorProfile?.approvalStatus || 'pending';
+      setIsRestrictedMentor(approvalStatus !== 'approved');
+    };
+
+    void loadApprovalStatus();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const visibleNavItems = isRestrictedMentor
+    ? navItems.filter((item) => item.href === '/mentor/profile')
+    : navItems;
 
   return (
     <>
@@ -111,7 +137,7 @@ const MentorSidebar = ({
           )}
 
           <nav className="space-y-1 flex-1">
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
               const Icon = item.icon;
 
@@ -157,7 +183,7 @@ const MentorSidebar = ({
           </nav>
 
           {/* Pro tip card */}
-          {!isCollapsed && (
+          {!isCollapsed && !isRestrictedMentor && (
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 mt-6 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                 <Zap size={14} className="text-black" />

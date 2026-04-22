@@ -33,6 +33,7 @@ class AdminService {
     });
 
     if (!mentor) throw new Error('Mentor not found');
+
     return mentor;
   }
 
@@ -55,7 +56,10 @@ class AdminService {
       }),
       userRepository.countByQuery({
         role: 'mentor',
-        'mentorProfile.approvalStatus': 'pending',
+        $or: [
+          { 'mentorProfile.approvalStatus': 'pending' },
+          { 'mentorProfile.approvalStatus': { $exists: false } },
+        ],
       }),
     ]);
 

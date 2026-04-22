@@ -18,6 +18,18 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
+    phoneNumber: {
+      type: String,
+      trim: true,
+      default: '',
+      validate: {
+        validator: (value) => {
+          if (!value) return true;
+          return /^\d{10}$/.test(String(value));
+        },
+        message: 'Phone number must be exactly 10 digits',
+      },
+    },
     password: {
       type: String,
       required: true,
@@ -40,6 +52,7 @@ const userSchema = new mongoose.Schema(
       sessionDuration: { type: Number, default: 45, min: 15, max: 180 },
       autoConfirm: { type: Boolean, default: false },
       sessionNotes: String,
+      linkedinUrl: String,
       rating: { type: Number, default: 0 },
       totalSessions: { type: Number, default: 0 },
       approvalStatus: {

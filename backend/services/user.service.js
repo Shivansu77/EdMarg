@@ -10,6 +10,23 @@ const isBcryptHash = (value = '') =>
   typeof value === 'string' &&
   (value.startsWith('$2a$') || value.startsWith('$2b$') || value.startsWith('$2y$'));
 
+const normalizePhoneNumber = (phoneNumber) => {
+  if (phoneNumber === undefined || phoneNumber === null) {
+    return undefined;
+  }
+
+  const digits = String(phoneNumber).replace(/\D/g, '');
+  if (!digits) {
+    return '';
+  }
+
+  if (digits.length !== 10) {
+    throw new ValidationError('Phone number must be exactly 10 digits');
+  }
+
+  return digits;
+};
+
 class UserService {
   async createUser(userData) {
     const normalizedEmail = String(userData.email || '').trim().toLowerCase();
@@ -27,13 +44,20 @@ class UserService {
     const existingUser = await userRepository.findByEmail(normalizedEmail);
     if (existingUser) throw new Error('User already exists');
 
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const normalizedPassword = String(userData.password || '');
+    if (normalizedPassword.length < 4) {
+      throw new ValidationError('Password must be at least 4 characters');
+    }
+
+    const normalizedPhoneNumber = normalizePhoneNumber(userData.phoneNumber);
+
+    const hashedPassword = await bcrypt.hash(normalizedPassword, 10);
 
     return userRepository.create({
       name: userData.name,
       email: normalizedEmail,
       password: hashedPassword,
-      phoneNumber: userData.phoneNumber,
+      phoneNumber: normalizedPhoneNumber,
       role: userData.role,
       studentProfile: userData.studentProfile,
       mentorProfile: userData.mentorProfile,
@@ -92,6 +116,11 @@ class UserService {
     if (!mentor || mentor.role !== 'mentor') {
       return null;
     }
+
+    if (mentor.mentorProfile?.approvalStatus !== 'approved') {
+      return null;
+    }
+
     // Remove sensitive fields
     const mentorObj = mentor.toObject ? mentor.toObject() : mentor;
     delete mentorObj.password;
@@ -115,7 +144,13 @@ class UserService {
     if (!user) {
       throw new Error('User not found');
     }
-    return userRepository.updateUserProfile(userId, data);
+
+    const safeData = { ...data };
+    if (Object.prototype.hasOwnProperty.call(safeData, 'phoneNumber')) {
+      safeData.phoneNumber = normalizePhoneNumber(safeData.phoneNumber);
+    }
+
+    return userRepository.updateUserProfile(userId, safeData);
   }
 
   async submitAssessment(userId, answers) {

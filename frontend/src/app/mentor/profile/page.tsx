@@ -43,6 +43,8 @@ interface MentorProfile {
     sessionDuration?: number;
     autoConfirm?: boolean;
     sessionNotes?: string;
+    approvalStatus?: 'pending' | 'approved' | 'rejected';
+    rejectionReason?: string;
   };
 }
 
@@ -69,6 +71,8 @@ function MentorProfileContent() {
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [approvalStatus, setApprovalStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Fetch complete user profile on mount
   useEffect(() => {
@@ -91,6 +95,8 @@ function MentorProfileContent() {
           setSessionDuration(mProfile.sessionDuration || 45);
           setAutoConfirm(mProfile.autoConfirm ?? false);
           setSessionNotes(mProfile.sessionNotes || '');
+          setApprovalStatus(mProfile.approvalStatus || 'pending');
+          setRejectionReason(mProfile.rejectionReason || '');
         }
       } catch (err) {
         console.error('Failed to fetch profile', err);
@@ -166,6 +172,29 @@ function MentorProfileContent() {
           </p>
         </div>
 
+        {approvalStatus !== 'approved' && (
+          <div className={`mb-8 rounded-xl p-4 border flex items-start gap-3 ${
+            approvalStatus === 'rejected'
+              ? 'bg-red-50 border-red-200'
+              : 'bg-amber-50 border-amber-200'
+          }`}>
+            <Clock className={`w-5 h-5 mt-0.5 ${approvalStatus === 'rejected' ? 'text-red-600' : 'text-amber-600'}`} />
+            <div>
+              <p className={`text-sm font-semibold ${approvalStatus === 'rejected' ? 'text-red-900' : 'text-amber-900'}`}>
+                {approvalStatus === 'rejected'
+                  ? 'Your mentor account is currently rejected.'
+                  : 'Your mentor profile is under admin review.'}
+              </p>
+              <p className={`text-sm mt-1 ${approvalStatus === 'rejected' ? 'text-red-800' : 'text-amber-800'}`}>
+                You can update this profile now. Full mentor dashboard access will unlock after approval.
+              </p>
+              {approvalStatus === 'rejected' && rejectionReason && (
+                <p className="text-sm mt-2 text-red-800"><span className="font-semibold">Reason:</span> {rejectionReason}</p>
+              )}
+            </div>
+          </div>
+        )}
+
         {errorMsg && (
           <div className="mb-8 rounded-xl bg-red-50 p-4 border border-red-200 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
@@ -213,6 +242,7 @@ function MentorProfileContent() {
                     />
                   </div>
                 </div>
+
               </div>
 
               <div className="space-y-3 pt-2">

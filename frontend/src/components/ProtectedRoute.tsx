@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { resolveApiBaseUrl } from '@/utils/api-base';
@@ -33,6 +33,7 @@ export default function ProtectedRoute({
   requiredRole = 'student',
 }: ProtectedRouteProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
   const [isSessionChecking, setIsSessionChecking] = useState(true);
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
@@ -70,10 +71,20 @@ export default function ProtectedRoute({
 
         const result = response.ok ? await response.json().catch(() => null) : null;
         const serverRole = result?.data?.role;
+        const mentorApprovalStatus = result?.data?.mentorProfile?.approvalStatus || 'pending';
 
         if (!response.ok || serverRole !== requiredRole) {
           clearStoredAuth();
           router.replace('/login');
+          return;
+        }
+
+        if (
+          requiredRole === 'mentor' &&
+          mentorApprovalStatus !== 'approved' &&
+          pathname !== '/mentor/profile'
+        ) {
+          router.replace('/mentor/profile');
           return;
         }
       } catch {
@@ -92,7 +103,7 @@ export default function ProtectedRoute({
     return () => {
       controller.abort();
     };
-  }, [hasHydrated, isAuthorized, requiredRole, router]);
+  }, [hasHydrated, isAuthorized, pathname, requiredRole, router]);
 
   if (!hasHydrated || !isAuthorized || isSessionChecking) {
     const loadingMessage = !hasHydrated
@@ -107,7 +118,7 @@ export default function ProtectedRoute({
           <div className="relative">
             <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-slate-200 border-t-emerald-500" />
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-3 w-3 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm shadow-emerald-500/30" />
+              <div className="h-3 w-3 rounded-full bg-linear-to-br from-emerald-400 to-green-500 shadow-sm shadow-emerald-500/30" />
             </div>
           </div>
           <div className="text-center">
