@@ -116,7 +116,9 @@ exports.signupUser = async (req, res) => {
     }
 
     if (role === 'mentor') {
-      const linkedinUrl = String(req.body.linkedinUrl || '').trim();
+      const linkedinUrl = String(
+        req.body.linkedinUrl || mentorProfile.linkedinUrl || ''
+      ).trim();
       if (!linkedinUrl) {
         return res.status(400).json({
           success: false,

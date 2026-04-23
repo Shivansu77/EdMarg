@@ -138,7 +138,7 @@ function MentorProfileContent() {
       const res = await apiClient.put('/api/v1/users/profile', payload);
       
       if (res.success) {
-        setSuccessMsg('Profile updated successfully!');
+        setSuccessMsg('PROFILE SAVED SUCCESSFULLY');
         updateUser({ name, profileImage, profileImageUpdatedAt: Date.now() });
         
         setTimeout(() => setSuccessMsg(''), 5000);
@@ -399,7 +399,12 @@ function MentorProfileContent() {
           </section>
 
           {/* Submit Action */}
-          <div className="flex justify-end pt-4">
+          <div className="flex items-center justify-between gap-4 pt-4">
+            <div aria-live="polite" className="min-h-6">
+              {successMsg && (
+                <p className="text-sm font-semibold text-green-700">{successMsg}</p>
+              )}
+            </div>
             <button
               type="submit"
               disabled={saving}
