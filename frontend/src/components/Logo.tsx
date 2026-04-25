@@ -17,7 +17,6 @@ const Logo: React.FC<LogoProps> = ({
   return (
     <Link href="/" className={`group flex items-center gap-3 ${className}`}>
       <picture className="shrink-0 overflow-hidden rounded-xl shadow-md ring-1 ring-slate-200/50 bg-white">
-        <source srcSet="/logo.svg" type="image/svg+xml" />
         <img
           src="/logo.png"
           alt="EdMarg Logo"

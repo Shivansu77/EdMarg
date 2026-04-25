@@ -33,6 +33,10 @@ const PREDEFINED_EXPERTISE = [
 interface MentorProfile {
   name: string;
   profileImage: string;
+  emailVerification?: {
+    isVerified?: boolean;
+    verifiedAt?: string;
+  };
   mentorProfile?: {
     linkedinUrl?: string;
     bio?: string;
@@ -53,6 +57,8 @@ function MentorProfileContent() {
   // Form State - Personal
   const [name, setName] = useState('');
   const [profileImage, setProfileImage] = useState('');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otp, setOtp] = useState('');
   
   // Form State - Professional
   const [bio, setBio] = useState('');
@@ -69,6 +75,8 @@ function MentorProfileContent() {
   // UI State
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [approvalStatus, setApprovalStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -85,6 +93,7 @@ function MentorProfileContent() {
           
           setName(userData.name || '');
           setProfileImage(userData.profileImage || '');
+          setEmailVerified(Boolean(userData.emailVerification?.isVerified));
           
           const mProfile = userData.mentorProfile || {};
           setLinkedinUrl(mProfile.linkedinUrl || '');
@@ -141,7 +150,7 @@ function MentorProfileContent() {
       
       if (res.success) {
         setSuccessMsg('PROFILE SAVED SUCCESSFULLY');
-        updateUser({ name, profileImage, profileImageUpdatedAt: Date.now() });
+        updateUser({ name, profileImage, profileImageUpdatedAt: Date.now(), mentorProfile: res.data?.mentorProfile, emailVerification: res.data?.emailVerification });
         
         setTimeout(() => setSuccessMsg(''), 5000);
       } else {
@@ -152,6 +161,42 @@ function MentorProfileContent() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSendOtp = async () => {
+    setSendingOtp(true);
+    setErrorMsg('');
+    const res = await apiClient.post('/api/v1/users/email/send-otp');
+    setSendingOtp(false);
+
+    if (!res.success) {
+      setErrorMsg(res.error || res.message || 'Unable to send OTP');
+      return;
+    }
+
+    setSuccessMsg(res.message || 'OTP sent to your email');
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!/^\d{6}$/.test(otp.trim())) {
+      setErrorMsg('Enter a valid 6-digit OTP');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setErrorMsg('');
+    const res = await apiClient.post<MentorProfile>('/api/v1/users/email/verify-otp', { otp: otp.trim() });
+    setVerifyingOtp(false);
+
+    if (!res.success || !res.data) {
+      setErrorMsg(res.error || res.message || 'Unable to verify OTP');
+      return;
+    }
+
+    setEmailVerified(true);
+    setOtp('');
+    setSuccessMsg('EMAIL VERIFIED SUCCESSFULLY');
+    updateUser({ emailVerification: res.data.emailVerification, mentorProfile: res.data.mentorProfile });
   };
 
   if (loading) {
@@ -193,6 +238,43 @@ function MentorProfileContent() {
               {approvalStatus === 'rejected' && rejectionReason && (
                 <p className="text-sm mt-2 text-red-800"><span className="font-semibold">Reason:</span> {rejectionReason}</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {!emailVerified && (
+          <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-blue-900">Verify your email before approval</p>
+                <p className="mt-1 text-sm text-blue-800">
+                  We need a verified email so admins and students can contact you reliably.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={handleSendOtp}
+                  disabled={sendingOtp}
+                  className="rounded-xl border border-blue-300 bg-white px-4 py-2.5 text-sm font-semibold text-blue-900 hover:bg-blue-100 disabled:opacity-70"
+                >
+                  {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
+                </button>
+                <input
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Enter OTP"
+                  className="rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={handleVerifyOtp}
+                  disabled={verifyingOtp}
+                  className="rounded-xl bg-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-70"
+                >
+                  {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
+                </button>
+              </div>
             </div>
           </div>
         )}

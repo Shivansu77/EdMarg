@@ -29,6 +29,13 @@ class AdminService {
   }
 
   async approveMentor(mentorId, adminId) {
+    const existingMentor = await userRepository.findById(mentorId);
+    if (!existingMentor) throw new Error('Mentor not found');
+    if (existingMentor.role !== 'mentor') throw new Error('User is not a mentor');
+    if (!existingMentor.emailVerification?.isVerified) {
+      throw new Error('Mentor email must be verified before approval');
+    }
+
     const mentor = await userRepository.updateMentorStatus(mentorId, 'approved', {
       approvedAt: new Date(),
       approvedBy: adminId,

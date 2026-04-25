@@ -25,15 +25,17 @@ let transporter = null;
 function getTransporter() {
   if (transporter) return transporter;
 
-  const host = (process.env.SMTP_HOST || '').trim();
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+  const configuredHost = (process.env.SMTP_HOST || '').trim();
   const user = (process.env.SMTP_USER || '').trim();
   const pass = (process.env.SMTP_PASS || '').trim();
+  const host = configuredHost || (user && pass ? 'smtp.gmail.com' : '');
+  const port = parseInt(process.env.SMTP_PORT || (host === 'smtp.gmail.com' ? '465' : '587'), 10);
 
   if (!host || !user || !pass) {
     console.warn(
       '[Email Service] SMTP credentials not configured — emails will be skipped. ' +
-      'Set SMTP_HOST, SMTP_USER, SMTP_PASS in your .env file.'
+      'Set SMTP_HOST, SMTP_USER, SMTP_PASS in your .env file. ' +
+      'For Gmail you can use SMTP_USER=<your gmail> and SMTP_PASS=<gmail app password>.'
     );
     return null;
   }
@@ -217,6 +219,77 @@ async function sendRecordingReadyEmail({
   }
 }
 
+async function sendEmailVerificationOtpEmail({
+  to,
+  name,
+  otp,
+}) {
+  try {
+    const smtp = getTransporter();
+    if (!smtp) {
+      console.warn('[Email Service] Skipping email-verification email — SMTP not configured');
+      return false;
+    }
+
+    const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background-color:#f7f9fb;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f9fb;padding:40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+          <tr>
+            <td style="background:linear-gradient(135deg,#0f172a,#0ea5e9);padding:28px 36px;text-align:center;">
+              <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;">Verify Your Email</h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 36px;">
+              <p style="margin:0 0 16px;font-size:16px;color:#1f2937;line-height:1.6;">Hi <strong>${name}</strong>,</p>
+              <p style="margin:0 0 20px;font-size:16px;color:#1f2937;line-height:1.6;">
+                Use the OTP below to verify your EdMarg email address. This code expires in 10 minutes.
+              </p>
+              <div style="margin:24px 0;padding:18px 20px;border-radius:14px;background:#eff6ff;text-align:center;">
+                <div style="font-size:32px;font-weight:800;letter-spacing:10px;color:#0f172a;">${otp}</div>
+              </div>
+              <p style="margin:18px 0 0;font-size:13px;color:#6b7280;line-height:1.5;">
+                If you did not request this code, you can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+
+    const info = await smtp.sendMail({
+      from: getFromAddress(),
+      to,
+      subject: 'Your EdMarg email verification OTP',
+      html,
+      text: [
+        `Hi ${name},`,
+        '',
+        `Your EdMarg email verification OTP is: ${otp}`,
+        'It expires in 10 minutes.',
+        '',
+        'If you did not request this code, you can ignore this email.',
+      ].join('\n'),
+    });
+
+    console.log(`[Email Service] ✅ Email verification OTP sent to ${to} (messageId: ${info.messageId})`);
+    return true;
+  } catch (error) {
+    console.error(`[Email Service] ❌ Failed to send email verification OTP to ${to}:`, error.message);
+    return false;
+  }
+}
+
 module.exports = {
   sendRecordingReadyEmail,
+  sendEmailVerificationOtpEmail,
 };

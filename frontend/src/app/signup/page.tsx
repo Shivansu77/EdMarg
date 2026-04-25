@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { getPostAuthFallbackPath, getSafePostAuthPath } from "@/utils/auth-redirect";
 import { resolveApiBaseUrl, resolveBackendBaseUrl } from "@/utils/api-base";
+import { validators } from "@/utils/validators";
 import Logo from "@/components/Logo";
 
 interface SignupResponse {
@@ -191,6 +192,12 @@ function SignupContent() {
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      setLoading(false);
+      return;
+    }
+
+    if (!validators.email(email)) {
+      setError("Please enter a valid email address");
       setLoading(false);
       return;
     }

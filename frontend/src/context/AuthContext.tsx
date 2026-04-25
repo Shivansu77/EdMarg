@@ -7,6 +7,10 @@ interface User {
   _id: string;
   name: string;
   email: string;
+  emailVerification?: {
+    isVerified?: boolean;
+    verifiedAt?: string;
+  };
   role: 'student' | 'mentor' | 'admin';
   profileImage?: string;
   profileImageUpdatedAt?: number;
@@ -136,7 +140,19 @@ const getStoredUserSnapshot = (): User | null => {
     return null;
   }
 
+  const storedToken = window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY);
   const storedUser = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
+
+  if (!storedToken) {
+    if (storedUser) {
+      window.localStorage.removeItem(AUTH_USER_STORAGE_KEY);
+      cachedUserStorageValue = null;
+      cachedUserSnapshot = null;
+    }
+
+    return null;
+  }
+
   if (storedUser === cachedUserStorageValue) {
     return cachedUserSnapshot;
   }
@@ -205,6 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       _id: result.data._id,
       name: result.data.name,
       email: result.data.email,
+      emailVerification: result.data.emailVerification,
       role: result.data.role,
       profileImage: result.data.profileImage,
       phoneNumber: result.data.phoneNumber,

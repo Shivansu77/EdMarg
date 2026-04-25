@@ -17,6 +17,10 @@ interface ProfileResponse extends AuthProfileUser {
   name: string;
   email: string;
   profileImage?: string;
+  emailVerification?: {
+    isVerified?: boolean;
+    verifiedAt?: string;
+  };
   mentorProfile?: AuthProfileUser['mentorProfile'] & {
     bio?: string;
   };
@@ -57,6 +61,10 @@ export default function CompleteProfilePage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [role, setRole] = useState<Role>('student');
   const [classLevel, setClassLevel] = useState('');
   const [interests, setInterests] = useState('');
@@ -83,6 +91,7 @@ export default function CompleteProfilePage() {
 
       setName(profile.name || '');
       setEmail(profile.email || '');
+      setEmailVerified(Boolean(profile.emailVerification?.isVerified));
       setPhoneNumber(profile.phoneNumber || '');
       setRole(profile.role === 'mentor' ? 'mentor' : 'student');
       setClassLevel(profile.studentProfile?.classLevel || '');
@@ -133,6 +142,12 @@ export default function CompleteProfilePage() {
       return;
     }
 
+    if (role === 'mentor' && !emailVerified) {
+      toast.error('Please verify your email with OTP before continuing as a mentor');
+      setSaving(false);
+      return;
+    }
+
     const response = await apiClient.put<ProfileResponse>('/api/v1/users/profile', {
       name: name.trim(),
       phoneNumber: normalizedPhoneNumber,
@@ -158,6 +173,7 @@ export default function CompleteProfilePage() {
       phoneNumber: response.data.phoneNumber || '',
       studentProfile: response.data.studentProfile || undefined,
       mentorProfile: response.data.mentorProfile || undefined,
+      emailVerification: response.data.emailVerification || undefined,
     });
 
     toast.success('Profile completed successfully');
@@ -171,6 +187,45 @@ export default function CompleteProfilePage() {
       </div>
     );
   }
+
+  const handleSendOtp = async () => {
+    setSendingOtp(true);
+    const response = await apiClient.post('/api/v1/users/email/send-otp');
+    setSendingOtp(false);
+
+    if (!response.success) {
+      toast.error(response.error || response.message || 'Unable to send OTP');
+      return;
+    }
+
+    toast.success(response.message || 'OTP sent to your email');
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!/^\d{6}$/.test(otp.trim())) {
+      toast.error('Enter the 6-digit OTP');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    const response = await apiClient.post<ProfileResponse>('/api/v1/users/email/verify-otp', {
+      otp: otp.trim(),
+    });
+    setVerifyingOtp(false);
+
+    if (!response.success || !response.data) {
+      toast.error(response.error || response.message || 'Unable to verify OTP');
+      return;
+    }
+
+    syncStoredUser(response.data);
+    setEmailVerified(true);
+    setOtp('');
+    updateUser({
+      emailVerification: response.data.emailVerification || undefined,
+    });
+    toast.success('Email verified successfully');
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-b from-emerald-50 via-white to-cyan-50">
@@ -243,6 +298,51 @@ export default function CompleteProfilePage() {
                   placeholder="10-digit phone number"
                 />
               </label>
+
+              {role === 'mentor' && (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-slate-900">Email verification</p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        {emailVerified
+                          ? 'Your email is verified. Students and admins can rely on this contact address.'
+                          : 'Verify your email with OTP before your mentor profile can move forward.'}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${emailVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {emailVerified ? 'Verified' : 'Not verified'}
+                    </span>
+                  </div>
+
+                  {!emailVerified && (
+                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={sendingOtp}
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-70"
+                      >
+                        {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
+                      </button>
+                      <input
+                        value={otp}
+                        onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="Enter 6-digit OTP"
+                        className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        disabled={verifyingOtp}
+                        className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-70"
+                      >
+                        {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {role === 'student' ? (
                 <>

@@ -27,6 +27,7 @@ const buildAuthResponseData = (user, token) => {
     _id: safeUser._id,
     name: safeUser.name,
     email: safeUser.email,
+    emailVerification: safeUser.emailVerification,
     role: safeUser.role,
     profileImage: safeUser.profileImage,
     phoneNumber: safeUser.phoneNumber,
@@ -279,6 +280,37 @@ exports.getCurrentUser = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: req.user,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.sendEmailVerificationOtp = async (req, res, next) => {
+  try {
+    const result = await userService.sendEmailVerificationOtp(req.user._id);
+
+    return res.status(200).json({
+      success: true,
+      message: result.alreadyVerified
+        ? 'Email address is already verified'
+        : result.delivery === 'log'
+          ? 'OTP generated in backend logs because SMTP is not configured'
+          : 'OTP sent to your email address',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.verifyEmailVerificationOtp = async (req, res, next) => {
+  try {
+    const updatedUser = await userService.verifyEmailOtp(req.user._id, req.body?.otp);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Email verified successfully',
+      data: updatedUser,
     });
   } catch (err) {
     next(err);

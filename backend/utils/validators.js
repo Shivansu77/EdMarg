@@ -1,10 +1,11 @@
-const validator = require('validator');
-
 exports.validateEmail = (email) => {
-  if (!validator.isEmail(email)) {
+  const normalizedEmail = String(email || '').toLowerCase().trim();
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
     throw new Error('Invalid email format');
   }
-  return email.toLowerCase().trim();
+
+  return normalizedEmail;
 };
 
 exports.validatePassword = (password) => {

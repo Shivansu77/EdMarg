@@ -7,6 +7,7 @@ import { Mail, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getPostAuthFallbackPath, getSafePostAuthPath } from '@/utils/auth-redirect';
 import { resolveApiBaseUrl, resolveBackendBaseUrl } from '@/utils/api-base';
+import { validators } from '@/utils/validators';
 import toast from 'react-hot-toast';
 
 import Logo from '@/components/Logo';
@@ -37,6 +38,14 @@ const LoginContent: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    if (!validators.email(email)) {
+      const message = 'Please enter a valid email address';
+      setError(message);
+      toast.error(message);
+      setLoading(false);
+      return;
+    }
 
     try {
       const authenticatedUser = await login(email, password);

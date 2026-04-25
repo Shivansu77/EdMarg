@@ -1,5 +1,8 @@
 export interface AuthProfileUser {
   role?: 'student' | 'mentor' | 'admin' | string | null;
+  emailVerification?: {
+    isVerified?: boolean | null;
+  } | null;
   phoneNumber?: string | null;
   studentProfile?: {
     classLevel?: string | null;
@@ -30,7 +33,11 @@ export const isProfileComplete = (user?: AuthProfileUser | null) => {
   }
 
   if (user.role === 'mentor') {
-    return hasText(user.mentorProfile?.linkedinUrl) && hasItems(user.mentorProfile?.expertise);
+    return (
+      Boolean(user.emailVerification?.isVerified) &&
+      hasText(user.mentorProfile?.linkedinUrl) &&
+      hasItems(user.mentorProfile?.expertise)
+    );
   }
 
   return false;

@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       trim: true,
       lowercase: true,
+      match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format'],
     },
     phoneNumber: {
       type: String,
@@ -40,6 +41,13 @@ const userSchema = new mongoose.Schema(
       default: 'student',
     },
     profileImage: { type: String, default: "" },
+    emailVerification: {
+      isVerified: { type: Boolean, default: false },
+      otpHash: String,
+      otpExpiresAt: Date,
+      lastSentAt: Date,
+      verifiedAt: Date,
+    },
     studentProfile: {
       classLevel: String,
       interests: [String],

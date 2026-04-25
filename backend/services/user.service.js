@@ -1,10 +1,13 @@
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/user.repository');
 const { TokenBlacklist } = require('../models/user.model');
 const { UnauthorizedError, ValidationError } = require('../utils/errors');
 const studentAssessmentRepository = require('../repositories/studentAssessment.repository');
 const careerAssessmentService = require('./careerAssessment.service');
+const { validateEmail } = require('../utils/validators');
+const { sendEmailVerificationOtpEmail } = require('./email.service');
 
 const isBcryptHash = (value = '') =>
   typeof value === 'string' &&
@@ -39,7 +42,7 @@ class UserService {
   }
 
   async createUser(userData) {
-    const normalizedEmail = String(userData.email || '').trim().toLowerCase();
+    const normalizedEmail = validateEmail(userData.email);
     const existingUser = await userRepository.findByEmail(normalizedEmail);
     if (existingUser) throw new Error('User already exists');
 
@@ -50,7 +53,7 @@ class UserService {
   }
 
   async signupUser(userData) {
-    const normalizedEmail = String(userData.email || '').trim().toLowerCase();
+    const normalizedEmail = validateEmail(userData.email);
     const existingUser = await userRepository.findByEmail(normalizedEmail);
     if (existingUser) throw new Error('User already exists');
 
@@ -75,7 +78,7 @@ class UserService {
   }
 
   async loginUser(email, password) {
-    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedEmail = validateEmail(email);
     const normalizedPassword = String(password || '');
     const user = await userRepository.findByEmail(normalizedEmail);
 
@@ -183,7 +186,7 @@ class UserService {
 
   async googleLogin(googlePayload, options = {}) {
     const { email, name, picture, sub: googleId } = googlePayload;
-    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedEmail = validateEmail(email);
     const intendedRole =
       options.intendedRole === 'mentor' || options.intendedRole === 'student'
         ? options.intendedRole
@@ -213,6 +216,97 @@ class UserService {
     }
 
     return user;
+  }
+
+  async sendEmailVerificationOtp(userId) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new ValidationError('User not found');
+    }
+
+    if (user.emailVerification?.isVerified) {
+      return { alreadyVerified: true };
+    }
+
+    const now = Date.now();
+    const lastSentAt = user.emailVerification?.lastSentAt
+      ? new Date(user.emailVerification.lastSentAt).getTime()
+      : 0;
+
+    if (lastSentAt && now - lastSentAt < 60 * 1000) {
+      throw new ValidationError('Please wait a minute before requesting another OTP');
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+
+    user.emailVerification = {
+      ...(user.emailVerification?.toObject ? user.emailVerification.toObject() : user.emailVerification),
+      isVerified: false,
+      otpHash,
+      otpExpiresAt: new Date(now + 10 * 60 * 1000),
+      lastSentAt: new Date(now),
+      verifiedAt: user.emailVerification?.verifiedAt,
+    };
+
+    await user.save();
+
+    const sent = await sendEmailVerificationOtpEmail({
+      to: user.email,
+      name: user.name,
+      otp,
+    });
+
+    if (!sent) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[EMAIL_OTP_DEV_FALLBACK] SMTP not configured. OTP for ${user.email}: ${otp}`);
+        return { alreadyVerified: false, delivery: 'log' };
+      }
+
+      throw new ValidationError('Unable to send OTP email right now');
+    }
+
+    return { alreadyVerified: false, delivery: 'email' };
+  }
+
+  async verifyEmailOtp(userId, otp) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw new ValidationError('User not found');
+    }
+
+    if (user.emailVerification?.isVerified) {
+      return this.sanitizeUser(user);
+    }
+
+    const normalizedOtp = String(otp || '').trim();
+    if (!/^\d{6}$/.test(normalizedOtp)) {
+      throw new ValidationError('OTP must be a 6-digit code');
+    }
+
+    const expiresAt = user.emailVerification?.otpExpiresAt
+      ? new Date(user.emailVerification.otpExpiresAt).getTime()
+      : 0;
+
+    if (!user.emailVerification?.otpHash || !expiresAt || expiresAt < Date.now()) {
+      throw new ValidationError('OTP expired. Please request a new one');
+    }
+
+    const otpHash = crypto.createHash('sha256').update(normalizedOtp).digest('hex');
+    if (otpHash !== user.emailVerification.otpHash) {
+      throw new ValidationError('Invalid OTP');
+    }
+
+    user.emailVerification = {
+      isVerified: true,
+      verifiedAt: new Date(),
+      lastSentAt: user.emailVerification?.lastSentAt,
+      otpHash: undefined,
+      otpExpiresAt: undefined,
+    };
+
+    await user.save();
+    return this.sanitizeUser(user);
   }
 }
 

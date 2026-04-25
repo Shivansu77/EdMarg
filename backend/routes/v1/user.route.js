@@ -13,6 +13,8 @@ const {
   getMyAssessment,
   googleAuth,
   googleAuthCallback,
+  sendEmailVerificationOtp,
+  verifyEmailVerificationOtp,
 } = require('../../controllers/user.controller');
 
 const router = express.Router();
@@ -22,6 +24,8 @@ router.get('/auth/google/callback', googleAuthCallback);
 router.post('/', signupUser);
 router.post('/login', loginUser);
 router.get('/me', protect, cacheResponse({ ttlSeconds: 30 }), getCurrentUser);
+router.post('/email/send-otp', protect, sendEmailVerificationOtp);
+router.post('/email/verify-otp', protect, verifyEmailVerificationOtp);
 router.get('/browsementor', cacheResponse({ ttlSeconds: 120 }), getBrowseMentors);
 router.get('/mentor/:id', cacheResponse({ ttlSeconds: 120 }), getMentorById);
 router.post('/logout', logoutUser);
