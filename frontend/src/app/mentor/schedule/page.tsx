@@ -89,7 +89,7 @@ function MentorScheduleContent() {
       }
     };
     fetchAvailability();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const handleToggleDay = (dayIndex: number) => {

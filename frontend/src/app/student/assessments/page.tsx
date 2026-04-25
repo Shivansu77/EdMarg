@@ -1,5 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, @next/next/no-img-element, react/no-unescaped-entities */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps, react/no-unescaped-entities */
+ 
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -189,11 +189,7 @@ function StudentAssessmentContent() {
   const [statusLoading, setStatusLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    void Promise.all([loadAssignments(), loadCareerAssessment()]);
-  }, []);
-
-  const loadCareerAssessment = async () => {
+  async function loadCareerAssessment() {
     setCareerAssessmentLoading(true);
     try {
       const res = await apiClient.get<CareerAssessmentSubmission | null>('/api/v1/users/assessment');
@@ -208,9 +204,9 @@ function StudentAssessmentContent() {
     } finally {
       setCareerAssessmentLoading(false);
     }
-  };
+  }
 
-  const loadAssignments = async () => {
+  async function loadAssignments() {
     setLoading(true);
     try {
       const res = await apiClient.get<Assignment[] | { assignments?: Assignment[] }>(
@@ -235,7 +231,11 @@ function StudentAssessmentContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    void Promise.all([loadAssignments(), loadCareerAssessment()]);
+  }, []);
 
   const loadResponseStatuses = async (assignmentsArray: NormalizedAssignment[]) => {
     if (!assignmentsArray.length) {

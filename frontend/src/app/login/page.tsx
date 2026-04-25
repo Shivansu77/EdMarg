@@ -3,6 +3,7 @@
 import React, { useEffect, useState, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { getPostAuthFallbackPath, getSafePostAuthPath } from '@/utils/auth-redirect';
@@ -148,7 +149,7 @@ const LoginContent: React.FC = () => {
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:border-emerald-200 transition-all shadow-sm group/google mb-6"
             >
-              <img
+              <Image
                 src="/google-logo.png"
                 alt="Google"
                 width={32}

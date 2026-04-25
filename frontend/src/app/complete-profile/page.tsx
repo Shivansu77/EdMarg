@@ -51,6 +51,55 @@ interface ProfileResponse extends AuthProfileUser {
   };
 }
 
+const normalizeStudentProfile = (profile: ProfileResponse['studentProfile']) => {
+  if (!profile) {
+    return undefined;
+  }
+
+  const classLevel = profile.classLevel ?? undefined;
+  const interests = profile.interests ?? undefined;
+
+  if (!classLevel && !interests?.length) {
+    return undefined;
+  }
+
+  return {
+    classLevel,
+    interests,
+  };
+};
+
+const normalizeMentorProfile = (
+  profile: ProfileResponse['mentorProfile']
+): {
+  linkedinUrl?: string;
+  expertise?: string[];
+  approvalStatus?: 'pending' | 'approved' | 'rejected';
+} | undefined => {
+  if (!profile) {
+    return undefined;
+  }
+
+  const linkedinUrl = profile.linkedinUrl ?? undefined;
+  const expertise = profile.expertise ?? undefined;
+  const approvalStatus =
+    profile.approvalStatus === 'pending' ||
+    profile.approvalStatus === 'approved' ||
+    profile.approvalStatus === 'rejected'
+      ? profile.approvalStatus
+      : undefined;
+
+  if (!linkedinUrl && !expertise?.length && !approvalStatus) {
+    return undefined;
+  }
+
+  return {
+    linkedinUrl,
+    expertise,
+    approvalStatus,
+  };
+};
+
 const syncStoredUser = (user: ProfileResponse) => {
   if (typeof window === 'undefined') {
     return;
@@ -204,8 +253,8 @@ export default function CompleteProfilePage() {
       name: response.data.name,
       role: response.data.role as Role,
       phoneNumber: response.data.phoneNumber || '',
-      studentProfile: response.data.studentProfile || undefined,
-      mentorProfile: response.data.mentorProfile || undefined,
+      studentProfile: normalizeStudentProfile(response.data.studentProfile),
+      mentorProfile: normalizeMentorProfile(response.data.mentorProfile),
       emailVerification: response.data.emailVerification || undefined,
     });
 

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff, Link2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -282,7 +283,7 @@ function SignupContent() {
               disabled={loading}
               className="mb-6 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 font-bold text-slate-700 shadow-sm transition-all hover:border-emerald-200 hover:bg-slate-50"
             >
-              <img
+              <Image
                 src="/google-logo.png"
                 alt="Google"
                 width={32}

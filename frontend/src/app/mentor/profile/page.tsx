@@ -146,7 +146,7 @@ function MentorProfileContent() {
         sessionNotes
       };
 
-      const res = await apiClient.put('/api/v1/users/profile', payload);
+      const res = await apiClient.put<MentorProfile>('/api/v1/users/profile', payload);
       
       if (res.success) {
         setSuccessMsg('PROFILE SAVED SUCCESSFULLY');

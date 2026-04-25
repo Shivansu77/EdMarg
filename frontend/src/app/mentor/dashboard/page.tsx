@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -103,16 +103,6 @@ function formatMeetingDate(date: Date) {
   }).format(date);
 }
 
-function formatMeetingDateTime(date: Date) {
-  return new Intl.DateTimeFormat('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date);
-}
-
 function formatMeetingTimeOnly(date: Date) {
   return new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
@@ -213,10 +203,6 @@ function MentorDashboardContent() {
     { label: 'Confirmed', value: stats?.confirmed?.toString() || '0', sub: 'upcoming', icon: CalendarDays },
     { label: 'Completed', value: stats?.completed?.toString() || '0', sub: 'sessions finished', icon: Activity },
   ];
-  const nextMeeting = upcomingBookings[0] || null;
-  const nextMeetingStart = nextMeeting ? getBookingStart(nextMeeting) : null;
-  const nextAfterMeeting = upcomingBookings[1] || null;
-  const nextAfterMeetingStart = nextAfterMeeting ? getBookingStart(nextAfterMeeting) : null;
   const spotlightMeetings = upcomingBookings.slice(0, 2).filter((booking) => !!getBookingStart(booking));
 
   const handleStartSession = async (bookingId: string) => {

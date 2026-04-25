@@ -12,7 +12,6 @@ import {
   Upload,
   Film,
 } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
@@ -74,7 +73,6 @@ const formatFileSize = (bytes: number) => {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 function MentorRecordingsContent() {
-  const { user } = useAuth();
   const [recordings, setRecordings] = useState<RecordingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');

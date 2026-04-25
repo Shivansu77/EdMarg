@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -67,9 +68,11 @@ const Navbar = () => {
         <div className="hidden lg:flex items-center gap-4">
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
-              <img
+              <Image
                 src={userAvatar}
                 alt={`${userName} avatar`}
+                width={32}
+                height={32}
                 className="h-8 w-8 rounded-full object-cover object-top"
               />
               <span className="text-sm text-gray-600">Welcome, {userName}</span>
@@ -124,9 +127,11 @@ const Navbar = () => {
               {isLoggedIn ? (
                 <>
                   <div className="py-3 px-4 bg-white rounded-2xl border border-emerald-100 text-center shadow-[0_10px_30px_rgba(16,185,129,0.12)]">
-                    <img
+                    <Image
                       src={userAvatar}
                       alt={`${userName} avatar`}
+                      width={40}
+                      height={40}
                       className="mx-auto mb-2 h-10 w-10 rounded-full object-cover object-top"
                     />
                     <p className="text-sm text-gray-600">Welcome, {userName}</p>

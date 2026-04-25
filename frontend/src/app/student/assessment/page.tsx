@@ -5,7 +5,7 @@ import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
-import { AlertCircle, CheckCircle2, ClipboardCheck, Loader2, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, Sparkles, ArrowRight, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Walkthrough from '@/components/assessment/Walkthrough';
 
@@ -350,7 +350,6 @@ function AssessmentContent() {
   if (result && currentStep >= QUIZ_SLIDES.length - 1 && !submitting && !error) {
     const recs = result.step4Output?.top3CareerRecommendations || [];
     const dominantTags = result.step3CareerMapping?.dominantTags || [];
-    const tagScores = result.step2TagScores || {};
     return (
       <DashboardLayout userName="Assessment Results">
         <div className="space-y-6 pb-12 max-w-5xl mx-auto">

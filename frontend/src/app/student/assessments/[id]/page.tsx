@@ -1,5 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, @next/next/no-img-element, react/no-unescaped-entities */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars */
+ 
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -106,11 +106,7 @@ function AssessmentContent() {
   const [isCompleted, setIsCompleted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  useEffect(() => {
-    loadAssignment();
-  }, [assignmentId]);
-
-  const loadAssignment = async () => {
+  async function loadAssignment() {
     setLoading(true);
     setError(null);
     try {
@@ -134,7 +130,11 @@ function AssessmentContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    void loadAssignment();
+  }, [assignmentId]);
 
   const handleAnswerChange = (questionId: string, value: any) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));

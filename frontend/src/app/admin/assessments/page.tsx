@@ -1,5 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, @next/next/no-img-element, react/no-unescaped-entities */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/exhaustive-deps */
+ 
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -61,6 +61,8 @@ const extractStudents = (payload: unknown): Student[] => {
   return [];
 };
 
+const createQuestionId = () => `q-${crypto.randomUUID()}`;
+
 function AdminAssessmentsContent() {
   const [activeTab, setActiveTab] = useState<'templates' | 'assignments' | 'responses'>('templates');
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -97,11 +99,7 @@ function AdminAssessmentsContent() {
     required: false
   });
 
-  useEffect(() => {
-    loadData();
-  }, [activeTab]);
-
-  const loadData = async () => {
+  async function loadData() {
     setLoading(true);
     setError(null);
     try {
@@ -121,7 +119,11 @@ function AdminAssessmentsContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  useEffect(() => {
+    void loadData();
+  }, [activeTab]);
 
   const loadStudents = async () => {
     try {
@@ -166,7 +168,7 @@ function AdminAssessmentsContent() {
     if (currentQuestion.question) {
       updatedForm.questions = [
         ...updatedForm.questions,
-        { ...currentQuestion, id: currentQuestion.id || `q${Date.now()}` }
+        { ...currentQuestion, id: currentQuestion.id || createQuestionId() }
       ];
       setTemplateForm(updatedForm);
       setCurrentQuestion({ id: '', type: 'text', question: '', options: [], required: false });
@@ -203,7 +205,7 @@ function AdminAssessmentsContent() {
     if (currentQuestion.question) {
       updatedForm.questions = [
         ...updatedForm.questions,
-        { ...currentQuestion, id: currentQuestion.id || `q${Date.now()}` }
+        { ...currentQuestion, id: currentQuestion.id || createQuestionId() }
       ];
       setTemplateForm(updatedForm);
       setCurrentQuestion({ id: '', type: 'text', question: '', options: [], required: false });
@@ -309,7 +311,7 @@ function AdminAssessmentsContent() {
 
     const newQuestion = {
       ...currentQuestion,
-      id: currentQuestion.id || `q${Date.now()}`
+      id: currentQuestion.id || createQuestionId()
     };
 
     setTemplateForm({
