@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Loader2 } from 'lucide-react';
+import {
+  Briefcase,
+  GraduationCap,
+  Loader2,
+  MailCheck,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import Logo from '@/components/Logo';
 import { useAuth } from '@/context/AuthContext';
@@ -11,6 +16,26 @@ import { apiClient } from '@/utils/api-client';
 import { getDefaultAuthenticatedPath, isProfileComplete, type AuthProfileUser } from '@/utils/auth-profile';
 
 type Role = 'student' | 'mentor';
+
+const roleCards: Array<{
+  role: Role;
+  title: string;
+  subtitle: string;
+  icon: typeof GraduationCap;
+}> = [
+  {
+    role: 'student',
+    title: 'Student',
+    subtitle: 'Get matched faster with the right mentors and a cleaner dashboard setup.',
+    icon: GraduationCap,
+  },
+  {
+    role: 'mentor',
+    title: 'Mentor',
+    subtitle: 'Create a trusted public profile students and admins can confidently rely on.',
+    icon: Briefcase,
+  },
+];
 
 interface ProfileResponse extends AuthProfileUser {
   _id: string;
@@ -107,6 +132,14 @@ export default function CompleteProfilePage() {
 
   const title = useMemo(
     () => (role === 'mentor' ? 'Finish your mentor setup' : 'Finish your student setup'),
+    [role]
+  );
+
+  const helperText = useMemo(
+    () =>
+      role === 'mentor'
+        ? 'Add the professional details students and admins need before your mentor account can be reviewed.'
+        : 'Add a little context so we can personalize your dashboard and mentor recommendations.',
     [role]
   );
 
@@ -228,53 +261,95 @@ export default function CompleteProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-b from-emerald-50 via-white to-cyan-50">
-      <div className="border-b border-emerald-100/70 bg-white/80 px-6 py-4 backdrop-blur">
-        <Logo />
+    <div className="min-h-screen bg-[#f7f8f4]">
+      <div className="border-b border-slate-200 bg-white px-6 py-4">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+          <Logo />
+          <div className="hidden text-sm font-medium text-slate-500 md:block">
+            Complete profile
+          </div>
+        </div>
       </div>
 
-      <div className="mx-auto flex min-h-[calc(100vh-73px)] w-full max-w-4xl items-center px-6 py-12">
-        <div className="grid w-full gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[2rem] border border-white/70 bg-white/85 p-8 shadow-[0_30px_90px_rgba(15,23,42,0.08)] backdrop-blur">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">One last step</p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-900">{title}</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-600">
-              Google gives us your name, email, and profile photo. We collect the rest here so we can route you to the right experience.
-            </p>
+      <div className="mx-auto max-w-5xl px-6 py-12">
+        <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
+          <aside className="space-y-6">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Step 2 of 2</p>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{title}</h1>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Google gave us your basic details. Add the rest so we can set up your account properly.
+              </p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setRole('student')}
-                  className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                    role === 'student'
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-slate-200 bg-white text-slate-600'
-                  }`}
-                >
-                  I am a student
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRole('mentor')}
-                  className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
-                    role === 'mentor'
-                      ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                      : 'border-slate-200 bg-white text-slate-600'
-                  }`}
-                >
-                  I am a mentor
-                </button>
+            <div className="rounded-3xl border border-slate-200 bg-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Summary</p>
+              <div className="mt-4 space-y-4 text-sm text-slate-600">
+                <div>
+                  <p className="font-medium text-slate-900">Role</p>
+                  <p className="mt-1">{role === 'mentor' ? 'Mentor setup' : 'Student setup'}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Email status</p>
+                  <p className="mt-1">{emailVerified ? 'Verified' : 'Pending verification'}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-slate-900">Next</p>
+                  <p className="mt-1">{role === 'mentor' ? 'Admin review after completion' : 'Direct dashboard access after completion'}</p>
+                </div>
               </div>
+            </div>
 
+            <Link href="/login" className="inline-flex text-sm font-medium text-slate-500 transition hover:text-slate-900">
+              Back to login
+            </Link>
+          </aside>
+
+          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            <div className="border-b border-slate-100 pb-6">
+              <p className="text-sm font-medium text-slate-500">Profile</p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Complete your account</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{helperText}</p>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              {roleCards.map(({ role: roleValue, title: cardTitle, subtitle, icon: Icon }) => {
+                const active = role === roleValue;
+
+                return (
+                  <button
+                    key={roleValue}
+                    type="button"
+                    onClick={() => setRole(roleValue)}
+                    className={`rounded-2xl border px-4 py-4 text-left transition ${
+                      active
+                        ? 'border-slate-900 bg-slate-50'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`rounded-xl p-2 ${active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900">{cardTitle}</p>
+                        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-8 space-y-8">
               <div className="grid gap-5 sm:grid-cols-2">
                 <label className="block text-sm font-medium text-slate-700">
                   Full name
                   <input
                     value={name}
                     onChange={(event) => setName(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
+                    placeholder="Your full name"
                     required
                   />
                 </label>
@@ -287,57 +362,64 @@ export default function CompleteProfilePage() {
                     className="mt-2 w-full cursor-not-allowed rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500"
                   />
                 </label>
+
+                <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
+                  Phone number
+                  <input
+                    value={phoneNumber}
+                    onChange={(event) => setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 10))}
+                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
+                    placeholder="10-digit phone number"
+                  />
+                </label>
               </div>
 
-              <label className="block text-sm font-medium text-slate-700">
-                Phone number
-                <input
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 10))}
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
-                  placeholder="10-digit phone number"
-                />
-              </label>
-
               {role === 'mentor' && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-900">Email verification</p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        {emailVerified
-                          ? 'Your email is verified. Students and admins can rely on this contact address.'
-                          : 'Verify your email with OTP before your mentor profile can move forward.'}
-                      </p>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className={`rounded-xl p-2 ${emailVerified ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700'}`}>
+                        <MailCheck className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-slate-900">Verify email</p>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">
+                          {emailVerified
+                            ? 'Your email is verified.'
+                            : 'Verify your email before your mentor account can move into review.'}
+                        </p>
+                      </div>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${emailVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {emailVerified ? 'Verified' : 'Not verified'}
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+                      emailVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'
+                    }`}>
+                      {emailVerified ? 'Verified' : 'Pending'}
                     </span>
                   </div>
 
                   {!emailVerified && (
-                    <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+                    <div className="mt-4 grid gap-3 sm:grid-cols-[auto_1fr_auto]">
                       <button
                         type="button"
                         onClick={handleSendOtp}
                         disabled={sendingOtp}
-                        className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-70"
+                        className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-70"
                       >
-                        {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
+                        {sendingOtp ? 'Sending...' : 'Send OTP'}
                       </button>
                       <input
                         value={otp}
                         onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
                         placeholder="Enter 6-digit OTP"
-                        className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                        className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
                       />
                       <button
                         type="button"
                         onClick={handleVerifyOtp}
                         disabled={verifyingOtp}
-                        className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-70"
+                        className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-70"
                       >
-                        {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
+                        {verifyingOtp ? 'Verifying...' : 'Verify'}
                       </button>
                     </div>
                   )}
@@ -345,13 +427,13 @@ export default function CompleteProfilePage() {
               )}
 
               {role === 'student' ? (
-                <>
+                <div className="grid gap-5">
                   <label className="block text-sm font-medium text-slate-700">
                     Class or level
                     <input
                       value={classLevel}
                       onChange={(event) => setClassLevel(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
                       placeholder="Class 12, Graduate, Early career"
                       required
                     />
@@ -362,19 +444,19 @@ export default function CompleteProfilePage() {
                     <input
                       value={interests}
                       onChange={(event) => setInterests(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
-                      placeholder="Design, Engineering, Finance"
+                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
+                      placeholder="Design, engineering, finance"
                     />
                   </label>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="grid gap-5">
                   <label className="block text-sm font-medium text-slate-700">
                     LinkedIn profile link
                     <input
                       value={linkedinUrl}
                       onChange={(event) => setLinkedinUrl(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
+                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
                       placeholder="https://www.linkedin.com/in/your-profile"
                       required
                     />
@@ -385,8 +467,8 @@ export default function CompleteProfilePage() {
                     <input
                       value={expertise}
                       onChange={(event) => setExpertise(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
-                      placeholder="Career coaching, product, software engineering"
+                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
+                      placeholder="Career coaching, system design, product strategy"
                       required
                     />
                   </label>
@@ -396,35 +478,30 @@ export default function CompleteProfilePage() {
                     <textarea
                       value={bio}
                       onChange={(event) => setBio(event.target.value)}
-                      className="mt-2 min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-emerald-500"
-                      placeholder="Share the experience and guidance you bring."
+                      className="mt-2 min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
+                      placeholder="Describe your background and what kind of students you help."
                     />
                   </label>
-                </>
+                </div>
               )}
 
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex w-full items-center justify-center rounded-2xl bg-slate-900 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70"
-              >
-                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save and continue'}
-              </button>
+              <div className="flex flex-col gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-slate-500">
+                  {role === 'mentor'
+                    ? 'Mentor accounts need email verification and admin review.'
+                    : 'You can update these details later from your profile.'}
+                </p>
+
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-70"
+                >
+                  {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save and continue'}
+                </button>
+              </div>
             </form>
-          </div>
-
-          <div className="flex flex-col justify-center rounded-[2rem] bg-slate-900 p-8 text-white shadow-[0_30px_90px_rgba(15,23,42,0.16)]">
-            <h2 className="text-2xl font-semibold tracking-tight">Why we ask for more details</h2>
-            <div className="mt-6 space-y-4 text-sm leading-6 text-slate-300">
-              <p>Google does not reliably provide role, class level, expertise, LinkedIn, pricing, or mentoring preferences.</p>
-              <p>Students need learning context so we can show the right dashboard and mentor recommendations.</p>
-              <p>Mentors need professional details so we can send them into review, display their profile, and unlock booking tools after approval.</p>
-            </div>
-
-            <Link href="/login" className="mt-8 text-sm font-semibold text-emerald-300 hover:text-emerald-200">
-              Back to login
-            </Link>
-          </div>
+          </section>
         </div>
       </div>
     </div>

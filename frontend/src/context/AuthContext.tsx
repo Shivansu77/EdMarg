@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useSyncExternalStore } from 'react';
+import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
 import { resolveApiBaseUrl } from '@/utils/api-base';
 
 interface User {
@@ -177,7 +177,81 @@ const getStoredUserSnapshot = (): User | null => {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const user = useSyncExternalStore(subscribeToAuthUser, getStoredUserSnapshot, () => null);
-  const isLoading = false;
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return Boolean(getStoredToken());
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const validateStoredSession = async () => {
+      const token = getStoredToken();
+
+      if (!token) {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/me`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const result = await readApiResponse(response);
+
+        if (
+          !response.ok ||
+          !result.data?._id ||
+          !result.data.email ||
+          !result.data.name ||
+          !result.data.role
+        ) {
+          clearAuthStorage();
+          emitAuthChange();
+          return;
+        }
+
+        const authenticatedUser: User = {
+          _id: result.data._id,
+          name: result.data.name,
+          email: result.data.email,
+          emailVerification: result.data.emailVerification,
+          role: result.data.role,
+          profileImage: result.data.profileImage,
+          profileImageUpdatedAt: result.data.profileImageUpdatedAt,
+          phoneNumber: result.data.phoneNumber,
+          studentProfile: result.data.studentProfile,
+          mentorProfile: result.data.mentorProfile,
+        };
+
+        persistAuthStorage(authenticatedUser, token);
+        emitAuthChange();
+      } catch {
+        clearAuthStorage();
+        emitAuthChange();
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void validateStoredSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const updateUser = (patch: Partial<User>) => {
     if (typeof window === 'undefined') {
@@ -224,6 +298,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       emailVerification: result.data.emailVerification,
       role: result.data.role,
       profileImage: result.data.profileImage,
+      profileImageUpdatedAt: result.data.profileImageUpdatedAt,
       phoneNumber: result.data.phoneNumber,
       studentProfile: result.data.studentProfile,
       mentorProfile: result.data.mentorProfile,

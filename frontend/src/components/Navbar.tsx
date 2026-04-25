@@ -12,10 +12,10 @@ import Logo from '@/components/Logo';
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const router = useRouter();
 
-  const isLoggedIn = !!user;
+  const isLoggedIn = !isLoading && !!user;
   const userName = user?.name || 'User';
   const userRole = user?.role || 'student';
   const userAvatar = getImageUrl(user?.profileImage, userName, 80, user?.profileImageUpdatedAt);
