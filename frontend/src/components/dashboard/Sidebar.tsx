@@ -35,7 +35,7 @@ const studentNavItems = [
   { name: 'Assessments', href: '/student/assessments', icon: ClipboardCheck },
   { name: 'Results', href: '/student/results', icon: BadgeCheck },
   { name: 'Mentors', href: '/student/mentors', icon: Users },
-  { name: 'Book Session', href: '/student/mentors', icon: CalendarCheck },
+  { name: 'Book Session', href: '/student/booking', icon: CalendarCheck },
   { name: 'Schedule', href: '/student/schedule', icon: CalendarDays },
   { name: 'History', href: '/student/history', icon: History },
   { name: 'Recordings', href: '/student/recordings', icon: Film },
@@ -55,7 +55,7 @@ const adminNavItems = [
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Blogs', href: '/admin/blogs', icon: FileText },
   { name: 'Assessments', href: '/admin/assessments', icon: ClipboardCheck },
-  { name: 'Platform Stats', href: '/admin/dashboard', icon: BadgeCheck },
+  { name: 'Platform Stats', href: '/admin/bookings', icon: BadgeCheck },
 ];
 
 const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed }: SidebarProps) => {
@@ -87,7 +87,7 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
         <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
           {!isCollapsed && (
             <div className="group block">
-              <Logo imgClassName="h-8 w-auto" className="mb-0" />
+              <Logo imgClassName="h-12 w-auto" className="mb-0" />
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
                 Workspace
               </p>

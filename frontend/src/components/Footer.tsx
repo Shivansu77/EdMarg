@@ -7,7 +7,7 @@ import Logo from '@/components/Logo';
 const Footer = () => {
   const y = new Date().getFullYear();
   return (
-    <footer className="relative overflow-hidden bg-linear-to-b from-emerald-900 to-emerald-950 text-white py-12 border-t border-emerald-700/40">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-emerald-900 to-emerald-950 text-white py-12 border-t border-emerald-700/40">
       {/* Subtle radial halo at top center */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-75 bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-emerald-400/20 via-emerald-900 to-emerald-950 pointer-events-none" />
 
@@ -16,7 +16,7 @@ const Footer = () => {
           <div className="flex flex-col items-center lg:items-start group">
             <Logo 
               className="mb-1" 
-              imgClassName="h-8 w-auto" 
+              imgClassName="h-12 w-auto" 
               textColor="text-white"
             />
             <p className="text-xs text-emerald-200/80 font-medium">Find Your Career North Star</p>
