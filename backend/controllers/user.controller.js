@@ -125,10 +125,8 @@ exports.signupUser = async (req, res) => {
           message: 'LinkedIn profile link is required for mentor accounts',
         });
       }
-
       mentorProfile.linkedinUrl = linkedinUrl;
     }
-
     const user = await userService.signupUser({
       name,
       email,

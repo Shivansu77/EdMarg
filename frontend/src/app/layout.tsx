@@ -8,6 +8,17 @@ export const metadata: Metadata = {
   title: 'Edmarg — AI-Powered Career Mentorship Platform',
   description: 'Find clarity and confidence through AI-driven assessments and expert mentorship. Your guide to the right career path. Connect with industry experts 1:1, get actionable feedback, and accelerate your career.',
   metadataBase: new URL(SITE_URL),
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
   keywords: 'career mentorship, AI career guidance, career assessment, mentor platform, career clarity, professional guidance, 1:1 mentor video calls',
   authors: [{ name: 'Edmarg' }],
   creator: 'Edmarg',
