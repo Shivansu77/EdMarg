@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff, Link2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
-import { getRoleDashboardPath, getSafePostAuthPath } from "@/utils/auth-redirect";
-import { resolveApiBaseUrl } from "@/utils/api-base";
+import { getPostAuthFallbackPath, getSafePostAuthPath } from "@/utils/auth-redirect";
+import { resolveApiBaseUrl, resolveBackendBaseUrl } from "@/utils/api-base";
 import Logo from "@/components/Logo";
 
 interface SignupResponse {
@@ -21,6 +21,16 @@ interface SignupResponse {
     email?: string;
     role?: "student" | "mentor" | "admin";
     profileImage?: string;
+    phoneNumber?: string;
+    studentProfile?: {
+      classLevel?: string;
+      interests?: string[];
+    };
+    mentorProfile?: {
+      linkedinUrl?: string;
+      expertise?: string[];
+      approvalStatus?: "pending" | "approved" | "rejected";
+    };
     token?: string;
   };
 }
@@ -49,6 +59,7 @@ function SignupContent() {
   const [linkedinUrl, setLinkedinUrl] = useState("");
 
   const API_BASE_URL = resolveApiBaseUrl();
+  const backendBaseUrl = resolveBackendBaseUrl();
   const redirectParam = searchParams.get("redirect") ?? searchParams.get("callbackUrl");
 
   useEffect(() => {
@@ -56,9 +67,31 @@ function SignupContent() {
       return;
     }
 
-    const fallbackPath = getRoleDashboardPath(user.role);
+    const fallbackPath = getPostAuthFallbackPath(user);
     router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
   }, [redirectParam, router, user]);
+
+  const handleGoogleSignup = () => {
+    setLoading(true);
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+    const state = encodeURIComponent(
+      JSON.stringify({
+        frontendOrigin: currentOrigin,
+        redirectPath: redirectParam,
+        intendedRole: role,
+      })
+    );
+
+    if (clientId) {
+      const redirectUri = encodeURIComponent(`${backendBaseUrl}/api/v1/users/auth/google/callback`);
+      const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&access_type=offline&prompt=select_account`;
+      window.location.assign(authUrl);
+      return;
+    }
+
+    window.location.assign(`${backendBaseUrl}/api/v1/users/auth/google?state=${state}`);
+  };
 
   const handleRoleChange = (nextRole: "student" | "mentor") => {
     if (nextRole === role) {
@@ -112,6 +145,9 @@ function SignupContent() {
       email: result.data.email,
       role: result.data.role,
       profileImage: result.data.profileImage,
+      phoneNumber: result.data.phoneNumber,
+      studentProfile: result.data.studentProfile,
+      mentorProfile: result.data.mentorProfile,
     };
 
     const token = result.token || result.data.token;
@@ -130,7 +166,7 @@ function SignupContent() {
     setSuccess(`Welcome, ${createdUser.name || name}! Your account was created.`);
     toast.success(`Welcome, ${createdUser.name || name}! Your account was created.`);
 
-    const fallbackPath = getRoleDashboardPath(createdUser.role);
+    const fallbackPath = getPostAuthFallbackPath(createdUser);
     router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
 
     setName("");
@@ -231,6 +267,31 @@ function SignupContent() {
             <div className="mb-8">
               <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Create account</h1>
               <p className="text-slate-600 text-sm leading-relaxed">Join EdMarg to start learning or mentoring</p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleSignup}
+              disabled={loading}
+              className="mb-6 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 font-bold text-slate-700 shadow-sm transition-all hover:border-emerald-200 hover:bg-slate-50"
+            >
+              <img
+                src="/google-logo.png"
+                alt="Google"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
+              />
+              <span>Continue with Google as {role}</span>
+            </button>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white/85 px-2 text-slate-400 font-bold">Or sign up with email</span>
+              </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">

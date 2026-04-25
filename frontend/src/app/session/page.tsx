@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getDefaultAuthenticatedPath, isProfileComplete } from '@/utils/auth-profile';
 
 export default function SessionRedirect() {
   const router = useRouter();
@@ -9,10 +10,27 @@ export default function SessionRedirect() {
   
   useEffect(() => {
     if (!isLoading) {
-      if (user?.role === 'admin') router.replace('/admin/dashboard');
-      else if (user?.role === 'mentor') router.replace('/mentor/sessions');
-      else if (user?.role === 'student') router.replace('/student/schedule');
-      else router.replace('/login');
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
+
+      if (!isProfileComplete(user) || user.role === 'admin') {
+        router.replace(getDefaultAuthenticatedPath(user));
+        return;
+      }
+
+      if (user.role === 'mentor') {
+        router.replace('/mentor/sessions');
+        return;
+      }
+
+      if (user.role === 'student') {
+        router.replace('/student/schedule');
+        return;
+      }
+
+      router.replace('/login');
     }
   }, [user, isLoading, router]);
   

@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getDefaultAuthenticatedPath } from '@/utils/auth-profile';
 
 export default function StudentRedirect() {
   const router = useRouter();
@@ -9,8 +10,12 @@ export default function StudentRedirect() {
   
   useEffect(() => {
     if (!isLoading) {
-      if (user?.role === 'student') router.replace('/student/dashboard');
-      else router.replace('/login');
+      if (user?.role === 'student') {
+        router.replace(getDefaultAuthenticatedPath(user));
+        return;
+      }
+
+      router.replace('/login');
     }
   }, [user, isLoading, router]);
   

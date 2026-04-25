@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, @next/next/no-html-link-for-pages, @typescript-eslint/no-unused-vars, @next/next/no-img-element, react/no-unescaped-entities */
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -6,7 +5,6 @@ import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import Image from 'next/image';
 import ProfileImageUpload from '@/components/ProfileImageUpload';
 import { 
   UserCircle, 
@@ -36,6 +34,7 @@ interface MentorProfile {
   name: string;
   profileImage: string;
   mentorProfile?: {
+    linkedinUrl?: string;
     bio?: string;
     experienceYears?: number;
     expertise?: string[];
@@ -57,6 +56,7 @@ function MentorProfileContent() {
   
   // Form State - Professional
   const [bio, setBio] = useState('');
+  const [linkedinUrl, setLinkedinUrl] = useState('');
   const [experienceYears, setExperienceYears] = useState<number | ''>('');
   const [expertise, setExpertise] = useState<string[]>([]);
   
@@ -87,6 +87,7 @@ function MentorProfileContent() {
           setProfileImage(userData.profileImage || '');
           
           const mProfile = userData.mentorProfile || {};
+          setLinkedinUrl(mProfile.linkedinUrl || '');
           setBio(mProfile.bio || '');
           setExperienceYears(mProfile.experienceYears || '');
           setExpertise(mProfile.expertise || []);
@@ -126,6 +127,7 @@ function MentorProfileContent() {
       const payload = {
         name,
         profileImage,
+        linkedinUrl,
         bio,
         experienceYears: experienceYears === '' ? 0 : Number(experienceYears),
         expertise,
@@ -264,6 +266,17 @@ function MentorProfileContent() {
             </div>
             
             <div className="p-6 space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-gray-900">LinkedIn Profile</label>
+                <input
+                  type="url"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                  placeholder="https://www.linkedin.com/in/your-profile"
+                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-900">Professional Bio</label>
                 <textarea

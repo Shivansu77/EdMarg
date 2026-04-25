@@ -28,6 +28,16 @@ const normalizePhoneNumber = (phoneNumber) => {
 };
 
 class UserService {
+  sanitizeUser(user) {
+    if (!user) {
+      return null;
+    }
+
+    const safeUser = user.toObject ? user.toObject() : { ...user };
+    delete safeUser.password;
+    return safeUser;
+  }
+
   async createUser(userData) {
     const normalizedEmail = String(userData.email || '').trim().toLowerCase();
     const existingUser = await userRepository.findByEmail(normalizedEmail);
@@ -171,9 +181,13 @@ class UserService {
     return studentAssessmentRepository.findByStudent(userId);
   }
 
-  async googleLogin(googlePayload) {
+  async googleLogin(googlePayload, options = {}) {
     const { email, name, picture, sub: googleId } = googlePayload;
     const normalizedEmail = email.trim().toLowerCase();
+    const intendedRole =
+      options.intendedRole === 'mentor' || options.intendedRole === 'student'
+        ? options.intendedRole
+        : 'student';
 
     let user = await userRepository.findByEmail(normalizedEmail);
 
@@ -186,7 +200,7 @@ class UserService {
         name,
         email: normalizedEmail,
         password: dummyPassword,
-        role: 'student', // Default role for Google signup
+        role: intendedRole,
         profileImage: picture,
       });
       console.log(`[AUTH_GOOGLE] New user created: ${normalizedEmail}`);

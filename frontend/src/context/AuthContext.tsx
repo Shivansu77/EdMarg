@@ -10,6 +10,16 @@ interface User {
   role: 'student' | 'mentor' | 'admin';
   profileImage?: string;
   profileImageUpdatedAt?: number;
+  phoneNumber?: string;
+  studentProfile?: {
+    classLevel?: string;
+    interests?: string[];
+  };
+  mentorProfile?: {
+    linkedinUrl?: string;
+    expertise?: string[];
+    approvalStatus?: 'pending' | 'approved' | 'rejected';
+  };
 }
 
 interface AuthApiResponse {
@@ -197,6 +207,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: result.data.email,
       role: result.data.role,
       profileImage: result.data.profileImage,
+      phoneNumber: result.data.phoneNumber,
+      studentProfile: result.data.studentProfile,
+      mentorProfile: result.data.mentorProfile,
     };
 
     persistAuthStorage(authenticatedUser, result.data.token);

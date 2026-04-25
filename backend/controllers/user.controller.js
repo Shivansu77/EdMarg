@@ -1,6 +1,41 @@
 const userService = require('../services/user.service');
 const googleAuthUtil = require('../utils/google-auth');
 
+const parseGoogleState = (rawState) => {
+  if (!rawState || typeof rawState !== 'string') {
+    return {};
+  }
+
+  try {
+    const parsedState = JSON.parse(rawState);
+    if (parsedState && typeof parsedState === 'object') {
+      return parsedState;
+    }
+  } catch {
+    return {
+      frontendOrigin: rawState,
+    };
+  }
+
+  return {};
+};
+
+const buildAuthResponseData = (user, token) => {
+  const safeUser = userService.sanitizeUser(user) || {};
+
+  return {
+    _id: safeUser._id,
+    name: safeUser.name,
+    email: safeUser.email,
+    role: safeUser.role,
+    profileImage: safeUser.profileImage,
+    phoneNumber: safeUser.phoneNumber,
+    studentProfile: safeUser.studentProfile,
+    mentorProfile: safeUser.mentorProfile,
+    token,
+  };
+};
+
 const resolveFrontendBase = (req) => {
   const originHeader = req ? (req.headers.origin || req.headers.referer || '') : '';
   
@@ -38,10 +73,18 @@ exports.googleAuth = (req, res) => {
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
     const host = req.get('host');
     const origin = `${protocol}://${host}`;
-    
-    // Resolve which frontend domain we are coming from and pass it as 'state'
-    const frontendOrigin = resolveFrontendBase(req);
-    const url = googleAuthUtil.getGoogleAuthUrl(origin, frontendOrigin);
+
+    const incomingState = typeof req.query.state === 'string' ? req.query.state : '';
+    const parsedState = parseGoogleState(incomingState);
+    const statePayload = incomingState
+      ? incomingState
+      : JSON.stringify({
+          frontendOrigin: parsedState.frontendOrigin || resolveFrontendBase(req),
+          redirectPath: parsedState.redirectPath,
+          intendedRole: parsedState.intendedRole,
+        });
+
+    const url = googleAuthUtil.getGoogleAuthUrl(origin, statePayload);
     res.redirect(url);
   } catch (err) {
     console.error('Google Auth Init Error:', err);
@@ -52,8 +95,13 @@ exports.googleAuth = (req, res) => {
 exports.googleAuthCallback = async (req, res, next) => {
   try {
     const { code, state } = req.query;
+    const parsedState = parseGoogleState(state);
+    const frontendBase = parsedState.frontendOrigin || state || resolveFrontendBase(req);
+    const redirectPath = parsedState.redirectPath;
+    const intendedRole = parsedState.intendedRole;
+
     if (!code) {
-      return res.redirect(`${state || resolveFrontendBase(req)}/login?error=Google%20auth%20failed`);
+      return res.redirect(`${frontendBase}/login?error=Google%20auth%20failed`);
     }
 
     const protocol = req.headers['x-forwarded-proto'] || req.protocol;
@@ -63,7 +111,7 @@ exports.googleAuthCallback = async (req, res, next) => {
     const tokens = await googleAuthUtil.getTokensFromCode(code, origin);
     const googleUser = await googleAuthUtil.verifyGoogleIdToken(tokens.id_token, origin);
     
-    const user = await userService.googleLogin(googleUser);
+    const user = await userService.googleLogin(googleUser, { intendedRole });
     const token = await userService.generateToken(user._id);
 
     // Set cookie
@@ -75,12 +123,21 @@ exports.googleAuthCallback = async (req, res, next) => {
       path: '/',
     });
 
-    const frontendBase = state || resolveFrontendBase(req);
-    res.redirect(`${frontendBase}/login?token=${token}&role=${user.role}`);
+    const query = new URLSearchParams({
+      token,
+      role: user.role,
+    });
+
+    if (redirectPath) {
+      query.set('redirect', redirectPath);
+    }
+
+    res.redirect(`${frontendBase}/login?${query.toString()}`);
   } catch (err) {
     console.error('Google Auth Error:', err);
-    const { state } = req.query;
-    res.redirect(`${state || resolveFrontendBase(req)}/login?error=Google%20login%20failed`);
+    const parsedState = parseGoogleState(req.query.state);
+    const frontendBase = parsedState.frontendOrigin || req.query.state || resolveFrontendBase(req);
+    res.redirect(`${frontendBase}/login?error=Google%20login%20failed`);
   }
 };
 
@@ -150,12 +207,7 @@ exports.signupUser = async (req, res) => {
     return res.status(201).json({
       success: true,
       data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        profileImage: user.profileImage,
-        token,
+        ...buildAuthResponseData(user, token),
       },
     });
   } catch (err) {
@@ -213,12 +265,7 @@ exports.loginUser = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        profileImage: user.profileImage,
-        token,
+        ...buildAuthResponseData(user, token),
       },
     });
   } catch (err) {
@@ -244,37 +291,43 @@ exports.updateUserProfile = async (req, res, next) => {
     const userId = req.user._id;
     const userRole = req.user.role;
     const { 
-      name, profileImage, phoneNumber,
+      name, profileImage, phoneNumber, role, linkedinUrl,
       classLevel, interests,
       expertise, bio, experienceYears, pricePerSession, sessionDuration, autoConfirm, sessionNotes
     } = req.body;
+    const normalizedRole = role === 'mentor' || role === 'student' ? role : userRole;
 
     const profileData = {
       name,
       profileImage,
       phoneNumber,
+      role: normalizedRole,
     };
 
-    if (userRole === 'student' && (classLevel !== undefined || interests !== undefined)) {
+    if (
+      normalizedRole === 'student' &&
+      (classLevel !== undefined || interests !== undefined)
+    ) {
       profileData.studentProfile = {
         classLevel,
         interests,
       };
     }
 
-    if (
-      userRole === 'mentor' &&
-      (
-        expertise !== undefined ||
-        bio !== undefined ||
-        experienceYears !== undefined ||
-        pricePerSession !== undefined ||
-        sessionDuration !== undefined ||
-        autoConfirm !== undefined ||
-        sessionNotes !== undefined
-      )
-    ) {
+    if (normalizedRole === 'mentor') {
+      const resolvedLinkedinUrl = String(
+        linkedinUrl !== undefined ? linkedinUrl : req.user.mentorProfile?.linkedinUrl || ''
+      ).trim();
+
+      if (!resolvedLinkedinUrl) {
+        return res.status(400).json({
+          success: false,
+          message: 'LinkedIn profile link is required for mentor accounts',
+        });
+      }
+
       profileData.mentorProfile = {
+        linkedinUrl: resolvedLinkedinUrl,
         expertise,
         bio,
         experienceYears,

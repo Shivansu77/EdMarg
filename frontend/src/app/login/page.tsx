@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Loader, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { getRoleDashboardPath, getSafePostAuthPath } from '@/utils/auth-redirect';
+import { getPostAuthFallbackPath, getSafePostAuthPath } from '@/utils/auth-redirect';
 import { resolveApiBaseUrl, resolveBackendBaseUrl } from '@/utils/api-base';
 import toast from 'react-hot-toast';
 
@@ -20,7 +20,7 @@ const LoginContent: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(Boolean(searchParams.get('token')));
   const [error, setError] = useState<string>('');
   const redirectParam = searchParams.get('redirect') ?? searchParams.get('callbackUrl');
 
@@ -29,7 +29,7 @@ const LoginContent: React.FC = () => {
       return;
     }
 
-    const fallbackPath = getRoleDashboardPath(user.role);
+    const fallbackPath = getPostAuthFallbackPath(user);
     router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
   }, [redirectParam, router, user]);
 
@@ -41,7 +41,7 @@ const LoginContent: React.FC = () => {
     try {
       const authenticatedUser = await login(email, password);
       toast.success('Successfully logged in!');
-      const fallbackPath = getRoleDashboardPath(authenticatedUser.role);
+      const fallbackPath = getPostAuthFallbackPath(authenticatedUser);
       router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unable to login';
@@ -56,16 +56,19 @@ const LoginContent: React.FC = () => {
     setLoading(true);
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+    const state = encodeURIComponent(
+      JSON.stringify({
+        frontendOrigin: currentOrigin,
+        redirectPath: redirectParam,
+      })
+    );
 
     if (clientId) {
       const redirectUri = encodeURIComponent(`${backendBaseUrl}/api/v1/users/auth/google/callback`);
-      const state = encodeURIComponent(currentOrigin);
       const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email&access_type=offline&prompt=select_account`;
       window.location.assign(authUrl);
     } else {
-      // If we go to the backend first, we can append the origin as a query param if we wanted, 
-      // but the backend's resolveFrontendBase(req) will now handle it via referer/origin headers
-      window.location.assign(`${backendBaseUrl}/api/v1/users/auth/google`);
+      window.location.assign(`${backendBaseUrl}/api/v1/users/auth/google?state=${state}`);
     }
   };
 
@@ -80,29 +83,25 @@ const LoginContent: React.FC = () => {
     }
 
     if (token) {
-      // We have a token from Google redirect
-      // AuthContext will need a way to verify this or we can just fetch /me
-      setLoading(true);
       fetch(`${apiBaseUrl}/api/v1/users/me`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => res.json())
       .then(result => {
         if (result.success) {
-          // Persist and redirect
           localStorage.setItem('token', token);
           localStorage.setItem('user', JSON.stringify(result.data));
           document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
           
           window.dispatchEvent(new Event('edmarg-auth-user-change'));
           toast.success('Successfully logged in with Google!');
-          const fallbackPath = getRoleDashboardPath(result.data.role);
+          const fallbackPath = getPostAuthFallbackPath(result.data);
           router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
         } else {
           toast.error(result.message || 'Failed to fetch user data for Google login');
         }
       })
-      .catch((e) => {
+      .catch(() => {
         toast.error('Failed to complete Google login callback request');
       })
       .finally(() => setLoading(false));
@@ -140,10 +139,12 @@ const LoginContent: React.FC = () => {
               disabled={loading}
               className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:border-emerald-200 transition-all shadow-sm group/google mb-6"
             >
-              <img 
-                src="/google-logo.png" 
-                alt="Google" 
-                className="w-8 h-8 object-contain transition-transform group-hover/google:scale-110" 
+              <img
+                src="/google-logo.png"
+                alt="Google"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain transition-transform group-hover/google:scale-110"
               />
               <span>Continue with Google</span>
             </button>

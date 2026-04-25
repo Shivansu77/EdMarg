@@ -1,3 +1,5 @@
+import { getDefaultAuthenticatedPath, type AuthProfileUser } from '@/utils/auth-profile';
+
 export const getRoleDashboardPath = (role?: string | null) => {
   if (role === 'admin') {
     return '/admin/dashboard';
@@ -13,6 +15,9 @@ export const getRoleDashboardPath = (role?: string | null) => {
 
   return '/dashboard';
 };
+
+export const getPostAuthFallbackPath = (user?: AuthProfileUser | null) =>
+  getDefaultAuthenticatedPath(user);
 
 export const getSafePostAuthPath = (
   candidatePath: string | null | undefined,

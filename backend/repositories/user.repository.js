@@ -132,6 +132,7 @@ class UserRepository {
     if (profileData.name !== undefined) updateObj.name = profileData.name;
     if (profileData.profileImage !== undefined) updateObj.profileImage = profileData.profileImage;
     if (profileData.phoneNumber !== undefined) updateObj.phoneNumber = profileData.phoneNumber;
+    if (profileData.role !== undefined) updateObj.role = profileData.role;
     
     // Manage nested studentProfile fields
     if (profileData.studentProfile) {

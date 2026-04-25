@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { getDefaultAuthenticatedPath, isProfileComplete } from '@/utils/auth-profile';
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -45,7 +46,6 @@ export default function ProtectedRoute({
     }
 
     if (!user || user.role !== requiredRole) {
-      setIsSessionChecking(true);
       router.replace('/login');
     }
   }, [hasHydrated, requiredRole, router, user]);
@@ -72,10 +72,16 @@ export default function ProtectedRoute({
         const result = response.ok ? await response.json().catch(() => null) : null;
         const serverRole = result?.data?.role;
         const mentorApprovalStatus = result?.data?.mentorProfile?.approvalStatus || 'pending';
+        const destinationPath = getDefaultAuthenticatedPath(result?.data);
 
         if (!response.ok || serverRole !== requiredRole) {
           clearStoredAuth();
           router.replace('/login');
+          return;
+        }
+
+        if (!isProfileComplete(result?.data) && pathname !== '/complete-profile') {
+          router.replace(destinationPath);
           return;
         }
 
