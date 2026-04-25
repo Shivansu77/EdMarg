@@ -278,8 +278,11 @@ function StudentAssessmentContent() {
     return 'in-progress';
   };
 
-  const totalCount = assignments.length;
-  const completedCount = assignments.filter((assignment) => getAssignmentStatus(assignment._id) === 'completed').length;
+  const careerAssessmentDate = formatDate(careerAssessment?.updatedAt || careerAssessment?.createdAt);
+  const hasCompletedCareerAssessment = Boolean(careerAssessment);
+
+  const totalCount = assignments.length + 1; // +1 for Career Assessment
+  const completedCount = assignments.filter((assignment) => getAssignmentStatus(assignment._id) === 'completed').length + (hasCompletedCareerAssessment ? 1 : 0);
   const inProgressCount = assignments.filter((assignment) => getAssignmentStatus(assignment._id) === 'in-progress').length;
   const notStartedCount = Math.max(totalCount - completedCount - inProgressCount, 0);
 
@@ -290,9 +293,6 @@ function StudentAssessmentContent() {
   const handleOpenCareerAssessment = () => {
     router.push('/student/assessment');
   };
-
-  const careerAssessmentDate = formatDate(careerAssessment?.updatedAt || careerAssessment?.createdAt);
-  const hasCompletedCareerAssessment = Boolean(careerAssessment);
 
   return (
     <DashboardLayout userName="Student">
@@ -338,11 +338,11 @@ function StudentAssessmentContent() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-cyan-200 bg-linear-to-br from-cyan-50 to-white p-6 shadow-sm">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <section className="rounded-3xl border border-emerald-200/60 bg-linear-to-br from-emerald-50/50 to-white p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 group">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex-1">
               <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-100 text-cyan-700">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition-transform group-hover:scale-105">
                   <Sparkles size={24} />
                 </div>
                 <div>
@@ -371,7 +371,7 @@ function StudentAssessmentContent() {
             <div className="flex shrink-0">
               <button
                 onClick={handleOpenCareerAssessment}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 px-6 py-3.5 text-sm font-bold text-white transition-all shadow-md hover:shadow-emerald-500/25 hover:-translate-y-0.5 active:scale-95"
               >
                 {hasCompletedCareerAssessment ? 'Review Career Assessment' : 'Start Career Assessment'}
                 <ArrowRight size={18} />
@@ -385,11 +385,13 @@ function StudentAssessmentContent() {
             <p className="text-slate-600">Loading assessments...</p>
           </section>
         ) : assignments.length === 0 ? (
-          <section className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-            <ClipboardCheck size={64} className="mx-auto mb-4 text-slate-300" />
-            <h2 className="mb-2 text-xl font-bold text-slate-900">No Assessments Yet</h2>
-            <p className="text-slate-600">
-              You don't have any assessments assigned. Check back later!
+          <section className="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-16 text-center shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-5">
+               <ClipboardCheck size={32} />
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-slate-900">No Assigned Assessments</h2>
+            <p className="text-sm font-medium text-slate-500 max-w-sm mx-auto">
+              You don't have any specific assessments assigned to you right now. When you do, they will appear here.
             </p>
           </section>
         ) : (
@@ -400,7 +402,7 @@ function StudentAssessmentContent() {
               const assignedDate = formatDate(assignment.createdAt);
               const dueDate = formatDate(assignment.dueDate);
               const completedDate = formatDate(response?.submittedAt);
-              
+
               return (
                 <section
                   key={assignment._id}

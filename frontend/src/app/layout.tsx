@@ -54,7 +54,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className="h-full antialiased"
     >
-      <body className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">
+      <body suppressHydrationWarning className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">
         <Providers>{children}<NetworkStatusLoader /></Providers>
       </body>
     </html>

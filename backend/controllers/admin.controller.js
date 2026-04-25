@@ -173,3 +173,28 @@ exports.getBookingStats = async (req, res, next) => {
     next(err);
   }
 };
+
+exports.getAllRecordings = async (req, res, next) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, parseInt(req.query.limit) || 20);
+    const status = req.query.status || 'all';
+    const search = req.query.search || '';
+    const type = req.query.type || 'all';
+    const sortField = req.query.sortField || 'date';
+    const sortAsc = req.query.sortAsc === 'true';
+
+    const result = await adminService.getAllRecordings(page, limit, { status, search, type, sortField, sortAsc });
+
+    res.status(200).json({
+      success: true,
+      count: result.recordings.length,
+      total: result.total,
+      page: result.page,
+      pages: result.pages,
+      data: result.recordings,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

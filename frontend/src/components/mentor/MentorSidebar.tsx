@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { apiClient } from '@/utils/api-client';
+import Logo from '@/components/Logo';
 import {
   LayoutGrid,
   MessageSquare,
@@ -17,6 +18,7 @@ import {
   ChevronRight,
   History,
   Zap,
+  Video,
 } from 'lucide-react';
 
 interface MentorSidebarProps {
@@ -33,6 +35,7 @@ const navItems = [
   { name: 'Students', href: '/mentor/students', icon: Users },
   { name: 'Results', href: '/mentor/results', icon: BarChart3 },
   { name: 'History', href: '/mentor/history', icon: History },
+  { name: 'Recordings', href: '/mentor/recordings', icon: Video },
   { name: 'Profile', href: '/mentor/profile', icon: User },
   { name: 'Settings', href: '/mentor/settings', icon: Settings },
 ];
@@ -89,17 +92,12 @@ const MentorSidebar = ({
         {/* Header */}
         <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
           {!isCollapsed && (
-            <Link href="/" onClick={onClose} className="group block">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-lg bg-black text-xs font-extrabold text-white shadow-sm transition-transform duration-300 group-hover:-translate-y-0.5">
-                  E
-                </span>
-                <span className="text-xl font-extrabold tracking-tight text-black">EdMarg</span>
-              </div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mt-1 pl-1">
+            <div className="group block">
+              <Logo imgClassName="h-8 w-auto" className="mb-0" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
                 Mentor Hub
               </p>
-            </Link>
+            </div>
           )}
 
           <div className="flex items-center gap-2">
@@ -148,15 +146,15 @@ const MentorSidebar = ({
                   onClick={onClose}
                   className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
                     isActive
-                      ? 'bg-gray-100 text-black font-bold border border-gray-200 shadow-sm'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold border border-transparent'
+                      ? 'bg-emerald-50/80 text-emerald-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
+                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
                   }`}
                   title={isCollapsed ? item.name : undefined}
                 >
                   <span
                     className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors duration-300 ${
                       isActive
-                        ? 'bg-black text-white shadow-sm'
+                        ? 'bg-gradient-to-br from-emerald-400 to-green-500 text-slate-900 shadow-sm shadow-emerald-500/20'
                         : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
                     }`}
                   >
@@ -169,9 +167,9 @@ const MentorSidebar = ({
                       </span>
                       <ChevronRight
                         size={14}
-                        className={`transition-all duration-200 ${
+                        className={`transition-transform duration-200 ${
                           isActive
-                            ? 'text-black opacity-100'
+                            ? 'text-emerald-700 opacity-100'
                             : 'text-slate-400 opacity-0 group-hover:opacity-100'
                         }`}
                       />
@@ -184,10 +182,10 @@ const MentorSidebar = ({
 
           {/* Pro tip card */}
           {!isCollapsed && !isRestrictedMentor && (
-            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 mt-6 shadow-sm">
+            <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/50 p-4 mt-6 shadow-[0_4px_20px_rgba(16,185,129,0.03)]">
               <div className="flex items-center gap-2 mb-2">
-                <Zap size={14} className="text-black" />
-                <p className="text-[10px] font-bold uppercase tracking-widest text-black">
+                <Zap size={14} className="text-emerald-600" />
+                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
                   Mentor Tip
                 </p>
               </div>

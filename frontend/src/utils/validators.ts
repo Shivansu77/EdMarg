@@ -1,22 +1,24 @@
 export const validators = {
-  email: (email: string): boolean => {
+  email: (email: unknown): boolean => {
+    if (typeof email !== 'string') return false;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   },
 
-  password: (password: string): { valid: boolean; errors: string[] } => {
+  password: (password: unknown): { valid: boolean; errors: string[] } => {
+    const normalized = typeof password === 'string' ? password : '';
     const errors: string[] = [];
 
-    if (password.length < 4) {
+    if (normalized.length < 4) {
       errors.push('Password must be at least 4 characters');
     }
-    if (!/[A-Z]/.test(password)) {
+    if (!/[A-Z]/.test(normalized)) {
       errors.push('Password must contain at least one uppercase letter');
     }
-    if (!/[a-z]/.test(password)) {
+    if (!/[a-z]/.test(normalized)) {
       errors.push('Password must contain at least one lowercase letter');
     }
-    if (!/[0-9]/.test(password)) {
+    if (!/[0-9]/.test(normalized)) {
       errors.push('Password must contain at least one number');
     }
 
@@ -26,17 +28,21 @@ export const validators = {
     };
   },
 
-  phone: (phone: string): boolean => {
+  phone: (phone: unknown): boolean => {
+    if (phone === null || phone === undefined || phone === '') return true;
+    if (typeof phone !== 'string') return false;
     if (!phone) return true;
     const digits = phone.replace(/\D/g, '');
     return /^\d{10}$/.test(digits);
   },
 
-  name: (name: string): boolean => {
+  name: (name: unknown): boolean => {
+    if (typeof name !== 'string') return false;
     return name.trim().length >= 2 && name.trim().length <= 100;
   },
 
-  url: (url: string): boolean => {
+  url: (url: unknown): boolean => {
+    if (typeof url !== 'string' || !url.trim()) return false;
     try {
       new URL(url);
       return true;
@@ -45,23 +51,28 @@ export const validators = {
     }
   },
 
-  required: (value: string | number | boolean): boolean => {
+  required: (value: unknown): boolean => {
     if (typeof value === 'string') {
       return value.trim().length > 0;
+    }
+    if (Array.isArray(value)) {
+      return value.length > 0;
     }
     return value !== null && value !== undefined;
   },
 
-  minLength: (value: string, min: number): boolean => {
-    return value.length >= min;
+  minLength: (value: unknown, min: number): boolean => {
+    if (typeof value !== 'string') return false;
+    return value.trim().length >= min;
   },
 
-  maxLength: (value: string, max: number): boolean => {
-    return value.length <= max;
+  maxLength: (value: unknown, max: number): boolean => {
+    if (typeof value !== 'string') return false;
+    return value.trim().length <= max;
   },
 
-  match: (value1: string, value2: string): boolean => {
-    return value1 === value2;
+  match: (value1: unknown, value2: unknown): boolean => {
+    return String(value1 ?? '') === String(value2 ?? '');
   },
 };
 
@@ -72,14 +83,18 @@ export const validateForm = (
   const errors: Record<string, string[]> = {};
 
   Object.entries(rules).forEach(([field, rule]) => {
-    const result = rule(data[field]);
+    try {
+      const result = rule(data[field]);
 
-    if (typeof result === 'boolean') {
-      if (!result) {
-        errors[field] = [`${field} is invalid`];
+      if (typeof result === 'boolean') {
+        if (!result) {
+          errors[field] = [`${field} is invalid`];
+        }
+      } else if (!result.valid) {
+        errors[field] = result.errors;
       }
-    } else if (!result.valid) {
-      errors[field] = result.errors;
+    } catch {
+      errors[field] = [`${field} is invalid`];
     }
   });
 

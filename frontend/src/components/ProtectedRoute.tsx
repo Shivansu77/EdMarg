@@ -115,12 +115,7 @@ export default function ProtectedRoute({
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50/50 px-4">
         <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-slate-200 border-t-emerald-500" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="h-3 w-3 rounded-full bg-linear-to-br from-emerald-400 to-green-500 shadow-sm shadow-emerald-500/30" />
-            </div>
-          </div>
+          <div className="h-10 w-10 animate-spin rounded-full border-[3px] border-slate-200 border-t-emerald-500" />
           <div className="text-center">
             <p className="text-sm font-semibold text-slate-700">{loadingMessage}</p>
             <p className="text-xs text-slate-400 mt-1">This may take a moment</p>

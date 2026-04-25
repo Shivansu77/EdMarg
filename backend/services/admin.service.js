@@ -2,6 +2,8 @@ const userRepository = require('../repositories/user.repository');
 const studentAssessmentRepository = require('../repositories/studentAssessment.repository');
 const bookingRepository = require('../repositories/booking.repository');
 const { User } = require('../models/user.model');
+const { Recording } = require('../models/Recording');
+const { Booking } = require('../models/booking.model');
 
 class AdminService {
   async getAllUsers(page = 1, limit = 20, role = null, search = '') {
@@ -141,6 +143,92 @@ class AdminService {
       breakdown[g._id] = g.count;
     }
     return breakdown;
+  }
+
+  async getAllRecordings(page = 1, limit = 20, { status, search, type, sortField, sortAsc } = {}) {
+    const skip = (page - 1) * limit;
+    const query = {};
+
+    if (status && status !== 'all') {
+      query.processingStatus = status;
+    }
+
+    if (type && type !== 'all') {
+      if (type === 'manual') {
+        query.recordingType = 'manual_upload';
+      } else if (type === 'zoom') {
+        query.recordingType = { $ne: 'manual_upload' };
+      } else {
+        query.recordingType = type;
+      }
+    }
+
+    if (search) {
+      const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+
+      const [matchingUsers, matchingBookings] = await Promise.all([
+        User.find({
+          $or: [{ name: regex }, { email: regex }],
+        }).select('_id'),
+        Booking.find({
+          $or: [
+            { zoomMeetingId: regex },
+            { sessionType: regex },
+            { notes: regex },
+            { startTime: regex },
+            { endTime: regex },
+          ],
+        }).select('_id'),
+      ]);
+
+      const userIds = matchingUsers.map((u) => u._id);
+      const bookingIds = matchingBookings.map((b) => b._id);
+      const orConditions = [
+        { meetingId: regex },
+        { recordingType: regex },
+        { cloudinaryPublicId: regex },
+      ];
+
+      if (userIds.length > 0) {
+        orConditions.push({ studentId: { $in: userIds } });
+        orConditions.push({ mentorId: { $in: userIds } });
+      }
+
+      if (bookingIds.length > 0) {
+        orConditions.push({ sessionId: { $in: bookingIds } });
+      }
+
+      query.$or = orConditions;
+    }
+
+    const sortOptions = {};
+    const sortKeyMap = {
+      date: 'createdAt',
+      fileSize: 'fileSize',
+      status: 'processingStatus',
+      duration: 'duration',
+    };
+    const dbSortField = sortKeyMap[sortField] || 'createdAt';
+    sortOptions[dbSortField] = sortAsc ? 1 : -1;
+
+    const [recordings, total] = await Promise.all([
+      Recording.find(query)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .populate('studentId', 'name email')
+        .populate('mentorId', 'name email')
+        .populate('sessionId', 'sessionType date startTime endTime zoomMeetingId notes')
+        .lean(),
+      Recording.countDocuments(query),
+    ]);
+
+    return {
+      recordings,
+      total,
+      page: Math.max(1, Number(page) || 1),
+      pages: Math.max(1, Math.ceil(total / Math.max(1, limit))),
+    };
   }
 }
 

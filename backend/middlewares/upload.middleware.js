@@ -11,11 +11,19 @@ const imageFileFilter = (req, file, cb) => {
   }
 };
 
+const ALLOWED_VIDEO_MIMES = new Set([
+  'video/mp4',
+  'video/quicktime',       // .mov
+  'video/x-matroska',      // .mkv
+  'video/webm',
+  'video/x-msvideo',       // .avi
+]);
+
 const videoFileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('video/')) {
+  if (file.mimetype.startsWith('video/') || ALLOWED_VIDEO_MIMES.has(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only video files are allowed!'), false);
+    cb(new Error('Only video files are allowed! Accepted formats: .mp4, .mov, .mkv, .webm'), false);
   }
 };
 

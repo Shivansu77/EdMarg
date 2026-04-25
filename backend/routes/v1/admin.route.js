@@ -13,6 +13,7 @@ const {
   getAllBookings,
   cancelBooking,
   getBookingStats,
+  getAllRecordings,
 } = require('../../controllers/admin.controller');
 
 const router = express.Router();
@@ -39,6 +40,9 @@ router.get('/assessments', cacheResponse({ ttlSeconds: 20 }), getAssessmentSubmi
 router.get('/bookings', cacheResponse({ ttlSeconds: 15 }), getAllBookings);
 router.get('/bookings/stats', cacheResponse({ ttlSeconds: 30 }), getBookingStats);
 router.put('/bookings/:id/cancel', cancelBooking);
+
+// Recordings
+router.get('/recordings', cacheResponse({ ttlSeconds: 15 }), getAllRecordings);
 
 
 module.exports = router;

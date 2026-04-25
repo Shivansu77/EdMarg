@@ -446,16 +446,16 @@ function AssessmentContent() {
         <div className="mb-12">
           <div className="flex justify-between items-end mb-4">
              <div>
-               <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Question {currentStep + 1} of {QUIZ_SLIDES.length}</p>
-               <h3 className="text-lg font-bold text-slate-900 capitalize flex items-center gap-2">
-                 <Sparkles className="text-emerald-500" size={18}/> {slide.cat}
+               <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Question {currentStep + 1} of {QUIZ_SLIDES.length}</p>
+               <h3 className="text-xl font-bold text-slate-900 capitalize flex items-center gap-2">
+                 <Sparkles className="text-emerald-500" size={20}/> {slide.cat}
                </h3>
              </div>
-             <p className="text-sm font-bold text-emerald-600">{Math.round(progressPercent)}%</p>
+             <p className="text-lg font-black text-emerald-600">{Math.round(progressPercent)}%</p>
           </div>
-          <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-linear-to-r from-emerald-400 to-emerald-600 transition-all duration-500 ease-out flex items-center justify-end pr-1" style={{ width: `${Math.max(5, progressPercent)}%` }}>
-               <div className="h-1.5 w-1.5 bg-white rounded-full opacity-50"></div>
+          <div className="h-4 w-full bg-slate-100 rounded-full overflow-hidden shadow-inner">
+            <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-500 ease-out flex items-center justify-end pr-1.5 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style={{ width: `${Math.max(5, progressPercent)}%` }}>
+               <div className="h-2 w-2 bg-white rounded-full opacity-70"></div>
             </div>
           </div>
         </div>
@@ -479,25 +479,32 @@ function AssessmentContent() {
                 transition={{ duration: 0.3, ease: 'easeOut' }}
                 className="w-full max-w-2xl mx-auto relative"
               >
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight mb-2">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 leading-tight mb-3">
                   {slide.question}
                 </h1>
-                {slide.desc && <p className="text-slate-500 font-medium mb-8 text-lg">{slide.desc}</p>}
-                {!slide.desc && <div className="mb-8"></div>}
+                {slide.desc && <p className="text-slate-500 font-medium mb-10 text-lg">{slide.desc}</p>}
+                {!slide.desc && <div className="mb-10"></div>}
 
                 {/* Rating Type */}
                 {slide.type === 'rating' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                  <div className="grid grid-cols-5 gap-2 sm:gap-3">
                     {[1, 2, 3, 4, 5].map((rating) => {
                       const isSelected = val === rating;
+                      // Dynamic coloring for higher ratings
+                      const getActiveColors = (r: number) => {
+                        if (r <= 2) return 'border-emerald-400 bg-emerald-50 text-emerald-700';
+                        if (r === 3) return 'border-emerald-500 bg-emerald-100 text-emerald-800';
+                        return 'border-emerald-600 bg-emerald-600 text-white';
+                      };
+                      
                       return (
                         <button
                           key={rating}
                           onClick={() => updateAnswer(rating)}
-                          className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${isSelected ? 'border-emerald-500 bg-emerald-50 text-emerald-700 shadow-sm' : 'border-slate-100 bg-white hover:border-emerald-200 hover:bg-slate-50 text-slate-600'}`}
+                          className={`flex flex-col items-center justify-center py-4 px-1 sm:p-4 rounded-2xl border-2 transition-all hover:-translate-y-1 hover:shadow-md ${isSelected ? `${getActiveColors(rating)} shadow-sm` : 'border-slate-100 bg-white hover:border-emerald-200 hover:bg-slate-50 text-slate-600'}`}
                         >
-                          <span className={`text-2xl font-black mb-1 ${isSelected ? 'text-emerald-600' : 'text-slate-800'}`}>{rating}</span>
-                          <span className="text-xs font-bold text-center leading-tight">{RATING_LABELS[rating]}</span>
+                          <span className={`text-xl sm:text-2xl font-black mb-1 sm:mb-2 ${isSelected ? (rating > 3 ? 'text-white' : 'text-emerald-700') : 'text-slate-800'}`}>{rating}</span>
+                          <span className={`text-[10px] sm:text-xs font-bold text-center leading-tight ${isSelected && rating > 3 ? 'text-emerald-50' : ''}`}>{RATING_LABELS[rating]}</span>
                         </button>
                       )
                     })}
@@ -564,7 +571,7 @@ function AssessmentContent() {
             <button
               onClick={goNext}
               disabled={submitting}
-              className="flex items-center bg-slate-900 hover:bg-emerald-600 text-white font-bold py-3 px-8 rounded-xl transition-colors shadow-md disabled:opacity-70 disabled:cursor-not-allowed text-lg"
+              className="flex items-center bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3.5 px-8 rounded-xl transition-all shadow-md hover:shadow-[0_8px_20px_rgba(16,185,129,0.3)] hover:-translate-y-0.5 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-md text-lg"
             >
               {submitting ? (
                  <><Loader2 className="animate-spin mr-2" size={20} /> Processing...</>

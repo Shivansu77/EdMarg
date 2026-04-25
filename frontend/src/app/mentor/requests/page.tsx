@@ -8,11 +8,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import RecordingUploader from '@/components/RecordingUploader';
 import { getImageUrl } from '@/utils/imageUrl';
 import Image from 'next/image';
 import {
   CalendarClock,
   Video,
+  Upload,
   User as UserIcon,
   MessageSquare,
   PlayCircle,
@@ -126,6 +128,7 @@ function MentorRequestsContent() {
   const [activeTab, setActiveTab] = useState<BookingTab>(() =>
     resolveActiveTab(searchParams.get('tab'))
   );
+  const [uploadSessionId, setUploadSessionId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const inFlightActionsRef = useRef<Set<string>>(new Set());
 
@@ -594,16 +597,25 @@ function MentorRequestsContent() {
                       </>
                     )}
 
-                    {activeTab === 'past' && booking.recordingUrl && (
-                      <a
-                        href={booking.recordingUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all"
-                      >
-                        <Video size={16} className="text-slate-400" />
-                        View Recording
-                      </a>
+                    {activeTab === 'past' && booking.status === 'completed' && (
+                      booking.recordingUrl ? (
+                        <button
+                          onClick={() => router.push(`/sessions/${booking._id}/recording`)}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl hover:bg-emerald-100 transition-all"
+                        >
+                          <Video size={16} />
+                          View Recording
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setUploadSessionId(booking._id)}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
+                          id={`upload-recording-${booking._id}`}
+                        >
+                          <Upload size={16} />
+                          Upload Recording
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -611,6 +623,21 @@ function MentorRequestsContent() {
             ))
           )}
         </div>
+        {/* Recording Upload Modal */}
+        {uploadSessionId && (
+          <RecordingUploader
+            sessionId={uploadSessionId}
+            onUploadComplete={() => {
+              toast.success('Recording uploaded successfully!');
+              setUploadSessionId(null);
+              fetchBookings();
+            }}
+            onError={(msg) => {
+              toast.error(msg);
+            }}
+            onClose={() => setUploadSessionId(null)}
+          />
+        )}
       </div>
     </MentorDashboardLayout>
   );

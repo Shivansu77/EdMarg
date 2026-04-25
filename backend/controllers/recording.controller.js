@@ -76,7 +76,7 @@ exports.getRecordingBySession = async (req, res) => {
     const bookingMentorId = String(booking.mentor._id || booking.mentor);
     const safeBookingRecordingUrl = sanitizeRecordingUrl(booking.recordingUrl || '');
 
-    if (userId !== bookingStudentId && userId !== bookingMentorId) {
+    if (userId !== bookingStudentId && userId !== bookingMentorId && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
         message: 'You are not authorized to access this recording',
@@ -86,7 +86,7 @@ exports.getRecordingBySession = async (req, res) => {
     // ──────────────────────────────────────────────────────────────────
     // 2. Find the recording for this session
     // ──────────────────────────────────────────────────────────────────
-    const recording = await Recording.findOne({ sessionId }).lean();
+    const recording = await Recording.findOne({ sessionId: booking._id }).lean();
 
     if (!recording) {
       // Backward-compat fallback:
@@ -293,7 +293,7 @@ exports.uploadRecordingForSession = async (req, res) => {
       `manual-session-${String(sessionId)}`;
 
     const cloudinaryResult = await uploadVideoBuffer(req.file.buffer, {
-      folder: 'session-recordings',
+      folder: `recordings/${String(sessionId)}`,
       publicId: `meeting-${meetingId}`,
     });
 

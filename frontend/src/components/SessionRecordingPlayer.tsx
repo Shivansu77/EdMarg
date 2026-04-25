@@ -149,7 +149,7 @@ export default function SessionRecordingPlayer({
       <div className={wrapperClass(inline)}>
         <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-gray-900/80 animate-pulse">
           <div className="absolute inset-0 flex items-center justify-center">
-            <Loader2 className="h-10 w-10 text-indigo-400 animate-spin" />
+            <Loader2 className="h-10 w-10 text-emerald-400 animate-spin" />
           </div>
           <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-black/60 to-transparent" />
         </div>
@@ -166,7 +166,7 @@ export default function SessionRecordingPlayer({
           <p className="text-sm text-gray-300 text-center max-w-xs">{error}</p>
           <button
             onClick={fetchRecording}
-            className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors"
+            className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
           >
             <RotateCcw className="h-4 w-4" />
             Retry
@@ -181,7 +181,7 @@ export default function SessionRecordingPlayer({
     const statusMessages: Record<string, { label: string; color: string }> = {
       pending: { label: 'Recording is queued for processing...', color: 'text-amber-400' },
       downloading: { label: 'Downloading recording from Zoom...', color: 'text-blue-400' },
-      uploading: { label: 'Uploading to secure storage...', color: 'text-indigo-400' },
+      uploading: { label: 'Uploading to secure storage...', color: 'text-emerald-400' },
       failed: { label: 'Processing failed. Please contact support.', color: 'text-red-400' },
     };
     const status = statusMessages[recording.processingStatus] || statusMessages.pending;
@@ -258,7 +258,7 @@ export default function SessionRecordingPlayer({
             className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer transition-opacity"
             onClick={togglePlay}
           >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-indigo-600/90 shadow-lg shadow-indigo-500/30 backdrop-blur-sm transition-transform hover:scale-110">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600/90 shadow-lg shadow-emerald-500/30 backdrop-blur-sm transition-transform hover:scale-110">
               <Play className="h-7 w-7 text-white ml-1" fill="white" />
             </div>
           </div>
@@ -277,7 +277,7 @@ export default function SessionRecordingPlayer({
             max={duration || 0}
             value={currentTime}
             onChange={handleSeek}
-            className="mb-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-indigo-500 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-indigo-500"
+            className="mb-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-emerald-500 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500"
           />
 
           <div className="flex items-center justify-between">
@@ -285,7 +285,7 @@ export default function SessionRecordingPlayer({
               {/* Play/Pause */}
               <button
                 onClick={togglePlay}
-                className="text-white hover:text-indigo-300 transition-colors"
+                className="text-white hover:text-emerald-300 transition-colors"
                 aria-label={isPlaying ? 'Pause' : 'Play'}
               >
                 {isPlaying ? (
@@ -298,7 +298,7 @@ export default function SessionRecordingPlayer({
               {/* Mute */}
               <button
                 onClick={toggleMute}
-                className="text-white hover:text-indigo-300 transition-colors"
+                className="text-white hover:text-emerald-300 transition-colors"
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
               >
                 {isMuted ? (
@@ -318,7 +318,7 @@ export default function SessionRecordingPlayer({
               {/* Fullscreen */}
               <button
                 onClick={toggleFullscreen}
-                className="text-white hover:text-indigo-300 transition-colors"
+                className="text-white hover:text-emerald-300 transition-colors"
                 aria-label="Fullscreen"
               >
                 <Maximize className="h-5 w-5" />
