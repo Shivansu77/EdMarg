@@ -1,4 +1,5 @@
 import { BlogPost } from '@/modules/blog/types';
+import { getAllBlogs, getBlogBySlug } from '@/modules/blog/data/blogs';
 import { apiClient } from '@/utils/api-client';
 import { resolveApiBaseUrl } from '@/utils/api-base';
 
@@ -45,6 +46,14 @@ function mapApiBlogToPost(apiBlog: ApiBlog): BlogPost {
   };
 }
 
+function getFallbackBlogs(): BlogPost[] {
+  return getAllBlogs();
+}
+
+function getFallbackBlogBySlug(slug: string): BlogPost | null {
+  return getBlogBySlug(slug) ?? null;
+}
+
 /**
  * Fetch all blogs from API
  */
@@ -69,13 +78,13 @@ export async function getAllBlogsFromAPI(): Promise<BlogPost[]> {
     
     if (!Array.isArray(blogsData)) {
       console.warn('Unexpected API response format:', data);
-      return [];
+      return getFallbackBlogs();
     }
 
     return blogsData.map(mapApiBlogToPost);
   } catch (error) {
     console.error('Error fetching blogs:', error);
-    throw error;
+    return getFallbackBlogs();
   }
 }
 
@@ -93,7 +102,7 @@ export async function getBlogBySlugFromAPI(slug: string): Promise<BlogPost | nul
     });
 
     if (response.status === 404) {
-      return null;
+      return getFallbackBlogBySlug(slug);
     }
 
     if (!response.ok) {
@@ -106,7 +115,7 @@ export async function getBlogBySlugFromAPI(slug: string): Promise<BlogPost | nul
     return mapApiBlogToPost(blogData as ApiBlog);
   } catch (error) {
     console.error(`Error fetching blog with slug ${slug}:`, error);
-    throw error;
+    return getFallbackBlogBySlug(slug);
   }
 }
 

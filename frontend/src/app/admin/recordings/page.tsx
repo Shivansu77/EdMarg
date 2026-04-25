@@ -333,12 +333,11 @@ function AdminRecordingsContent() {
     return pages;
   };
 
-  const selectedSessionId =
-    selectedRecording && typeof selectedRecording.sessionId === 'string'
-      ? selectedRecording.sessionId
-      : selectedRecording && selectedRecording.sessionId
-      ? selectedRecording.sessionId._id
-      : '';
+  const selectedSessionId = (() => {
+    const session = selectedRecording?.sessionId;
+    if (!session) return '';
+    return typeof session === 'string' ? session : session._id;
+  })();
 
   return (
     <DashboardLayout userName="Admin Team">

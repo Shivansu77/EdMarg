@@ -1,30 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { MetadataRoute } from 'next';
+import { getAllBlogsFromAPI } from '@/services/blog.service';
 import { SITE_URL } from '@/utils/site-url';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000';
-
-async function getAllBlogs() {
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/blogs`, {
-      next: { revalidate: 3600 }, // Revalidate every hour
-    });
-
-    if (!response.ok) {
-      console.warn('Failed to fetch blogs for sitemap');
-      return [];
-    }
-
-    const data = await response.json();
-    return data.data || [];
-  } catch (error) {
-    console.error('Error fetching blogs for sitemap:', error);
-    return [];
-  }
-}
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const blogs = await getAllBlogs();
+  const blogs = await getAllBlogsFromAPI();
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -67,12 +46,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Dynamic blog pages
-  const blogPages: MetadataRoute.Sitemap = blogs.map((blog: any) => ({
+  const blogPages: MetadataRoute.Sitemap = blogs
+    .filter((blog) => blog.slug)
+    .map((blog) => ({
     url: `${SITE_URL}/blogs/${blog.slug}`,
-    lastModified: blog.updated_at || blog.created_at,
+    lastModified: blog.date,
     changeFrequency: 'monthly' as const,
     priority: 0.8,
-  }));
+    }));
 
   return [...staticPages, ...blogPages];
 }

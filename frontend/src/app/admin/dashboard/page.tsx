@@ -328,7 +328,7 @@ function AdminDashboardContent() {
 
   const totalSessions = useMemo(() => {
     if (!bookingStats) return 0;
-    return Object.values(bookingStats).reduce((sum, value) => sum + Number(value || 0), 0);
+    return Object.values(bookingStats).reduce<number>((sum, value) => sum + Number(value || 0), 0);
   }, [bookingStats]);
 
   const completedSessions = Number(bookingStats?.completed || 0);
