@@ -56,6 +56,16 @@ class ReviewRepository {
   async findByBooking(bookingId) {
     return Review.findOne({ booking: bookingId }).lean();
   }
+
+  async findByBookings(bookingIds = []) {
+    if (!Array.isArray(bookingIds) || bookingIds.length === 0) {
+      return [];
+    }
+
+    return Review.find({ booking: { $in: bookingIds } })
+      .select('booking rating comment createdAt updatedAt')
+      .lean();
+  }
 }
 
 module.exports = new ReviewRepository();

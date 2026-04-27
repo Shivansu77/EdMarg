@@ -1,6 +1,7 @@
 const bookingRepository = require('../repositories/booking.repository');
 const availabilityRepository = require('../repositories/availability.repository');
 const userRepository = require('../repositories/user.repository');
+const reviewRepository = require('../repositories/review.repository');
 const { ValidationError, NotFoundError } = require('../utils/errors');
 const { sanitizeRecordingUrl } = require('../utils/recording.utils');
 const { Recording } = require('../models/Recording');
@@ -218,9 +219,30 @@ class BookingService {
     ]);
 
     const hydratedBookings = await this._hydrateRecordingFallbacks(bookings);
-    const sanitizedBookings = hydratedBookings.map((booking) =>
-      this._sanitizeBookingForClient(booking)
+    const bookingIds = hydratedBookings.map((booking) => booking?._id).filter(Boolean);
+    const reviews = await reviewRepository.findByBookings(bookingIds);
+    const reviewByBookingId = new Map(
+      reviews.map((review) => [String(review.booking), review])
     );
+
+    const sanitizedBookings = hydratedBookings.map((booking) => {
+      const sanitizedBooking = this._sanitizeBookingForClient(booking);
+      const review = reviewByBookingId.get(String(booking._id));
+
+      return {
+        ...sanitizedBooking,
+        reviewSubmitted: Boolean(review),
+        review: review
+          ? {
+              _id: review._id,
+              rating: review.rating,
+              comment: review.comment,
+              createdAt: review.createdAt,
+              updatedAt: review.updatedAt,
+            }
+          : null,
+      };
+    });
 
     return {
       bookings: sanitizedBookings,

@@ -66,6 +66,7 @@ class ReviewService {
     return {
       averageRating: averageRating ? parseFloat(averageRating.toFixed(1)) : 0,
       totalReviews,
+      ratingDistribution: distribution,
       distribution,
       percentages,
     };

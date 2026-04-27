@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import SessionFeedbackDialog from '@/components/student/SessionFeedbackDialog';
 
 import { getImageUrl } from '@/utils/imageUrl';
 import {
@@ -18,7 +19,8 @@ import {
   AlertCircle,
   PlayCircle,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Star
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -44,6 +46,14 @@ interface Booking {
   zoomMeetingId?: string;
   joinUrl?: string;
   recordingUrl?: string;
+  reviewSubmitted?: boolean;
+  review?: {
+    _id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    updatedAt?: string;
+  } | null;
 }
 
 function ScheduleContent() {
@@ -52,6 +62,7 @@ function ScheduleContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -93,6 +104,20 @@ function ScheduleContent() {
       day: 'numeric',
       year: 'numeric',
     }).format(new Date(dateStr));
+  };
+
+  const updateBookingReview = (bookingId: string, review: NonNullable<Booking['review']>) => {
+    setBookings((current) =>
+      current.map((booking) =>
+        booking._id === bookingId
+          ? {
+              ...booking,
+              reviewSubmitted: true,
+              review,
+            }
+          : booking
+      )
+    );
   };
 
   const getStatusBadge = (status: string) => {
@@ -257,6 +282,28 @@ function ScheduleContent() {
                       </div>
 
                       <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
+                        {activeTab === 'past' && booking.status === 'completed' && (
+                          booking.reviewSubmitted && booking.review ? (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBooking(booking)}
+                              className="inline-flex items-center rounded-xl border border-emerald-200 bg-emerald-50 px-6 py-2.5 text-sm font-bold text-emerald-800 transition-colors hover:bg-emerald-100"
+                            >
+                              <Star className="mr-2 h-4 w-4 fill-amber-400 text-amber-400" />
+                              {booking.review.rating}/5 feedback saved
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedBooking(booking)}
+                              className="inline-flex items-center rounded-xl bg-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-slate-800"
+                            >
+                              <Star className="mr-2 h-4 w-4" />
+                              Rate meeting
+                            </button>
+                          )
+                        )}
+
                         {activeTab === 'upcoming' && booking.status === 'confirmed' && booking.joinUrl && (
                           <a
                             href={booking.joinUrl}
@@ -301,6 +348,17 @@ function ScheduleContent() {
           )}
         </div>
       </div>
+
+      {selectedBooking && (
+        <SessionFeedbackDialog
+          bookingId={selectedBooking._id}
+          mentorName={selectedBooking.mentor.name}
+          isOpen={Boolean(selectedBooking)}
+          existingReview={selectedBooking.review}
+          onClose={() => setSelectedBooking(null)}
+          onSubmitted={(review) => updateBookingReview(selectedBooking._id, review)}
+        />
+      )}
     </DashboardLayout>
   );
 }

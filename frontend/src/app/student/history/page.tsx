@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import SessionFeedbackDialog from '@/components/student/SessionFeedbackDialog';
 
 import { getImageUrl } from '@/utils/imageUrl';
 import {
@@ -14,7 +15,9 @@ import {
   Calendar,
   User as UserIcon,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  MessageSquareText,
+  Star
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -38,6 +41,14 @@ interface Booking {
   price: number;
   createdAt: string;
   recordingUrl?: string;
+  reviewSubmitted?: boolean;
+  review?: {
+    _id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    updatedAt?: string;
+  } | null;
 }
 
 function HistoryContent() {
@@ -45,6 +56,7 @@ function HistoryContent() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -81,6 +93,33 @@ function HistoryContent() {
       year: 'numeric',
     }).format(new Date(dateStr));
   };
+
+  const updateBookingReview = (bookingId: string, review: NonNullable<Booking['review']>) => {
+    setBookings((current) =>
+      current.map((booking) =>
+        booking._id === bookingId
+          ? {
+              ...booking,
+              reviewSubmitted: true,
+              review,
+            }
+          : booking
+      )
+    );
+  };
+
+  const renderStars = (rating: number) => (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <Star
+          key={star}
+          className={`h-4 w-4 ${
+            star <= rating ? 'fill-amber-400 text-amber-400' : 'text-slate-300'
+          }`}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <DashboardLayout userName={user?.name || "Session History"}>
@@ -145,6 +184,45 @@ function HistoryContent() {
                     </div>
                   </div>
 
+                  {booking.status === 'completed' && (
+                    <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                      {booking.reviewSubmitted && booking.review ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <MessageSquareText className="h-4 w-4 text-emerald-600" />
+                              <span className="text-sm font-bold text-slate-900">Your feedback</span>
+                            </div>
+                            {renderStars(booking.review.rating)}
+                          </div>
+                          <p className="text-sm leading-relaxed text-slate-600">{booking.review.comment}</p>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBooking(booking)}
+                            className="text-xs font-bold uppercase tracking-wide text-emerald-700 hover:text-emerald-900"
+                          >
+                            View review
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">How was this session?</p>
+                            <p className="text-sm text-slate-500">Rate the meeting and share quick feedback with your mentor.</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedBooking(booking)}
+                            className="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800"
+                          >
+                            <Star className="mr-2 h-4 w-4" />
+                            Rate meeting
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {booking.recordingUrl ? (
                     <Link
                       href={`/student/recordings/${booking._id}`}
@@ -164,6 +242,17 @@ function HistoryContent() {
           </div>
         )}
       </div>
+
+      {selectedBooking && (
+        <SessionFeedbackDialog
+          bookingId={selectedBooking._id}
+          mentorName={selectedBooking.mentor.name}
+          isOpen={Boolean(selectedBooking)}
+          existingReview={selectedBooking.review}
+          onClose={() => setSelectedBooking(null)}
+          onSubmitted={(review) => updateBookingReview(selectedBooking._id, review)}
+        />
+      )}
     </DashboardLayout>
   );
 }

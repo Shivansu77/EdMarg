@@ -35,6 +35,13 @@ type ReviewStats = {
     2: number;
     1: number;
   };
+  distribution?: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
 };
 
 type Mentor = {
@@ -102,13 +109,28 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
     bio = 'Experienced mentor ready to guide you on your journey.',
     experienceYears = 0,
     pricePerSession = 0,
-    rating = reviewStats?.averageRating || 4.8,
+    rating: mentorRating = 0,
     sessionDuration = 45,
-    totalSessions = reviewStats?.totalReviews || 0,
+    totalSessions = 0,
     language = 'English, Hindi',
   } = mentor.mentorProfile || {};
 
   const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
+  const effectiveRating = reviewStats?.averageRating ?? mentorRating ?? 0;
+  const reviewCount = reviewStats?.totalReviews ?? reviews.length;
+  const sessionCount = Math.max(totalSessions, reviewCount);
+  const distributionSource = reviewStats?.ratingDistribution ?? reviewStats?.distribution;
+  const latestReview = reviews[0];
+  const recommendationCount = (distributionSource?.[5] || 0) + (distributionSource?.[4] || 0);
+  const recommendationRate = reviewCount > 0 ? Math.round((recommendationCount / reviewCount) * 100) : 0;
+  const expertiseHighlights = expertise.slice(0, 4);
+  const reviewActionHref = isLoggedIn ? '/student/history' : `/login?redirect=/student/history`;
+  const trustPoints = [
+    `${sessionDuration} min focused session`,
+    experienceYears > 0 ? `${experienceYears}+ years of guidance` : 'Practical guidance for students',
+    reviewCount > 0 ? `${reviewCount} verified student reviews` : 'New mentor profile',
+    language ? `Sessions in ${language}` : 'Comfortable communication support',
+  ];
 
   const renderStars = (rating: number, size: number = 16) => {
     return (
@@ -124,13 +146,13 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
     );
   };
 
-  const ratingDistribution = reviewStats?.ratingDistribution
+  const ratingDistribution = distributionSource
     ? [
-      { stars: 5, count: reviewStats.ratingDistribution[5] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[5] / reviewStats.totalReviews) * 100) : 0 },
-      { stars: 4, count: reviewStats.ratingDistribution[4] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[4] / reviewStats.totalReviews) * 100) : 0 },
-      { stars: 3, count: reviewStats.ratingDistribution[3] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[3] / reviewStats.totalReviews) * 100) : 0 },
-      { stars: 2, count: reviewStats.ratingDistribution[2] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[2] / reviewStats.totalReviews) * 100) : 0 },
-      { stars: 1, count: reviewStats.ratingDistribution[1] || 0, percentage: reviewStats.totalReviews > 0 ? Math.round((reviewStats.ratingDistribution[1] / reviewStats.totalReviews) * 100) : 0 },
+      { stars: 5, count: distributionSource[5] || 0, percentage: reviewCount > 0 ? Math.round(((distributionSource[5] || 0) / reviewCount) * 100) : 0 },
+      { stars: 4, count: distributionSource[4] || 0, percentage: reviewCount > 0 ? Math.round(((distributionSource[4] || 0) / reviewCount) * 100) : 0 },
+      { stars: 3, count: distributionSource[3] || 0, percentage: reviewCount > 0 ? Math.round(((distributionSource[3] || 0) / reviewCount) * 100) : 0 },
+      { stars: 2, count: distributionSource[2] || 0, percentage: reviewCount > 0 ? Math.round(((distributionSource[2] || 0) / reviewCount) * 100) : 0 },
+      { stars: 1, count: distributionSource[1] || 0, percentage: reviewCount > 0 ? Math.round(((distributionSource[1] || 0) / reviewCount) * 100) : 0 },
     ]
     : [
       { stars: 5, count: 0, percentage: 0 },
@@ -139,8 +161,6 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
       { stars: 2, count: 0, percentage: 0 },
       { stars: 1, count: 0, percentage: 0 },
     ];
-
-  const reviewCount = totalSessions || reviews.length;
 
   return (
     <div className="min-h-screen bg-[#fafafa] font-sans text-slate-900 pb-20">
@@ -177,7 +197,7 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                 <div className="flex flex-wrap items-center gap-y-3 gap-x-5 text-sm text-slate-600 font-medium">
                   <div className="flex items-center gap-1.5">
                     <Star className="fill-amber-400 text-amber-400" size={16} />
-                    <span className="text-slate-900 font-semibold">{rating.toFixed(1)}</span>
+                    <span className="text-slate-900 font-semibold">{effectiveRating.toFixed(1)}</span>
                     <span className="text-slate-500">({reviewCount} reviews)</span>
                   </div>
                   <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md text-slate-600">
@@ -187,6 +207,24 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                   <div className="flex items-center gap-1.5 bg-slate-100 px-2 py-1 rounded-md text-slate-600">
                     <Globe size={14} />
                     <span>{language}</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_2px_8px_rgb(0,0,0,0.02)]">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Student satisfaction</p>
+                    <p className="mt-2 text-2xl font-bold text-slate-900">{reviewCount > 0 ? `${effectiveRating.toFixed(1)}/5` : 'New'}</p>
+                    <p className="mt-1 text-sm text-slate-500">{reviewCount > 0 ? `${recommendationRate}% of students rated 4 stars or above` : 'Be among the first students to review'}</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_2px_8px_rgb(0,0,0,0.02)]">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Sessions supported</p>
+                    <p className="mt-2 text-2xl font-bold text-slate-900">{sessionCount > 0 ? sessionCount : 'Flexible'}</p>
+                    <p className="mt-1 text-sm text-slate-500">{sessionDuration}-minute mentorship conversations</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-[0_2px_8px_rgb(0,0,0,0.02)]">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Best for</p>
+                    <p className="mt-2 text-lg font-bold text-slate-900">{expertise[0] || 'Career guidance'}</p>
+                    <p className="mt-1 text-sm text-slate-500">{language} sessions available</p>
                   </div>
                 </div>
               </div>
@@ -221,14 +259,58 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
               </section>
             )}
 
+            {expertiseHighlights.length > 0 && (
+              <section>
+                <h2 className="text-xl font-semibold mb-4 text-slate-900">Popular For</h2>
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_2px_8px_rgb(0,0,0,0.02)]">
+                  <div className="flex flex-wrap gap-3">
+                    {expertiseHighlights.map((item) => (
+                      <span
+                        key={item}
+                        className="inline-flex items-center rounded-full bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-900 ring-1 ring-amber-100"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </section>
+            )}
+
             <hr className="border-slate-200" />
 
             {/* Reviews Section */}
             <section>
-              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 text-slate-900">
-                Student Reviews
-                <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-sm font-medium ml-2">{reviewCount}</span>
-              </h2>
+              <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <h2 className="text-xl font-semibold flex items-center gap-2 text-slate-900">
+                  Student Reviews
+                  <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-sm font-medium ml-2">{reviewCount}</span>
+                </h2>
+
+                <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-4 shadow-[0_2px_8px_rgb(0,0,0,0.02)] lg:max-w-md">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-2xl bg-white px-3 py-3 ring-1 ring-amber-100">
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} size={14} className="fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-slate-900">Want to leave a rating?</p>
+                      <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                        Students can submit stars and written feedback after a completed mentorship session.
+                      </p>
+                      <Link
+                        href={reviewActionHref}
+                        className="mt-3 inline-flex items-center rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-slate-800"
+                      >
+                        {isLoggedIn ? 'Open session history' : 'Sign in to review later'}
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {loadingReviews ? (
                 <div className="h-32 flex items-center justify-center bg-white border border-slate-200 rounded-2xl">
@@ -247,8 +329,8 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                   {/* Rating summary */}
                   <div className="flex flex-col sm:flex-row gap-8 items-center mb-10 pb-8 border-b border-slate-100">
                     <div className="text-center sm:text-left flex flex-col items-center sm:items-start shrink-0">
-                      <div className="text-5xl font-bold tracking-tight text-slate-900 mb-2">{rating.toFixed(1)}</div>
-                      <div className="mb-2">{renderStars(Math.round(rating), 20)}</div>
+                      <div className="text-5xl font-bold tracking-tight text-slate-900 mb-2">{effectiveRating.toFixed(1)}</div>
+                      <div className="mb-2">{renderStars(Math.round(effectiveRating), 20)}</div>
                       <p className="text-sm font-medium text-slate-500">Based on {reviewCount} reviews</p>
                     </div>
 
@@ -269,10 +351,32 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="rounded-2xl bg-slate-50 px-4 py-4 border border-slate-100">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Recommended</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900">{recommendationRate}%</p>
+                      <p className="mt-1 text-sm text-slate-500">Students gave 4 or 5 stars</p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 px-4 py-4 border border-slate-100">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Verified feedback</p>
+                      <p className="mt-2 text-2xl font-bold text-slate-900">{reviewCount}</p>
+                      <p className="mt-1 text-sm text-slate-500">Reviews from completed sessions</p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 px-4 py-4 border border-slate-100">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Latest review</p>
+                      <p className="mt-2 text-lg font-bold text-slate-900">
+                        {latestReview
+                          ? new Date(latestReview.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                          : 'Awaiting first review'}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-500">Fresh feedback from recent students</p>
+                    </div>
+                  </div>
+
                   {/* Review List */}
                   <div className="space-y-8">
                     {displayedReviews.map((review) => (
-                      <div key={review._id} className="group">
+                      <div key={review._id} className="group rounded-2xl border border-slate-100 bg-slate-50/70 p-5">
                         <div className="flex items-start gap-4">
                           <Image
                             src={getImageUrl(review.student.profileImage, review.student.name)}
@@ -288,7 +392,15 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
                                 {new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
                               </span>
                             </div>
-                            <div className="mb-3">{renderStars(review.rating, 14)}</div>
+                            <div className="mb-3 flex flex-wrap items-center gap-3">
+                              {renderStars(review.rating, 14)}
+                              <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500 ring-1 ring-slate-200">
+                                {review.rating}.0 rating
+                              </span>
+                              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                                Verified session
+                              </span>
+                            </div>
                             <p className="text-slate-600 text-sm leading-relaxed">{review.comment}</p>
                           </div>
                         </div>
@@ -351,6 +463,18 @@ export default function MentorDetailClient({ mentor }: { mentor: Mentor }) {
               <p className="text-center text-xs text-slate-400 mt-4 font-medium">
                 No charges until confirmed
               </p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-[0_2px_8px_rgb(0,0,0,0.02)]">
+              <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-wider">Why students choose {mentor.name}</h3>
+              <ul className="space-y-3">
+                {trustPoints.map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <Award size={18} className="text-amber-500 shrink-0 mt-0.5" />
+                    <span className="text-slate-700 text-sm font-medium">{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {/* Value Proposition Box */}

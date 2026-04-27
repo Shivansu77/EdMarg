@@ -13,6 +13,18 @@ import toast from 'react-hot-toast';
 
 import Logo from '@/components/Logo';
 
+const navigateAfterAuth = (
+  router: ReturnType<typeof useRouter>,
+  path: string
+) => {
+  if (typeof window === 'undefined') {
+    router.replace(path);
+    return;
+  }
+
+  window.location.replace(path);
+};
+
 const LoginContent: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,7 +44,7 @@ const LoginContent: React.FC = () => {
     }
 
     const fallbackPath = getPostAuthFallbackPath(user);
-    router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
+    navigateAfterAuth(router, getSafePostAuthPath(redirectParam, fallbackPath));
   }, [redirectParam, router, user]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -52,7 +64,7 @@ const LoginContent: React.FC = () => {
       const authenticatedUser = await login(email, password);
       toast.success('Successfully logged in!');
       const fallbackPath = getPostAuthFallbackPath(authenticatedUser);
-      router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
+      navigateAfterAuth(router, getSafePostAuthPath(redirectParam, fallbackPath));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unable to login';
       setError(errorMessage);
@@ -106,7 +118,7 @@ const LoginContent: React.FC = () => {
           window.dispatchEvent(new Event('edmarg-auth-user-change'));
           toast.success('Successfully logged in with Google!');
           const fallbackPath = getPostAuthFallbackPath(result.data);
-          router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
+          navigateAfterAuth(router, getSafePostAuthPath(redirectParam, fallbackPath));
         } else {
           toast.error(result.message || 'Failed to fetch user data for Google login');
         }

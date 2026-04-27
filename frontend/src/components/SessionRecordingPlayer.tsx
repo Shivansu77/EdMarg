@@ -98,7 +98,13 @@ export default function SessionRecordingPlayer({
   const togglePlay = () => {
     if (!videoRef.current) return;
     if (videoRef.current.paused) {
-      videoRef.current.play();
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error("Video play failed:", error);
+          setIsPlaying(false);
+        });
+      }
       setIsPlaying(true);
     } else {
       videoRef.current.pause();
