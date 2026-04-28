@@ -17,6 +17,8 @@ import { getDefaultAuthenticatedPath, isProfileComplete, type AuthProfileUser } 
 
 type Role = 'student' | 'mentor';
 
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
+
 const roleCards: Array<{
   role: Role;
   title: string;
@@ -44,6 +46,7 @@ interface ProfileResponse extends AuthProfileUser {
   profileImage?: string;
   emailVerification?: {
     isVerified?: boolean;
+    lastSentAt?: string;
     verifiedAt?: string;
   };
   mentorProfile?: AuthProfileUser['mentorProfile'] & {
@@ -139,6 +142,8 @@ export default function CompleteProfilePage() {
   const [otp, setOtp] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpResendAvailableAt, setOtpResendAvailableAt] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [role, setRole] = useState<Role>('student');
   const [classLevel, setClassLevel] = useState('');
   const [interests, setInterests] = useState('');
@@ -166,6 +171,11 @@ export default function CompleteProfilePage() {
       setName(profile.name || '');
       setEmail(profile.email || '');
       setEmailVerified(Boolean(profile.emailVerification?.isVerified));
+      setOtpResendAvailableAt(
+        profile.emailVerification?.lastSentAt
+          ? new Date(profile.emailVerification.lastSentAt).getTime() + OTP_RESEND_COOLDOWN_MS
+          : null
+      );
       setPhoneNumber(profile.phoneNumber || '');
       setRole(profile.role === 'mentor' ? 'mentor' : 'student');
       setClassLevel(profile.studentProfile?.classLevel || '');
@@ -179,6 +189,20 @@ export default function CompleteProfilePage() {
     void loadProfile();
   }, [router]);
 
+  useEffect(() => {
+    if (!otpResendAvailableAt || otpResendAvailableAt <= Date.now()) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [otpResendAvailableAt]);
+
   const title = useMemo(
     () => (role === 'mentor' ? 'Finish your mentor setup' : 'Finish your student setup'),
     [role]
@@ -191,6 +215,11 @@ export default function CompleteProfilePage() {
         : 'Add a little context so we can personalize your dashboard and mentor recommendations.',
     [role]
   );
+
+  const otpCooldownSeconds = otpResendAvailableAt
+    ? Math.max(0, Math.ceil((otpResendAvailableAt - currentTime) / 1000))
+    : 0;
+  const canSendOtp = !sendingOtp && otpCooldownSeconds === 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -271,15 +300,27 @@ export default function CompleteProfilePage() {
   }
 
   const handleSendOtp = async () => {
+    if (!canSendOtp) {
+      return;
+    }
+
     setSendingOtp(true);
     const response = await apiClient.post('/api/v1/users/email/send-otp');
     setSendingOtp(false);
 
     if (!response.success) {
+      if ((response.error || response.message || '').includes('Please wait a minute')) {
+        const nextAvailableAt = Date.now() + OTP_RESEND_COOLDOWN_MS;
+        setCurrentTime(Date.now());
+        setOtpResendAvailableAt(nextAvailableAt);
+      }
       toast.error(response.error || response.message || 'Unable to send OTP');
       return;
     }
 
+    const sentAt = Date.now();
+    setCurrentTime(sentAt);
+    setOtpResendAvailableAt(sentAt + OTP_RESEND_COOLDOWN_MS);
     toast.success(response.message || 'OTP sent to your email');
   };
 
@@ -451,10 +492,14 @@ export default function CompleteProfilePage() {
                       <button
                         type="button"
                         onClick={handleSendOtp}
-                        disabled={sendingOtp}
+                        disabled={!canSendOtp}
                         className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-70"
                       >
-                        {sendingOtp ? 'Sending...' : 'Send OTP'}
+                        {sendingOtp
+                          ? 'Sending...'
+                          : otpCooldownSeconds > 0
+                            ? `Resend in ${otpCooldownSeconds}s`
+                            : 'Send OTP'}
                       </button>
                       <input
                         value={otp}
@@ -471,6 +516,11 @@ export default function CompleteProfilePage() {
                         {verifyingOtp ? 'Verifying...' : 'Verify'}
                       </button>
                     </div>
+                  )}
+                  {!emailVerified && otpCooldownSeconds > 0 && (
+                    <p className="mt-3 text-sm text-slate-500">
+                      You can request a new OTP in {otpCooldownSeconds}s.
+                    </p>
                   )}
                 </div>
               )}

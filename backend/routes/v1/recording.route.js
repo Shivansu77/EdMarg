@@ -12,6 +12,7 @@ const {
   getRecordingBySession,
   getMyRecordings,
   uploadRecordingForSession,
+  deleteRecording,
 } = require('../../controllers/recording.controller');
 
 const router = express.Router();
@@ -33,6 +34,18 @@ router.post(
   authorize('mentor', 'admin'),
   uploadRecordingVideo,
   uploadRecordingForSession
+);
+
+/**
+ * DELETE /api/v1/recordings/:recordingId
+ * Delete a recording from Cloudinary and MongoDB.
+ * Allowed roles: mentor who owns the session, admin.
+ */
+router.delete(
+  '/:recordingId',
+  protect,
+  authorize('mentor', 'admin'),
+  deleteRecording
 );
 
 /**

@@ -114,7 +114,7 @@ export function uploadRecording(
  * Returns null if valid, or an error message string if invalid.
  */
 export function validateVideoFile(file: File): string | null {
-  const MAX_SIZE_BYTES = 250 * 1024 * 1024; // 250 MB
+  const MAX_SIZE_BYTES = 500 * 1024 * 1024; // 500 MB
   const ALLOWED_TYPES = new Set([
     'video/mp4',
     'video/quicktime',     // .mov

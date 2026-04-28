@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import RecordingUploader from '@/components/RecordingUploader';
+import ScreenRecorder from '@/components/recording/ScreenRecorder';
 import { getImageUrl } from '@/utils/imageUrl';
 import Image from 'next/image';
 import {
@@ -129,6 +130,7 @@ function MentorRequestsContent() {
     resolveActiveTab(searchParams.get('tab'))
   );
   const [uploadSessionId, setUploadSessionId] = useState<string | null>(null);
+  const [recordSessionId, setRecordSessionId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const inFlightActionsRef = useRef<Set<string>>(new Set());
 
@@ -583,6 +585,13 @@ function MentorRequestsContent() {
                           </a>
                         )}
                         <button
+                          onClick={() => setRecordSessionId(booking._id)}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-all active:scale-95"
+                        >
+                          <Video size={16} />
+                          Record Screen
+                        </button>
+                        <button
                           onClick={() => handleAction(booking._id, 'complete')}
                           disabled={actionLoading === booking._id}
                           className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
@@ -607,14 +616,23 @@ function MentorRequestsContent() {
                           View Recording
                         </button>
                       ) : (
-                        <button
-                          onClick={() => setUploadSessionId(booking._id)}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
-                          id={`upload-recording-${booking._id}`}
-                        >
-                          <Upload size={16} />
-                          Upload Recording
-                        </button>
+                        <>
+                          <button
+                            onClick={() => setRecordSessionId(booking._id)}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-all active:scale-95"
+                          >
+                            <Video size={16} />
+                            Record Screen
+                          </button>
+                          <button
+                            onClick={() => setUploadSessionId(booking._id)}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
+                            id={`upload-recording-${booking._id}`}
+                          >
+                            <Upload size={16} />
+                            Upload Recording
+                          </button>
+                        </>
                       )
                     )}
                   </div>
@@ -636,6 +654,16 @@ function MentorRequestsContent() {
               toast.error(msg);
             }}
             onClose={() => setUploadSessionId(null)}
+          />
+        )}
+        {recordSessionId && (
+          <ScreenRecorder
+            sessionId={recordSessionId}
+            onComplete={() => {
+              setRecordSessionId(null);
+              fetchBookings();
+            }}
+            onClose={() => setRecordSessionId(null)}
           />
         )}
       </div>

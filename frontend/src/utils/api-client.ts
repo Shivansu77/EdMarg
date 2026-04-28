@@ -60,9 +60,15 @@ class ApiClient {
     try {
       const headers = new Headers(fetchOptions.headers);
       const token = getStoredToken();
+      const hasBody = fetchOptions.body !== undefined && fetchOptions.body !== null;
+      const isFormDataBody =
+        typeof FormData !== 'undefined' && fetchOptions.body instanceof FormData;
 
-      if (!headers.has('Content-Type')) {
+      if (hasBody && !isFormDataBody && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json');
+      }
+      if (!hasBody) {
+        headers.delete('Content-Type');
       }
 
       if (token && !headers.has('Authorization')) {
@@ -111,7 +117,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'POST',
-      body: body ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : JSON.stringify(body),
     });
   }
 
@@ -119,7 +125,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PUT',
-      body: body ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : JSON.stringify(body),
     });
   }
 
@@ -127,7 +133,7 @@ class ApiClient {
     return this.request<T>(endpoint, {
       ...options,
       method: 'PATCH',
-      body: body ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : JSON.stringify(body),
     });
   }
 

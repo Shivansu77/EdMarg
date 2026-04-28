@@ -1,5 +1,6 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+const http = require('http');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
@@ -10,7 +11,12 @@ const connectDB = require('./lib/db');
 const { invalidateCacheOnMutation } = require('./middlewares/cache.middleware');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Initialize Socket.io on the HTTP server
+const { initSocket } = require('./lib/socket');
+initSocket(server);
 
 // Preserve proxy-aware behavior for secure cookies, rate limiting, and deployment headers.
 app.set('trust proxy', 1);
@@ -206,7 +212,7 @@ module.exports = app;
 
 // Only listen if running locally or on Render
 if (require.main === module || process.env.RENDER) {
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
 }

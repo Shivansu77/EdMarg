@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface LogoProps {
   className?: string;
@@ -8,31 +9,27 @@ interface LogoProps {
   textColor?: string;
 }
 
-const Logo: React.FC<LogoProps> = ({ 
-  className = '', 
-  imgClassName = 'h-14', 
+const Logo: React.FC<LogoProps> = ({
+  className = '',
+  imgClassName = 'h-9 w-auto',
   showText = true,
   textColor = 'text-slate-900'
 }) => {
   return (
     <Link href="/" className={`group flex items-center gap-3 ${className}`}>
-      <picture className="shrink-0 overflow-hidden rounded-xl shadow-md ring-1 ring-slate-200/50 bg-white">
-        <img
-          src="/logo.png"
+      <div className={`relative flex-shrink-0 ${imgClassName}`}>
+        <Image
+          src="/image.png"
           alt="EdMarg Logo"
-          className={`${imgClassName} w-auto block object-cover transition-transform duration-500 group-hover:[scale:1.65]`}
-          style={{ scale: '1.55', filter: 'contrast(1.5) saturate(1.4) brightness(1.1)' }}
+          fill
+          className="object-contain transition-transform duration-300 group-hover:-translate-y-0.5"
+          priority
         />
-      </picture>
+      </div>
       {showText && (
-        <div className="flex flex-col">
-          <span className={`text-xl font-black tracking-tighter leading-none transition-colors ${textColor} group-hover:text-emerald-600`}>
-            EdMarg
-          </span>
-          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1">
-            Career Guide
-          </span>
-        </div>
+        <span className={`text-xl font-extrabold tracking-tight transition-colors ${textColor} group-hover:text-emerald-500`}>
+          EdMarg
+        </span>
       )}
     </Link>
   );

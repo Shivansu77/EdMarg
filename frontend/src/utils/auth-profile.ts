@@ -2,6 +2,8 @@ export interface AuthProfileUser {
   role?: 'student' | 'mentor' | 'admin' | string | null;
   emailVerification?: {
     isVerified?: boolean | null;
+    lastSentAt?: string | null;
+    verifiedAt?: string | null;
   } | null;
   phoneNumber?: string | null;
   studentProfile?: {

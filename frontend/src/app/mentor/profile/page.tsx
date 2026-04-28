@@ -30,11 +30,14 @@ const PREDEFINED_EXPERTISE = [
   'DevOps', 'System Design', 'Interview Prep', 'Career Guidance'
 ];
 
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
+
 interface MentorProfile {
   name: string;
   profileImage: string;
   emailVerification?: {
     isVerified?: boolean;
+    lastSentAt?: string;
     verifiedAt?: string;
   };
   mentorProfile?: {
@@ -77,6 +80,8 @@ function MentorProfileContent() {
   const [saving, setSaving] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [otpResendAvailableAt, setOtpResendAvailableAt] = useState<number | null>(null);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [approvalStatus, setApprovalStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -94,6 +99,11 @@ function MentorProfileContent() {
           setName(userData.name || '');
           setProfileImage(userData.profileImage || '');
           setEmailVerified(Boolean(userData.emailVerification?.isVerified));
+          setOtpResendAvailableAt(
+            userData.emailVerification?.lastSentAt
+              ? new Date(userData.emailVerification.lastSentAt).getTime() + OTP_RESEND_COOLDOWN_MS
+              : null
+          );
           
           const mProfile = userData.mentorProfile || {};
           setLinkedinUrl(mProfile.linkedinUrl || '');
@@ -117,6 +127,25 @@ function MentorProfileContent() {
 
     fetchProfile();
   }, []);
+
+  useEffect(() => {
+    if (!otpResendAvailableAt || otpResendAvailableAt <= Date.now()) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [otpResendAvailableAt]);
+
+  const otpCooldownSeconds = otpResendAvailableAt
+    ? Math.max(0, Math.ceil((otpResendAvailableAt - currentTime) / 1000))
+    : 0;
+  const canSendOtp = !sendingOtp && otpCooldownSeconds === 0;
 
   const handleExpertiseToggle = (skill: string) => {
     setExpertise(prev => 
@@ -164,16 +193,28 @@ function MentorProfileContent() {
   };
 
   const handleSendOtp = async () => {
+    if (!canSendOtp) {
+      return;
+    }
+
     setSendingOtp(true);
     setErrorMsg('');
     const res = await apiClient.post('/api/v1/users/email/send-otp');
     setSendingOtp(false);
 
     if (!res.success) {
+      if ((res.error || res.message || '').includes('Please wait a minute')) {
+        const nextAvailableAt = Date.now() + OTP_RESEND_COOLDOWN_MS;
+        setCurrentTime(Date.now());
+        setOtpResendAvailableAt(nextAvailableAt);
+      }
       setErrorMsg(res.error || res.message || 'Unable to send OTP');
       return;
     }
 
+    const sentAt = Date.now();
+    setCurrentTime(sentAt);
+    setOtpResendAvailableAt(sentAt + OTP_RESEND_COOLDOWN_MS);
     setSuccessMsg(res.message || 'OTP sent to your email');
   };
 
@@ -255,10 +296,14 @@ function MentorProfileContent() {
                 <button
                   type="button"
                   onClick={handleSendOtp}
-                  disabled={sendingOtp}
+                  disabled={!canSendOtp}
                   className="rounded-xl border border-blue-300 bg-white px-4 py-2.5 text-sm font-semibold text-blue-900 hover:bg-blue-100 disabled:opacity-70"
                 >
-                  {sendingOtp ? 'Sending OTP...' : 'Send OTP'}
+                  {sendingOtp
+                    ? 'Sending OTP...'
+                    : otpCooldownSeconds > 0
+                      ? `Resend in ${otpCooldownSeconds}s`
+                      : 'Send OTP'}
                 </button>
                 <input
                   value={otp}
@@ -275,6 +320,11 @@ function MentorProfileContent() {
                   {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
                 </button>
               </div>
+              {otpCooldownSeconds > 0 && (
+                <p className="text-sm text-blue-800">
+                  You can request a new OTP in {otpCooldownSeconds}s.
+                </p>
+              )}
             </div>
           </div>
         )}

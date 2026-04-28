@@ -11,11 +11,13 @@ const { Booking } = require('../models/booking.model');
 const {
   generateSignedDeliveryUrl,
   uploadVideoBuffer,
+  deleteVideo,
 } = require('../services/cloudinary.service');
 const {
   sanitizeRecordingUrl,
   isSimulatedZoomTestUrl,
 } = require('../utils/recording.utils');
+const { getIO } = require('../lib/socket');
 
 // ─── Get Recording by Session ──────────────────────────────────────────────
 /**
@@ -320,6 +322,25 @@ exports.uploadRecordingForSession = async (req, res) => {
       recordingUrl: cloudinaryResult.secure_url,
     });
 
+    // ── Notify student via Socket.io ──────────────────────────────────────
+    try {
+      const io = getIO();
+      if (io) {
+        const studentId = String(booking.student?._id || booking.student);
+        io.to(`user:${studentId}`).emit('recording_ready', {
+          type: 'recording_ready',
+          sessionId: String(booking._id),
+          recordingId: String(recording._id),
+          url: cloudinaryResult.secure_url,
+          message: 'Your session recording is ready! Watch now →',
+        });
+        console.log(`[Socket.io] Emitted recording_ready to user:${studentId}`);
+      }
+    } catch (socketErr) {
+      // Non-critical: log but don't fail the request
+      console.warn('[Socket.io] Failed to emit recording_ready:', socketErr.message);
+    }
+
     return res.status(200).json({
       success: true,
       message: 'Recording uploaded to Cloudinary successfully',
@@ -340,6 +361,67 @@ exports.uploadRecordingForSession = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to upload recording video',
+    });
+  }
+};
+
+// ─── Delete Recording ──────────────────────────────────────────────────────
+/**
+ * DELETE /api/v1/recordings/:recordingId
+ *
+ * Deletes a recording from Cloudinary and MongoDB.
+ * Only the mentor who owns the session or an admin can delete.
+ */
+exports.deleteRecording = async (req, res) => {
+  try {
+    const { recordingId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+
+    const recording = await Recording.findById(recordingId);
+
+    if (!recording) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recording not found',
+      });
+    }
+
+    // Authorization check: only the mentor or admin
+    if (role !== 'admin' && String(recording.mentorId) !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the assigned mentor or an admin can delete this recording',
+      });
+    }
+
+    // Delete from Cloudinary if we have a public ID
+    if (recording.cloudinaryPublicId) {
+      try {
+        await deleteVideo(recording.cloudinaryPublicId);
+      } catch (cloudErr) {
+        console.warn('[Recording Delete] Cloudinary deletion failed:', cloudErr.message);
+        // Continue with DB cleanup even if Cloudinary fails
+      }
+    }
+
+    // Clear recording URL from the booking
+    await Booking.findByIdAndUpdate(recording.sessionId, {
+      $unset: { recordingUrl: 1 },
+    });
+
+    // Remove from database
+    await Recording.findByIdAndDelete(recordingId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Recording deleted successfully',
+    });
+  } catch (error) {
+    console.error('[Recording Delete] Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete recording',
     });
   }
 };

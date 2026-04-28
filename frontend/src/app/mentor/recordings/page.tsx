@@ -11,7 +11,9 @@ import {
   AlertCircle,
   Upload,
   Film,
+  Trash2,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
@@ -76,6 +78,25 @@ function MentorRecordingsContent() {
   const [recordings, setRecordings] = useState<RecordingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
+
+  const handleDelete = async (recordingId: string, recordingName: string) => {
+    if (!confirm(`Delete this recording for ${recordingName}? This cannot be undone.`)) return;
+    setDeleteLoading(recordingId);
+    try {
+      const res = await apiClient.delete(`/api/v1/recordings/${recordingId}`);
+      if (res.success) {
+        setRecordings((prev) => prev.filter((r) => r._id !== recordingId));
+        toast.success('Recording deleted successfully.');
+      } else {
+        toast.error(res.error || res.message || 'Failed to delete recording');
+      }
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete');
+    } finally {
+      setDeleteLoading(null);
+    }
+  };
 
   useEffect(() => {
     const fetchRecordings = async () => {
@@ -264,13 +285,23 @@ function MentorRecordingsContent() {
 
                     {/* Watch button */}
                     {isCompleted && (
-                      <Link
-                        href={`/sessions/${sessionIdStr}/recording`}
-                        className="w-full inline-flex items-center justify-center px-4 py-2.5 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors border border-emerald-200 gap-2"
-                      >
-                        <Video className="w-4 h-4" />
-                        Watch Recording
-                      </Link>
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/sessions/${sessionIdStr}/recording`}
+                          className="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors border border-emerald-200 gap-2"
+                        >
+                          <Video className="w-4 h-4" />
+                          Watch
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(recording._id, student?.name || 'Student')}
+                          disabled={deleteLoading === recording._id}
+                          className="inline-flex items-center justify-center px-3 py-2.5 text-sm font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors border border-red-200 disabled:opacity-50"
+                          title="Delete recording"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 </article>

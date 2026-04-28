@@ -2,6 +2,7 @@
 
 import React, { ReactNode } from 'react';
 import { AuthProvider } from './AuthContext';
+import { SocketProvider } from './SocketProvider';
 import { Toaster } from 'react-hot-toast';
 
 interface ProvidersProps {
@@ -11,7 +12,9 @@ interface ProvidersProps {
 export const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
     <AuthProvider>
-      {children}
+      <SocketProvider>
+        {children}
+      </SocketProvider>
       <Toaster 
         position="bottom-right"
         toastOptions={{
