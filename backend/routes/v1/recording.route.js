@@ -11,6 +11,8 @@ const { uploadRecordingVideo } = require('../../middlewares/upload.middleware');
 const {
   getRecordingBySession,
   getMyRecordings,
+  createRecordingUploadSignature,
+  finalizeRecordingUpload,
   uploadRecordingForSession,
   deleteRecording,
 } = require('../../controllers/recording.controller');
@@ -22,6 +24,28 @@ const router = express.Router();
  * Get all recordings for the authenticated user
  */
 router.get('/', protect, getMyRecordings);
+
+/**
+ * POST /api/v1/recordings/:sessionId/upload-signature
+ * Create signed Cloudinary upload params for a direct browser upload.
+ */
+router.post(
+  '/:sessionId/upload-signature',
+  protect,
+  authorize('mentor', 'admin'),
+  createRecordingUploadSignature
+);
+
+/**
+ * POST /api/v1/recordings/:sessionId/complete-upload
+ * Persist metadata after a direct Cloudinary upload finishes.
+ */
+router.post(
+  '/:sessionId/complete-upload',
+  protect,
+  authorize('mentor', 'admin'),
+  finalizeRecordingUpload
+);
 
 /**
  * POST /api/v1/recordings/:sessionId/upload

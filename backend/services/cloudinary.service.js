@@ -112,6 +112,57 @@ async function uploadVideoBuffer(buffer, options = {}) {
   return uploadVideoFromStream(readableStream, options);
 }
 
+/**
+ * Builds a signed parameter payload for direct browser uploads to Cloudinary.
+ *
+ * @param {Object} options
+ * @param {string} options.folder
+ * @param {string} options.publicId
+ * @param {number} [options.timestamp]
+ * @param {boolean} [options.overwrite]
+ * @returns {{
+ *   cloudName: string,
+ *   apiKey: string,
+ *   folder: string,
+ *   publicId: string,
+ *   timestamp: number,
+ *   overwrite: string,
+ *   signature: string
+ * }}
+ */
+function createSignedVideoUploadParams(options = {}) {
+  assertCloudinaryConfigured();
+
+  const cfg = cloudinary.config();
+  const timestamp = Number(options.timestamp) || Math.floor(Date.now() / 1000);
+  const folder = options.folder || 'session-recordings';
+  const publicId = options.publicId;
+  const overwrite = options.overwrite === false ? 'false' : 'true';
+
+  if (!publicId) {
+    throw new Error('publicId is required to create a signed upload payload');
+  }
+
+  const paramsToSign = {
+    folder,
+    public_id: publicId,
+    overwrite,
+    timestamp,
+  };
+
+  const signature = cloudinary.utils.api_sign_request(paramsToSign, cfg.api_secret);
+
+  return {
+    cloudName: cfg.cloud_name,
+    apiKey: cfg.api_key,
+    folder,
+    publicId,
+    timestamp,
+    overwrite,
+    signature,
+  };
+}
+
 // ─── Generate Signed URL ────────────────────────────────────────────────────
 /**
  * Generates a time-limited signed URL for secure video playback.
@@ -142,6 +193,7 @@ function generateSignedUrl(publicId, options = {}) {
  * @param {string} publicId
  * @param {Object} options
  * @param {number} [options.expiresInSeconds]
+ * @param {number} [options.version]
  * @returns {string}
  */
 function generateSignedDeliveryUrl(publicId, options = {}) {
@@ -153,6 +205,7 @@ function generateSignedDeliveryUrl(publicId, options = {}) {
     sign_url: true,
     secure: true,
     type: 'upload',
+    ...(options.version ? { version: options.version } : {}),
     expires_at: expiresAt,
   });
 }
@@ -181,6 +234,7 @@ module.exports = {
   cloudinary, // Export the configured instance for edge cases
   uploadVideoFromStream,
   uploadVideoBuffer,
+  createSignedVideoUploadParams,
   generateSignedUrl,
   generateSignedDeliveryUrl,
   deleteVideo,

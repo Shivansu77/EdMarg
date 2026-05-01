@@ -95,20 +95,34 @@ export default function SessionRecordingPlayer({
   }, [fetchRecording]);
 
   // ─── Video Controls ───────────────────────────────────────────────────
-  const togglePlay = () => {
+  const playPromiseRef = useRef<Promise<void> | null>(null);
+
+  const togglePlay = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!videoRef.current) return;
+    
     if (videoRef.current.paused) {
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.error("Video play failed:", error);
-          setIsPlaying(false);
+      const p = videoRef.current.play();
+      if (p !== undefined) {
+        playPromiseRef.current = p;
+        p.catch(() => {
+          // Ignore AbortError: The play() request was interrupted by a call to pause().
+        }).finally(() => {
+          playPromiseRef.current = null;
         });
       }
       setIsPlaying(true);
     } else {
-      videoRef.current.pause();
-      setIsPlaying(false);
+      if (playPromiseRef.current) {
+        // Wait for play to finish before pausing
+        playPromiseRef.current.then(() => {
+          videoRef.current?.pause();
+          setIsPlaying(false);
+        }).catch(() => {});
+      } else {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
     }
   };
 
@@ -261,74 +275,103 @@ export default function SessionRecordingPlayer({
         {/* Play overlay (shown when paused) */}
         {!isPlaying && (
           <div
-            className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer transition-opacity"
+            className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] cursor-pointer transition-all duration-300"
             onClick={togglePlay}
           >
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600/90 shadow-lg shadow-emerald-500/30 backdrop-blur-sm transition-transform hover:scale-110">
-              <Play className="h-7 w-7 text-white ml-1" fill="white" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/90 shadow-[0_0_40px_rgba(16,185,129,0.4)] backdrop-blur-md transition-transform hover:scale-110 hover:bg-emerald-400">
+              <Play className="h-8 w-8 text-white ml-1.5" fill="white" />
             </div>
           </div>
         )}
 
-        {/* Custom Controls */}
+        {/* Premium Custom Controls */}
         <div
-          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-8 transition-opacity duration-300 ${
-            showControls ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          className={`absolute bottom-6 left-1/2 -translate-x-1/2 w-[95%] max-w-3xl z-10 transition-all duration-500 ${
+            showControls ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
           }`}
         >
-          {/* Progress Bar */}
-          <input
-            type="range"
-            min={0}
-            max={duration || 0}
-            value={currentTime}
-            onChange={handleSeek}
-            className="mb-2 h-1 w-full cursor-pointer appearance-none rounded-full bg-white/20 accent-emerald-500 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-emerald-500"
-          />
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {/* Play/Pause */}
-              <button
-                onClick={togglePlay}
-                className="text-white hover:text-emerald-300 transition-colors"
-                aria-label={isPlaying ? 'Pause' : 'Play'}
-              >
-                {isPlaying ? (
-                  <Pause className="h-5 w-5" fill="white" />
-                ) : (
-                  <Play className="h-5 w-5" fill="white" />
-                )}
-              </button>
-
-              {/* Mute */}
-              <button
-                onClick={toggleMute}
-                className="text-white hover:text-emerald-300 transition-colors"
-                aria-label={isMuted ? 'Unmute' : 'Mute'}
-              >
-                {isMuted ? (
-                  <VolumeX className="h-5 w-5" />
-                ) : (
-                  <Volume2 className="h-5 w-5" />
-                )}
-              </button>
-
-              {/* Time */}
-              <span className="text-xs font-mono text-white/80">
-                {formatDuration(currentTime)} / {formatDuration(duration)}
-              </span>
+          <div className="flex flex-col gap-2 rounded-2xl bg-black/60 backdrop-blur-xl border border-white/10 p-4 shadow-2xl">
+            {/* Progress Bar */}
+            <div className="relative group flex items-center h-4 w-full">
+              <input
+                type="range"
+                min={0}
+                max={duration || 0}
+                step="any"
+                value={currentTime || 0}
+                onChange={(e) => {
+                  const newTime = parseFloat(e.target.value);
+                  if (videoRef.current && isFinite(newTime)) {
+                    videoRef.current.currentTime = newTime;
+                    setCurrentTime(newTime);
+                  }
+                }}
+                className="absolute w-full h-1.5 rounded-full appearance-none cursor-pointer outline-none transition-all [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:shadow-[0_0_10px_rgba(255,255,255,0.8)] [&::-webkit-slider-thumb]:opacity-0 group-hover:[&::-webkit-slider-thumb]:opacity-100 [&::-webkit-slider-thumb]:transition-opacity [&::-moz-range-thumb]:w-3.5 [&::-moz-range-thumb]:h-3.5 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:opacity-0 group-hover:[&::-moz-range-thumb]:opacity-100 [&::-moz-range-thumb]:transition-opacity"
+                style={{
+                  background: `linear-gradient(to right, #10b981 ${(currentTime / (duration || 1)) * 100}%, rgba(255,255,255,0.2) ${(currentTime / (duration || 1)) * 100}%)`
+                }}
+              />
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Fullscreen */}
-              <button
-                onClick={toggleFullscreen}
-                className="text-white hover:text-emerald-300 transition-colors"
-                aria-label="Fullscreen"
-              >
-                <Maximize className="h-5 w-5" />
-              </button>
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center gap-4">
+                {/* Play/Pause */}
+                <button
+                  onClick={togglePlay}
+                  className="text-white hover:text-emerald-400 hover:scale-110 transition-all focus:outline-none"
+                  aria-label={isPlaying ? 'Pause' : 'Play'}
+                >
+                  {isPlaying ? (
+                    <Pause className="h-5 w-5" fill="white" />
+                  ) : (
+                    <Play className="h-5 w-5" fill="white" />
+                  )}
+                </button>
+
+                {/* Mute */}
+                <button
+                  onClick={toggleMute}
+                  className="text-white hover:text-emerald-400 hover:scale-110 transition-all focus:outline-none"
+                  aria-label={isMuted ? 'Unmute' : 'Mute'}
+                >
+                  {isMuted ? (
+                    <VolumeX className="h-5 w-5 text-red-400" />
+                  ) : (
+                    <Volume2 className="h-5 w-5" />
+                  )}
+                </button>
+
+                {/* Time */}
+                <div className="text-xs font-medium tracking-wide text-white/90 font-mono bg-white/10 px-2 py-1 rounded-md">
+                  {formatDuration(currentTime)} <span className="text-white/50 mx-1">/</span> {formatDuration(duration)}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-4">
+                {/* Skip Buttons */}
+                <button
+                  onClick={() => {
+                    if (videoRef.current) {
+                      const t = Math.max(0, videoRef.current.currentTime - 10);
+                      videoRef.current.currentTime = t;
+                      setCurrentTime(t);
+                    }
+                  }}
+                  className="text-white hover:text-emerald-400 transition-colors focus:outline-none"
+                  title="Rewind 10s"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+
+                {/* Fullscreen */}
+                <button
+                  onClick={toggleFullscreen}
+                  className="text-white hover:text-emerald-400 hover:scale-110 transition-all focus:outline-none"
+                  aria-label="Fullscreen"
+                >
+                  <Maximize className="h-5 w-5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -204,6 +204,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           credentials: 'include',
           headers: {
             Authorization: `Bearer ${token}`,
+            'x-bypass-cache': '1',
+            'Cache-Control': 'no-cache',
           },
         });
 

@@ -14,6 +14,7 @@ import {
   validateVideoFile,
   type RecordingUploadResult,
   type UploadProgressEvent,
+  type UploadStage,
 } from '@/utils/uploadRecording';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -36,6 +37,7 @@ export default function RecordingUploader({
   const [state, setState] = useState<UploadState>('idle');
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<UploadStage>('preparing');
   const [errorMessage, setErrorMessage] = useState('');
   const [isDragOver, setIsDragOver] = useState(false);
 
@@ -93,6 +95,7 @@ export default function RecordingUploader({
 
     setState('uploading');
     setProgress(0);
+    setUploadStage('preparing');
     setErrorMessage('');
 
     try {
@@ -101,6 +104,7 @@ export default function RecordingUploader({
         file,
         (event: UploadProgressEvent) => {
           setProgress(event.percent);
+          setUploadStage(event.stage);
         }
       );
 
@@ -120,6 +124,7 @@ export default function RecordingUploader({
   const handleReset = () => {
     setFile(null);
     setProgress(0);
+    setUploadStage('preparing');
     setErrorMessage('');
     setState('idle');
     if (fileInputRef.current) {
@@ -212,9 +217,11 @@ export default function RecordingUploader({
               </div>
 
               <p style={styles.uploadingHint}>
-                {progress < 100
-                  ? 'Uploading to cloud storage... Please keep this window open.'
-                  : 'Finalizing upload...'}
+                {uploadStage === 'preparing'
+                  ? 'Preparing secure upload...'
+                  : uploadStage === 'finalizing'
+                    ? 'Saving recording details...'
+                    : 'Uploading directly to cloud storage... Please keep this window open.'}
               </p>
             </div>
           )}
@@ -278,7 +285,7 @@ export default function RecordingUploader({
                       or <span style={styles.dropLink}>browse files</span>
                     </p>
                     <p style={styles.dropFormats}>
-                      MP4, MOV, MKV, WebM · Up to 250 MB
+                      MP4, MOV, MKV, WebM · Up to 500 MB
                     </p>
                   </div>
                 )}

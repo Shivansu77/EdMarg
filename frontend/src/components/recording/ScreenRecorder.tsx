@@ -4,7 +4,11 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Monitor, Square, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RecordingBadge from './RecordingBadge';
-import { uploadRecording, type UploadProgressEvent } from '@/utils/uploadRecording';
+import {
+  uploadRecording,
+  type UploadProgressEvent,
+  type UploadStage,
+} from '@/utils/uploadRecording';
 
 type RecordingState = 'idle' | 'recording' | 'uploading' | 'success' | 'error';
 
@@ -13,6 +17,14 @@ interface ScreenRecorderProps {
   onComplete?: () => void;
   onClose?: () => void;
 }
+
+type DisplayMediaStreamOptionsWithHints = DisplayMediaStreamOptions & {
+  selfBrowserSurface?: 'include' | 'exclude';
+  surfaceSwitching?: 'include' | 'exclude';
+  systemAudio?: 'include' | 'exclude';
+  windowAudio?: 'exclude' | 'window' | 'system';
+  monitorTypeSurfaces?: 'include' | 'exclude';
+};
 
 const formatTime = (s: number) => {
   const h = Math.floor(s / 3600);
@@ -33,22 +45,187 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
   const [state, setState] = useState<RecordingState>('idle');
   const [elapsed, setElapsed] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<UploadStage>('preparing');
   const [errorMsg, setErrorMsg] = useState('');
   const [blobSize, setBlobSize] = useState(0);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
+  const recordingStreamRef = useRef<MediaStream | null>(null);
+  const displayStreamRef = useRef<MediaStream | null>(null);
+  const micStreamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const blobRef = useRef<Blob | null>(null);
 
+  const stopActiveStreams = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    recordingStreamRef.current?.getTracks().forEach((track) => track.stop());
+    recordingStreamRef.current = null;
+
+    displayStreamRef.current?.getTracks().forEach((track) => track.stop());
+    displayStreamRef.current = null;
+
+    micStreamRef.current?.getTracks().forEach((track) => track.stop());
+    micStreamRef.current = null;
+
+    if (audioContextRef.current) {
+      void audioContextRef.current.close().catch(() => undefined);
+      audioContextRef.current = null;
+    }
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      stopActiveStreams();
+    };
+  }, [stopActiveStreams]);
+
+  const buildRecordingStream = useCallback(async () => {
+    const preferredDisplayOptions: DisplayMediaStreamOptionsWithHints = {
+      video: { frameRate: 30 },
+      audio: true,
+      // Browser-specific hints: when supported these increase the chance of
+      // capturing shared audio instead of a silent window-only stream,
+      // without biasing the picker toward the current tab.
+      surfaceSwitching: 'include',
+      systemAudio: 'include',
+      windowAudio: 'system',
+      monitorTypeSurfaces: 'include',
+    };
+
+    let displayStream: MediaStream;
+    try {
+      displayStream = await navigator.mediaDevices.getDisplayMedia(preferredDisplayOptions);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error || '');
+      const shouldRetryWithBasicOptions =
+        message.includes('Self-contradictory configuration') ||
+        message.includes('systemAudio') ||
+        message.includes('windowAudio');
+
+      if (!shouldRetryWithBasicOptions) {
+        throw error;
+      }
+
+      console.warn('[ScreenRecorder] Retrying screen capture with basic options:', error);
+      displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { frameRate: 30 },
+        audio: true,
+      });
+    }
+
+    let micStream: MediaStream | null = null;
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          // Keep the mic fallback as raw as possible so it can still pick up
+          // meeting sound from speakers when the browser cannot expose
+          // system/window audio to getDisplayMedia.
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: 2,
+        },
+      });
+    } catch (error) {
+      console.warn('[ScreenRecorder] Microphone capture unavailable:', error);
+    }
+
+    const videoTrack = displayStream.getVideoTracks()[0];
+    if (!videoTrack) {
+      displayStream.getTracks().forEach((track) => track.stop());
+      micStream?.getTracks().forEach((track) => track.stop());
+      throw new Error('No video track available from screen capture');
+    }
+
+    const displayAudioTracks = displayStream.getAudioTracks();
+    const micAudioTracks = micStream?.getAudioTracks() || [];
+    let audioContext: AudioContext | null = null;
+    let mixedAudioTrack: MediaStreamTrack | null = null;
+
+    if (displayAudioTracks.length > 0 || micAudioTracks.length > 0) {
+      audioContext = new AudioContext();
+      const destination = audioContext.createMediaStreamDestination();
+
+      if (displayAudioTracks.length > 0) {
+        const displayAudioSource = audioContext.createMediaStreamSource(
+          new MediaStream(displayAudioTracks)
+        );
+        displayAudioSource.connect(destination);
+      }
+
+      if (micAudioTracks.length > 0) {
+        const micAudioSource = audioContext.createMediaStreamSource(
+          new MediaStream(micAudioTracks)
+        );
+        const micGain = audioContext.createGain();
+        micGain.gain.value = 1;
+        micAudioSource.connect(micGain);
+        micGain.connect(destination);
+      }
+
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      mixedAudioTrack = destination.stream.getAudioTracks()[0] || null;
+    }
+
+    const recordingTracks = [videoTrack];
+    if (mixedAudioTrack) {
+      recordingTracks.push(mixedAudioTrack);
+    }
+
+    return {
+      displayStream,
+      micStream,
+      audioContext,
+      recordingStream: new MediaStream(recordingTracks),
+      hasDisplayAudio: displayAudioTracks.length > 0,
+      hasMicAudio: micAudioTracks.length > 0,
     };
   }, []);
+
+  const handleUpload = useCallback(async (blob: Blob) => {
+    const sizeMB = blob.size / (1024 * 1024);
+
+    if (sizeMB > 500) {
+      setErrorMsg(`Recording is too large (${sizeMB.toFixed(0)} MB). Maximum is 500 MB.`);
+      setState('error');
+      return;
+    }
+
+    if (sizeMB > 100) {
+      toast(`Large file (${sizeMB.toFixed(0)} MB). Upload may take a while.`, { icon: '⚠️', duration: 5000 });
+    }
+
+    setState('uploading');
+    setProgress(0);
+    setUploadStage('preparing');
+
+    try {
+      const file = new File([blob], `session-${sessionId}-${Date.now()}.webm`, { type: blob.type });
+
+      await uploadRecording(sessionId, file, (event: UploadProgressEvent) => {
+        setProgress(event.percent);
+        setUploadStage(event.stage);
+      });
+
+      setState('success');
+      toast.success('Recording uploaded! Student has been notified.');
+      setTimeout(() => onComplete?.(), 3000);
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Upload failed.');
+      setState('error');
+      toast.error('Upload failed. You can retry.');
+    }
+  }, [onComplete, sessionId]);
 
   const startRecording = useCallback(async () => {
     if (!isScreenCaptureSupported()) {
@@ -60,15 +237,39 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
     }
 
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
-      streamRef.current = stream;
+      const {
+        displayStream,
+        micStream,
+        audioContext,
+        recordingStream,
+        hasDisplayAudio,
+        hasMicAudio,
+      } = await buildRecordingStream();
+      displayStreamRef.current = displayStream;
+      micStreamRef.current = micStream;
+      audioContextRef.current = audioContext;
+      recordingStreamRef.current = recordingStream;
+
+      if (!hasDisplayAudio) {
+        stopActiveStreams();
+        setState('error');
+        setErrorMsg(
+          hasMicAudio
+            ? 'Shared screen audio was not detected. To record meeting audio, start again and choose a browser tab or entire screen with audio enabled. Window-only sharing for the Zoom desktop app usually records silent video.'
+            : 'No audio source was captured. Start again and choose a browser tab or entire screen with audio enabled.'
+        );
+        toast.error('Shared audio was not detected. Please restart and share with audio enabled.');
+        return;
+      }
 
       // Pick best supported mime
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
-        ? 'video/webm;codecs=vp9'
-        : 'video/webm';
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
+        ? 'video/webm;codecs=vp8,opus'
+        : MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+          ? 'video/webm;codecs=vp9,opus'
+          : 'video/webm';
 
-      const recorder = new MediaRecorder(stream, { mimeType });
+      const recorder = new MediaRecorder(recordingStream, { mimeType });
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
 
@@ -80,13 +281,12 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
         const blob = new Blob(chunksRef.current, { type: mimeType });
         blobRef.current = blob;
         setBlobSize(blob.size);
-        stream.getTracks().forEach((t) => t.stop());
-        if (timerRef.current) clearInterval(timerRef.current);
+        stopActiveStreams();
         handleUpload(blob);
       };
 
       // Auto-stop when user stops sharing
-      stream.getVideoTracks()[0]?.addEventListener('ended', () => {
+      displayStream.getVideoTracks()[0]?.addEventListener('ended', () => {
         if (mediaRecorderRef.current?.state === 'recording') {
           mediaRecorderRef.current.stop();
         }
@@ -103,48 +303,16 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
       } else {
         toast.error('Failed to start recording.');
         console.error('[ScreenRecorder]', err);
+        stopActiveStreams();
       }
     }
-  }, []);
+  }, [buildRecordingStream, handleUpload, stopActiveStreams]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
   }, []);
-
-  const handleUpload = async (blob: Blob) => {
-    const sizeMB = blob.size / (1024 * 1024);
-
-    if (sizeMB > 500) {
-      setErrorMsg(`Recording is too large (${sizeMB.toFixed(0)} MB). Maximum is 500 MB.`);
-      setState('error');
-      return;
-    }
-
-    if (sizeMB > 100) {
-      toast(`Large file (${sizeMB.toFixed(0)} MB). Upload may take a while.`, { icon: '⚠️', duration: 5000 });
-    }
-
-    setState('uploading');
-    setProgress(0);
-
-    try {
-      const file = new File([blob], `session-${sessionId}-${Date.now()}.webm`, { type: blob.type });
-
-      await uploadRecording(sessionId, file, (event: UploadProgressEvent) => {
-        setProgress(event.percent);
-      });
-
-      setState('success');
-      toast.success('Recording uploaded! Student has been notified.');
-      setTimeout(() => onComplete?.(), 3000);
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'Upload failed.');
-      setState('error');
-      toast.error('Upload failed. You can retry.');
-    }
-  };
 
   const handleRetry = () => {
     if (blobRef.current) {
@@ -156,6 +324,8 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
     setState('idle');
     setElapsed(0);
     setProgress(0);
+    setUploadStage('preparing');
+    setBlobSize(0);
     setErrorMsg('');
     blobRef.current = null;
     chunksRef.current = [];
@@ -204,7 +374,7 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
                   <Monitor size={28} color="#ef4444" />
                 </div>
                 <p style={{ fontSize: 14, color: '#64748b', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
-                  Click below to share your screen. Select the Zoom window to capture your session.
+                  Click below to choose what to record. You can pick any app window or your entire screen. For audio, Chrome or Edge works best.
                 </p>
                 {!isScreenCaptureSupported() && (
                   <div style={{ padding: '10px 16px', borderRadius: 12, background: '#fef2f2', border: '1px solid #fecaca', fontSize: 13, color: '#991b1b', fontWeight: 600 }}>
@@ -252,7 +422,12 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
                   <div style={{ ...s.fill, width: `${progress}%` }} />
                 </div>
                 <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0 }}>
-                  {blobSize > 0 ? `${(blobSize / 1024 / 1024).toFixed(1)} MB · ` : ''}Please keep this window open.
+                  {blobSize > 0 ? `${(blobSize / 1024 / 1024).toFixed(1)} MB · ` : ''}
+                  {uploadStage === 'preparing'
+                    ? 'Preparing secure upload...'
+                    : uploadStage === 'finalizing'
+                      ? 'Saving recording details...'
+                      : 'Uploading directly to cloud storage. Please keep this window open.'}
                 </p>
               </div>
             )}
@@ -282,7 +457,7 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
                 <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>Upload Failed</h3>
                 <p style={{ fontSize: 13, color: '#991b1b', fontWeight: 600, margin: 0 }}>{errorMsg}</p>
                 <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-                  {blobRef.current && (
+                  {blobSize > 0 && (
                     <button onClick={handleRetry} style={{ ...s.btnPrimary, background: '#ef4444', boxShadow: '0 4px 14px rgba(239,68,68,0.25)' }}>
                       Retry Upload
                     </button>
@@ -299,7 +474,7 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
           {state !== 'success' && (
             <div style={{ padding: '14px 24px', borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
               <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0, textAlign: 'center' }}>
-                🎬 Recording captures your shared screen. Works best on Chrome &amp; Edge.
+                🎬 You can record any window or the full screen. If you need meeting audio, turn audio on in the share dialog.
               </p>
             </div>
           )}

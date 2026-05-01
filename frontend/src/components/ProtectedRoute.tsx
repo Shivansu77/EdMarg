@@ -12,6 +12,29 @@ interface ProtectedRouteProps {
   requiredRole?: 'student' | 'mentor' | 'admin';
 }
 
+interface StoredAuthUser {
+  _id: string;
+  name: string;
+  email: string;
+  emailVerification?: {
+    isVerified?: boolean;
+    verifiedAt?: string;
+  };
+  role: 'student' | 'mentor' | 'admin';
+  profileImage?: string;
+  profileImageUpdatedAt?: number;
+  phoneNumber?: string;
+  studentProfile?: {
+    classLevel?: string;
+    interests?: string[];
+  };
+  mentorProfile?: {
+    linkedinUrl?: string;
+    expertise?: string[];
+    approvalStatus?: 'pending' | 'approved' | 'rejected';
+  };
+}
+
 const AUTH_USER_STORAGE_KEY = 'user';
 const AUTH_TOKEN_STORAGE_KEY = 'token';
 const AUTH_USER_EVENT = 'edmarg-auth-user-change';
@@ -29,6 +52,57 @@ const clearStoredAuth = () => {
   window.dispatchEvent(new Event(AUTH_USER_EVENT));
 };
 
+const normalizeAuthenticatedUser = (userData: Partial<StoredAuthUser>): StoredAuthUser | null => {
+  if (!userData._id || !userData.email || !userData.name || !userData.role) {
+    return null;
+  }
+
+  return {
+    _id: userData._id,
+    name: userData.name,
+    email: userData.email,
+    emailVerification: userData.emailVerification,
+    role: userData.role,
+    profileImage: userData.profileImage,
+    profileImageUpdatedAt: userData.profileImageUpdatedAt,
+    phoneNumber: userData.phoneNumber,
+    studentProfile: userData.studentProfile,
+    mentorProfile: userData.mentorProfile,
+  };
+};
+
+const syncStoredAuthUser = (nextUser: StoredAuthUser) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const nextSerializedUser = JSON.stringify(nextUser);
+
+  if (window.localStorage.getItem(AUTH_USER_STORAGE_KEY) === nextSerializedUser) {
+    return;
+  }
+
+  window.localStorage.setItem(AUTH_USER_STORAGE_KEY, nextSerializedUser);
+  window.dispatchEvent(new Event(AUTH_USER_EVENT));
+};
+
+const readStoredAuthUser = (): StoredAuthUser | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const rawStoredUser = window.localStorage.getItem(AUTH_USER_STORAGE_KEY);
+  if (!rawStoredUser) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(rawStoredUser) as StoredAuthUser;
+  } catch {
+    return null;
+  }
+};
+
 export default function ProtectedRoute({
   children,
   requiredRole = 'student',
@@ -39,6 +113,8 @@ export default function ProtectedRoute({
   const [isSessionChecking, setIsSessionChecking] = useState(true);
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const isAuthorized = Boolean(user && user.role === requiredRole);
+  const currentMentorApprovalStatus =
+    user?.mentorProfile?.approvalStatus ?? readStoredAuthUser()?.mentorProfile?.approvalStatus ?? null;
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -65,6 +141,10 @@ export default function ProtectedRoute({
           createAuthenticatedRequestInit({
             method: 'GET',
             cache: 'no-store',
+            headers: {
+              'x-bypass-cache': '1',
+              'Cache-Control': 'no-cache',
+            },
             signal: controller.signal,
           })
         );
@@ -73,11 +153,17 @@ export default function ProtectedRoute({
         const serverRole = result?.data?.role;
         const mentorApprovalStatus = result?.data?.mentorProfile?.approvalStatus || 'pending';
         const destinationPath = getDefaultAuthenticatedPath(result?.data);
+        const refreshedUser = normalizeAuthenticatedUser(result?.data || {});
+        const previousMentorApprovalStatus = currentMentorApprovalStatus;
 
         if (!response.ok || serverRole !== requiredRole) {
           clearStoredAuth();
           router.replace('/login');
           return;
+        }
+
+        if (refreshedUser) {
+          syncStoredAuthUser(refreshedUser);
         }
 
         if (!isProfileComplete(result?.data) && pathname !== '/complete-profile') {
@@ -91,6 +177,16 @@ export default function ProtectedRoute({
           pathname !== '/mentor/profile'
         ) {
           router.replace('/mentor/profile');
+          return;
+        }
+
+        if (
+          requiredRole === 'mentor' &&
+          mentorApprovalStatus === 'approved' &&
+          pathname === '/mentor/profile' &&
+          previousMentorApprovalStatus !== 'approved'
+        ) {
+          router.replace('/mentor/dashboard');
           return;
         }
       } catch {
@@ -109,7 +205,7 @@ export default function ProtectedRoute({
     return () => {
       controller.abort();
     };
-  }, [hasHydrated, isAuthorized, pathname, requiredRole, router]);
+  }, [hasHydrated, isAuthorized, pathname, requiredRole, router, currentMentorApprovalStatus]);
 
   if (!hasHydrated || !isAuthorized || isSessionChecking) {
     const loadingMessage = !hasHydrated

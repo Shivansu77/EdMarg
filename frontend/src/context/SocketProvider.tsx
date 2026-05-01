@@ -8,7 +8,7 @@
  * Listens for `recording_ready` events and shows toast notifications.
  */
 
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
@@ -30,18 +30,13 @@ export function useSocket() {
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     // Only connect when a user is authenticated
     if (!user?._id) {
-      // Disconnect existing socket if user logs out
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-        setIsConnected(false);
-      }
+      setIsConnected(false);
       return;
     }
 
@@ -51,7 +46,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     // Resolve the base URL (strip /api/v1 if present)
     const baseUrl = (resolveBackendBaseUrl() || '').replace(/\/api\/v1\/?$/, '');
 
-    const socket = io(baseUrl, {
+    const newSocket = io(baseUrl, {
       auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -59,25 +54,25 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       reconnectionDelay: 2000,
     });
 
-    socketRef.current = socket;
+    setSocket(newSocket);
 
-    socket.on('connect', () => {
-      console.log('[Socket.io] Connected:', socket.id);
+    newSocket.on('connect', () => {
+      console.log('[Socket.io] Connected:', newSocket.id);
       setIsConnected(true);
     });
 
-    socket.on('disconnect', (reason) => {
+    newSocket.on('disconnect', (reason) => {
       console.log('[Socket.io] Disconnected:', reason);
       setIsConnected(false);
     });
 
-    socket.on('connect_error', (err) => {
+    newSocket.on('connect_error', (err) => {
       console.warn('[Socket.io] Connection error:', err.message);
       setIsConnected(false);
     });
 
     // ── Listen for recording_ready events ──────────────────────────────
-    socket.on('recording_ready', (data: {
+    newSocket.on('recording_ready', (data: {
       type: string;
       sessionId: string;
       message: string;
@@ -96,14 +91,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      socket.disconnect();
-      socketRef.current = null;
+      newSocket.disconnect();
+      setSocket(null);
       setIsConnected(false);
     };
   }, [user?._id]);
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current, isConnected }}>
+    <SocketContext.Provider value={{ socket, isConnected }}>
       {children}
     </SocketContext.Provider>
   );
