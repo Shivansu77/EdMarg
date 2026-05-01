@@ -7,6 +7,7 @@ import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import SessionFeedbackDialog from '@/components/student/SessionFeedbackDialog';
+import { ChatModal } from '@/components/chat/ChatModal';
 
 import { getImageUrl } from '@/utils/imageUrl';
 import {
@@ -63,6 +64,7 @@ function ScheduleContent() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [chatContact, setChatContact] = useState<{ id: string; name: string } | null>(null);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -282,6 +284,15 @@ function ScheduleContent() {
                       </div>
 
                       <div className="mt-6 flex items-center justify-end gap-3 border-t border-gray-100 pt-5">
+                        <button
+                          type="button"
+                          onClick={() => setChatContact({ id: booking.mentor._id, name: booking.mentor.name })}
+                          className="inline-flex items-center rounded-xl border border-gray-200 bg-white px-6 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+                        >
+                          <MessageSquare className="mr-2 h-4 w-4" />
+                          Chat
+                        </button>
+
                         {activeTab === 'past' && booking.status === 'completed' && (
                           booking.reviewSubmitted && booking.review ? (
                             <button
@@ -357,6 +368,15 @@ function ScheduleContent() {
           existingReview={selectedBooking.review}
           onClose={() => setSelectedBooking(null)}
           onSubmitted={(review) => updateBookingReview(selectedBooking._id, review)}
+        />
+      )}
+
+      {chatContact && (
+        <ChatModal
+          isOpen={Boolean(chatContact)}
+          onClose={() => setChatContact(null)}
+          contactId={chatContact.id}
+          contactName={chatContact.name}
         />
       )}
     </DashboardLayout>

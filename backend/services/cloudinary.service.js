@@ -113,6 +113,77 @@ async function uploadVideoBuffer(buffer, options = {}) {
 }
 
 /**
+ * Streams a document/file directly to Cloudinary.
+ *
+ * @param {import('stream').Readable} readableStream  - Node Readable stream of the data
+ * @param {Object}  options
+ * @param {string}  [options.folder]     - Cloudinary folder (default: 'chat-attachments')
+ * @param {string}  [options.publicId]   - Custom public_id (auto-generated if omitted)
+ * @returns {Promise<{ secure_url: string, public_id: string, bytes: number, format: string }>}
+ */
+async function uploadDocumentFromStream(readableStream, options = {}) {
+  assertCloudinaryConfigured();
+
+  const folder = options.folder || 'chat-attachments';
+
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        resource_type: 'auto', // Auto detects image, video, raw (pdf, doc, etc.)
+        folder,
+        ...(options.publicId ? { public_id: options.publicId } : {}),
+        overwrite: true,
+      },
+      (error, result) => {
+        if (error) {
+          console.error('[Cloudinary] Document upload failed:', error.message);
+          return reject(error);
+        }
+
+        console.log('[Cloudinary] Document uploaded successfully:', {
+          public_id: result.public_id,
+          bytes: result.bytes,
+          format: result.format,
+          resource_type: result.resource_type,
+        });
+
+        resolve({
+          secure_url: result.secure_url,
+          public_id: result.public_id,
+          bytes: result.bytes || 0,
+          format: result.format,
+          resource_type: result.resource_type,
+        });
+      }
+    );
+
+    readableStream.pipe(uploadStream);
+
+    readableStream.on('error', (err) => {
+      console.error('[Cloudinary] Source stream error:', err.message);
+      uploadStream.destroy(err);
+      reject(err);
+    });
+  });
+}
+
+/**
+ * Uploads a document from an in-memory buffer.
+ *
+ * @param {Buffer} buffer - Buffer from multer memory storage
+ * @param {Object} options
+ * @returns {Promise<{ secure_url: string, public_id: string, bytes: number, format: string }>}
+ */
+async function uploadDocumentBuffer(buffer, options = {}) {
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
+    throw new Error('Document buffer is empty or invalid');
+  }
+
+  const readableStream = Readable.from(buffer);
+  return uploadDocumentFromStream(readableStream, options);
+}
+
+/**
  * Builds a signed parameter payload for direct browser uploads to Cloudinary.
  *
  * @param {Object} options
@@ -234,6 +305,8 @@ module.exports = {
   cloudinary, // Export the configured instance for edge cases
   uploadVideoFromStream,
   uploadVideoBuffer,
+  uploadDocumentFromStream,
+  uploadDocumentBuffer,
   createSignedVideoUploadParams,
   generateSignedUrl,
   generateSignedDeliveryUrl,

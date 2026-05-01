@@ -15,6 +15,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useSocket } from '@/context/SocketProvider';
+import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 
 interface MentorHeaderProps {
@@ -24,6 +26,22 @@ interface MentorHeaderProps {
 const actionButtonClasses =
   'flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-900 shadow-sm relative';
 
+const toRelativeTime = (isoDate?: string) => {
+  if (!isoDate) return 'just now';
+
+  const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return 'just now';
+
+  const minutes = Math.max(1, Math.floor((Date.now() - date.getTime()) / 60000));
+  if (minutes < 60) return `${minutes} min ago`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days > 1 ? 's' : ''} ago`;
+};
+
 const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -31,40 +49,58 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'meeting',
-      title: 'New Session Request',
-      message: 'You have a new session request from Alex.',
-      time: '1 hour ago',
-      unread: true,
-    },
-    {
-      id: 2,
-      type: 'message',
-      title: 'New Message from Student',
-      message: "Thanks for the session yesterday. I have a quick question.",
-      time: '4 hours ago',
-      unread: true,
-    },
-    {
-      id: 3,
-      type: 'assignment',
-      title: 'Assessment Result Completed',
-      message: "David just completed their mock interview coding test.",
-      time: '1 day ago',
-      unread: false,
-    },
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   const unreadCount = notifications.filter((n) => n.unread).length;
 
   const router = useRouter();
   const { user, logout } = useAuth();
+  const { socket } = useSocket();
 
   const displayName = user?.name?.trim() || 'Mentor';
   const avatarLetter = displayName.charAt(0).toUpperCase() || 'M';
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await apiClient.get<{ bookings: any[] }>('/api/v1/mentor/bookings?status=pending&limit=10');
+        if (res.success && res.data?.bookings) {
+          const fetched = res.data.bookings.map(b => ({
+            id: b._id,
+            type: 'meeting',
+            title: 'New Session Request',
+            message: `You have a new session request from ${b.student?.name || 'a student'}.`,
+            time: toRelativeTime(b.createdAt),
+            unread: true
+          }));
+          setNotifications(fetched);
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    fetchNotifications();
+  }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleNewBooking = (data: any) => {
+      setNotifications(prev => [{
+        id: data.bookingId || Date.now().toString(),
+        type: 'meeting',
+        title: data.title,
+        message: data.message,
+        time: 'just now',
+        unread: true
+      }, ...prev]);
+    };
+
+    socket.on('new_booking_request', handleNewBooking);
+    return () => {
+      socket.off('new_booking_request', handleNewBooking);
+    };
+  }, [socket]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

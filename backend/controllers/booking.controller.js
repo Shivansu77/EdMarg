@@ -1,4 +1,5 @@
 const bookingService = require('../services/booking.service');
+const { getIO } = require('../lib/socket');
 
 /* ================= CREATE BOOKING ================= */
 exports.createBooking = async (req, res, next) => {
@@ -20,6 +21,21 @@ exports.createBooking = async (req, res, next) => {
       sessionType,
       notes,
     });
+
+    try {
+      const io = getIO();
+      if (io) {
+        io.to(`user:${mentorId}`).emit('new_booking_request', {
+          type: 'meeting',
+          title: 'New Session Request',
+          message: `A new session request was submitted by a student.`,
+          bookingId: booking._id,
+          time: new Date().toISOString()
+        });
+      }
+    } catch (socketErr) {
+      console.error('Socket emission failed for new booking:', socketErr);
+    }
 
     return res.status(201).json({
       success: true,

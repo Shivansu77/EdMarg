@@ -4,6 +4,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
+import CalendarSyncButton from '@/components/CalendarSyncButton';
 import Link from 'next/link';
 import { apiClient } from '@/utils/api-client';
 import {
@@ -352,6 +353,9 @@ function MentorDashboardContent() {
                         <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                           Session mode: {meeting.sessionType === 'chat' ? 'Chat' : 'Video'}
                         </p>
+                        <div className="mt-3">
+                          <CalendarSyncButton booking={meeting} userRole="mentor" />
+                        </div>
                       </div>
                     );
                   })}

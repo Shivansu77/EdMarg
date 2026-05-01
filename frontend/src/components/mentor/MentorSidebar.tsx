@@ -19,6 +19,7 @@ import {
   History,
   Zap,
   Video,
+  CalendarCheck,
 } from 'lucide-react';
 
 interface MentorSidebarProps {
@@ -30,7 +31,7 @@ interface MentorSidebarProps {
 
 const navItems = [
   { name: 'Dashboard', href: '/mentor/dashboard', icon: LayoutGrid },
-  { name: 'Requests', href: '/mentor/requests', icon: MessageSquare },
+  { name: 'Requests', href: '/mentor/requests', icon: CalendarCheck },
   { name: 'Schedule', href: '/mentor/schedule', icon: Calendar },
   { name: 'Students', href: '/mentor/students', icon: Users },
   { name: 'Results', href: '/mentor/results', icon: BarChart3 },

@@ -149,7 +149,8 @@ class UserRepository {
       const mentorFields = [
         'expertise', 'bio', 'experienceYears', 'pricePerSession',
         'sessionDuration', 'autoConfirm', 'sessionNotes',
-        'linkedinUrl'
+        'linkedinUrl', 'languages', 'currentCompany', 'currentTitle',
+        'location', 'education'
       ];
       
       for (const field of mentorFields) {

@@ -8,6 +8,8 @@ import {
   Briefcase,
   CheckCircle2,
   Clock3,
+  Globe,
+  MapPin,
   Star,
   Users,
 } from 'lucide-react';
@@ -30,6 +32,10 @@ export interface MentorMarketplaceCardData {
   isVerified: boolean;
   linkedinUrl?: string;
   sessionDuration: number;
+  languages?: string[];
+  currentCompany?: string;
+  currentTitle?: string;
+  location?: string;
 }
 
 interface MentorMarketplaceCardProps {
@@ -104,7 +110,11 @@ export default function MentorMarketplaceCard({
             {mentor.name}
           </h3>
           <p className="truncate text-sm font-medium text-white/85 drop-shadow-sm">
-            {mentor.roleTitle}
+            {mentor.currentTitle && mentor.currentCompany
+              ? `${mentor.currentTitle} @ ${mentor.currentCompany}`
+              : mentor.currentTitle || mentor.currentCompany
+                ? `${mentor.currentTitle || mentor.currentCompany}`
+                : mentor.roleTitle}
           </p>
         </div>
       </div>
@@ -163,6 +173,23 @@ export default function MentorMarketplaceCard({
             )}
           </div>
         )}
+
+        {/* Languages & Location */}
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+          {mentor.languages && mentor.languages.length > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-sky-100 bg-sky-50/80 px-2 py-0.5 font-semibold text-sky-700">
+              <Globe className="h-3 w-3" />
+              {mentor.languages.slice(0, 2).join(', ')}
+              {mentor.languages.length > 2 && ` +${mentor.languages.length - 2}`}
+            </span>
+          )}
+          {mentor.location && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-slate-100 bg-slate-50 px-2 py-0.5 font-medium text-slate-500">
+              <MapPin className="h-3 w-3" />
+              {mentor.location}
+            </span>
+          )}
+        </div>
 
         {/* Price + Actions — pushed to bottom */}
         <div className="mt-auto border-t border-slate-100 pt-3">

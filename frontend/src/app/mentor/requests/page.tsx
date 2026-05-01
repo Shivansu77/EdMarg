@@ -10,6 +10,7 @@ import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import RecordingUploader from '@/components/RecordingUploader';
 import ScreenRecorder from '@/components/recording/ScreenRecorder';
+import { ChatModal } from '@/components/chat/ChatModal';
 import { getImageUrl } from '@/utils/imageUrl';
 import Image from 'next/image';
 import {
@@ -131,6 +132,7 @@ function MentorRequestsContent() {
   );
   const [uploadSessionId, setUploadSessionId] = useState<string | null>(null);
   const [recordSessionId, setRecordSessionId] = useState<string | null>(null);
+  const [chatContact, setChatContact] = useState<{ id: string; name: string } | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const inFlightActionsRef = useRef<Set<string>>(new Set());
 
@@ -531,6 +533,15 @@ function MentorRequestsContent() {
 
                   {/* Action buttons */}
                   <div className="flex flex-col gap-2.5 mt-auto">
+                    <button
+                      type="button"
+                      onClick={() => setChatContact({ id: booking.student._id, name: booking.student.name })}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-slate-700 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all active:scale-95"
+                    >
+                      <MessageSquare className="w-4 h-4 text-slate-400" />
+                      Chat with Student
+                    </button>
+
                     {booking.status === 'pending' && (
                       <>
                         <button
@@ -664,6 +675,14 @@ function MentorRequestsContent() {
               fetchBookings();
             }}
             onClose={() => setRecordSessionId(null)}
+          />
+        )}
+        {chatContact && (
+          <ChatModal
+            isOpen={Boolean(chatContact)}
+            onClose={() => setChatContact(null)}
+            contactId={chatContact.id}
+            contactName={chatContact.name}
           />
         )}
       </div>

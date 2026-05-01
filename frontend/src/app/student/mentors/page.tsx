@@ -42,6 +42,11 @@ type Mentor = {
     sessionDuration?: number;
     autoConfirm?: boolean;
     linkedinUrl?: string;
+    languages?: string[];
+    currentCompany?: string;
+    currentTitle?: string;
+    location?: string;
+    education?: string;
   };
 };
 
@@ -181,6 +186,10 @@ function MentorsContent() {
       rating, reviewCount: sessions, experienceYears: exp,
       sessionCount: sessions, price: p, isVerified: true,
       linkedinUrl: mp?.linkedinUrl, sessionDuration: dur,
+      languages: mp?.languages || [],
+      currentCompany: mp?.currentCompany || '',
+      currentTitle: mp?.currentTitle || '',
+      location: mp?.location || '',
       domain: dom, searchText, ratingVal: rating, priceVal: p,
       createdAtVal: created, score,
     };

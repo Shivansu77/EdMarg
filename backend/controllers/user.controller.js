@@ -325,7 +325,8 @@ exports.updateUserProfile = async (req, res, next) => {
     const { 
       name, profileImage, phoneNumber, role, linkedinUrl,
       classLevel, interests,
-      expertise, bio, experienceYears, pricePerSession, sessionDuration, autoConfirm, sessionNotes
+      expertise, bio, experienceYears, pricePerSession, sessionDuration, autoConfirm, sessionNotes,
+      languages, currentCompany, currentTitle, location, education
     } = req.body;
     const normalizedRole = role === 'mentor' || role === 'student' ? role : userRole;
 
@@ -367,6 +368,11 @@ exports.updateUserProfile = async (req, res, next) => {
         sessionDuration,
         autoConfirm,
         sessionNotes,
+        languages,
+        currentCompany,
+        currentTitle,
+        location,
+        education,
       };
     }
 

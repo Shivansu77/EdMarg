@@ -11,6 +11,7 @@
 
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
+const { handleChatEvents } = require('./chat.socket');
 
 let io = null;
 
@@ -75,6 +76,9 @@ function initSocket(httpServer) {
     // Join personal room
     socket.join(room);
     console.log(`[Socket.io] User ${userId} connected (socket: ${socket.id})`);
+
+    // Attach chat events
+    handleChatEvents(io, socket);
 
     socket.on('disconnect', (reason) => {
       console.log(`[Socket.io] User ${userId} disconnected: ${reason}`);

@@ -61,6 +61,11 @@ const userSchema = new mongoose.Schema(
       autoConfirm: { type: Boolean, default: false },
       sessionNotes: String,
       linkedinUrl: String,
+      languages: { type: [String], default: ['English'] },
+      currentCompany: { type: String, default: '' },
+      currentTitle: { type: String, default: '' },
+      location: { type: String, default: '' },
+      education: { type: String, default: '' },
       rating: { type: Number, default: 0 },
       totalSessions: { type: Number, default: 0 },
       approvalStatus: {

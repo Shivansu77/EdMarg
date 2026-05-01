@@ -71,7 +71,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       setIsConnected(false);
     });
 
-    // ── Listen for recording_ready events ──────────────────────────────
     newSocket.on('recording_ready', (data: {
       type: string;
       sessionId: string;
@@ -80,6 +79,26 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       toast.success(data.message || 'Your session recording is ready!', {
         duration: 8000,
         icon: '🎬',
+        style: {
+          borderRadius: '12px',
+          background: '#0f172a',
+          color: '#fff',
+          fontWeight: 600,
+          fontSize: '14px',
+        },
+      });
+    });
+
+    // ── Listen for new_booking_request events ────────────────────────
+    newSocket.on('new_booking_request', (data: {
+      type: string;
+      title: string;
+      message: string;
+      bookingId: string;
+    }) => {
+      toast.success(data.message || 'You have a new session request!', {
+        duration: 8000,
+        icon: '🔔',
         style: {
           borderRadius: '12px',
           background: '#0f172a',

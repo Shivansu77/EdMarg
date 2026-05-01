@@ -18,10 +18,19 @@ import {
   Clock,
   IndianRupee,
   Settings,
-  MessageSquare
+  MessageSquare,
+  Globe,
+  Building2,
+  MapPin,
+  GraduationCap
 } from 'lucide-react';
 
 // Predefined set of common technical/career interests/expertise
+const PREDEFINED_LANGUAGES = [
+  'English', 'Hindi', 'Tamil', 'Telugu', 'Bengali', 'Marathi',
+  'Kannada', 'Gujarati', 'Malayalam', 'Punjabi', 'Urdu', 'Odia',
+];
+
 const PREDEFINED_EXPERTISE = [
   'Software Engineering', 'Data Science', 'Machine Learning', 
   'Product Management', 'Design', 'Marketing', 'Finance', 
@@ -49,6 +58,11 @@ interface MentorProfile {
     sessionDuration?: number;
     autoConfirm?: boolean;
     sessionNotes?: string;
+    languages?: string[];
+    currentCompany?: string;
+    currentTitle?: string;
+    location?: string;
+    education?: string;
     approvalStatus?: 'pending' | 'approved' | 'rejected';
     rejectionReason?: string;
   };
@@ -74,6 +88,13 @@ function MentorProfileContent() {
   const [sessionDuration, setSessionDuration] = useState<number>(45);
   const [autoConfirm, setAutoConfirm] = useState<boolean>(false);
   const [sessionNotes, setSessionNotes] = useState('');
+  
+  // Form State - About You
+  const [languages, setLanguages] = useState<string[]>(['English']);
+  const [currentCompany, setCurrentCompany] = useState('');
+  const [currentTitle, setCurrentTitle] = useState('');
+  const [location, setLocation] = useState('');
+  const [education, setEducation] = useState('');
   
   // UI State
   const [loading, setLoading] = useState(true);
@@ -115,6 +136,11 @@ function MentorProfileContent() {
           setSessionDuration(mProfile.sessionDuration || 45);
           setAutoConfirm(mProfile.autoConfirm ?? false);
           setSessionNotes(mProfile.sessionNotes || '');
+          setLanguages(mProfile.languages?.length ? mProfile.languages : ['English']);
+          setCurrentCompany(mProfile.currentCompany || '');
+          setCurrentTitle(mProfile.currentTitle || '');
+          setLocation(mProfile.location || '');
+          setEducation(mProfile.education || '');
           setApprovalStatus(mProfile.approvalStatus || 'pending');
           setRejectionReason(mProfile.rejectionReason || '');
         }
@@ -155,6 +181,14 @@ function MentorProfileContent() {
     );
   };
 
+  const handleLanguageToggle = (lang: string) => {
+    setLanguages(prev =>
+      prev.includes(lang)
+        ? prev.filter(l => l !== lang)
+        : [...prev, lang]
+    );
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -172,7 +206,12 @@ function MentorProfileContent() {
         pricePerSession: pricePerSession === '' ? 0 : Number(pricePerSession),
         sessionDuration: Number(sessionDuration),
         autoConfirm,
-        sessionNotes
+        sessionNotes,
+        languages,
+        currentCompany,
+        currentTitle,
+        location,
+        education
       };
 
       const res = await apiClient.put<MentorProfile>('/api/v1/users/profile', payload);
@@ -386,6 +425,99 @@ function MentorProfileContent() {
                   userName={name}
                   onUploadSuccess={(url) => setProfileImage(url)}
                 />
+              </div>
+            </div>
+          </section>
+
+          {/* About You */}
+          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
+            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
+              <Globe className="w-5 h-5 text-indigo-600" />
+              <h2 className="text-lg font-semibold text-gray-900">About You</h2>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Languages */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-gray-400" /> Languages You Speak
+                </label>
+                <p className="text-xs text-gray-500">Select all languages you're comfortable mentoring in.</p>
+                <div className="flex flex-wrap gap-2.5">
+                  {PREDEFINED_LANGUAGES.map(lang => {
+                    const isSelected = languages.includes(lang);
+                    return (
+                      <button
+                        key={lang}
+                        type="button"
+                        onClick={() => handleLanguageToggle(lang)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                          isSelected 
+                            ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600 ring-offset-2' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent hover:border-gray-300'
+                        }`}
+                      >
+                        {lang}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Current Company */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-gray-400" /> Current Company
+                  </label>
+                  <input
+                    type="text"
+                    value={currentCompany}
+                    onChange={(e) => setCurrentCompany(e.target.value)}
+                    placeholder="e.g., Google, Microsoft, Flipkart"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                  />
+                </div>
+
+                {/* Current Title */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-900">Current Title / Role</label>
+                  <input
+                    type="text"
+                    value={currentTitle}
+                    onChange={(e) => setCurrentTitle(e.target.value)}
+                    placeholder="e.g., Senior Software Engineer, Product Manager"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                  />
+                </div>
+
+                {/* Location */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-gray-400" /> Location
+                  </label>
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g., Bangalore, India"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                  />
+                </div>
+
+                {/* Education */}
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                    <GraduationCap className="w-4 h-4 text-gray-400" /> Education
+                  </label>
+                  <input
+                    type="text"
+                    value={education}
+                    onChange={(e) => setEducation(e.target.value)}
+                    placeholder="e.g., IIT Delhi, B.Tech Computer Science"
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                  />
+                </div>
               </div>
             </div>
           </section>

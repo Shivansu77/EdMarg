@@ -7,6 +7,7 @@ import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import SessionFeedbackDialog from '@/components/student/SessionFeedbackDialog';
+import { ChatModal } from '@/components/chat/ChatModal';
 
 import { getImageUrl } from '@/utils/imageUrl';
 import {
@@ -17,6 +18,7 @@ import {
   AlertCircle,
   CheckCircle2,
   MessageSquareText,
+  MessageSquare,
   Star
 } from 'lucide-react';
 import Image from 'next/image';
@@ -57,6 +59,7 @@ function HistoryContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [chatContact, setChatContact] = useState<{ id: string; name: string } | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -236,6 +239,15 @@ function HistoryContent() {
                       No recording available
                     </div>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={() => setChatContact({ id: booking.mentor._id, name: booking.mentor.name })}
+                    className="mt-3 w-full flex items-center justify-center px-4 py-2 text-sm font-bold text-gray-700 bg-white hover:bg-gray-50 rounded-lg transition-colors border border-gray-200 shadow-sm"
+                  >
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Chat with Mentor
+                  </button>
                 </div>
               </div>
             ))}
@@ -251,6 +263,15 @@ function HistoryContent() {
           existingReview={selectedBooking.review}
           onClose={() => setSelectedBooking(null)}
           onSubmitted={(review) => updateBookingReview(selectedBooking._id, review)}
+        />
+      )}
+
+      {chatContact && (
+        <ChatModal
+          isOpen={Boolean(chatContact)}
+          onClose={() => setChatContact(null)}
+          contactId={chatContact.id}
+          contactName={chatContact.name}
         />
       )}
     </DashboardLayout>

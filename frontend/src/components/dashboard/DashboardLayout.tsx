@@ -60,8 +60,13 @@ const DashboardLayout = ({ children, userName }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-surface">
-      <div className="flex min-h-screen">
+    <div className="relative min-h-screen bg-slate-50/50 overflow-hidden">
+      {/* Glassmorphism Background Ambient Blobs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-200/40 mix-blend-multiply blur-[120px] opacity-70 pointer-events-none"></div>
+      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-200/40 mix-blend-multiply blur-[120px] opacity-70 pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-indigo-200/40 mix-blend-multiply blur-[120px] opacity-70 pointer-events-none"></div>
+
+      <div className="relative flex min-h-screen z-10">
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}

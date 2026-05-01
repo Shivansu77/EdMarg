@@ -5,6 +5,7 @@
 import React, { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import CalendarSyncButton from '@/components/CalendarSyncButton';
 import Link from 'next/link';
 import { apiClient } from '@/utils/api-client';
 import {
@@ -22,7 +23,7 @@ import {
 
 function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-2xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-shadow duration-300 ${className}`}>
+    <div className={`rounded-2xl border border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] hover:shadow-lg transition-shadow duration-300 ${className}`}>
       {children}
     </div>
   );
@@ -108,10 +109,10 @@ function StudentDashboardContent() {
 
   return (
     <DashboardLayout userName={user?.name ? `${user.name}'s Dashboard` : "Student Dashboard"}>
-      <div className="min-h-dvh bg-gray-50/50 pb-16">
+      <div className="min-h-dvh pb-16">
         
         {/* Dynamic Header */}
-        <div className="relative overflow-hidden border-b border-emerald-100/50 bg-linear-to-b from-emerald-50 via-green-50/40 to-white px-6 pb-10 pt-8 sm:px-8">
+        <div className="relative overflow-hidden border-b border-white/40 bg-white/30 backdrop-blur-md px-6 pb-10 pt-8 sm:px-8">
           <div className="absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-emerald-200/55 blur-[100px] pointer-events-none" />
           <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-cyan-100/60 blur-[100px] pointer-events-none" />
           
@@ -155,11 +156,11 @@ function StudentDashboardContent() {
         <div className="space-y-8 px-6 pt-8 sm:px-8 max-w-6xl mx-auto">
           
           {/* Stats Glassmorphic Board */}
-          <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm lg:grid-cols-4">
+          <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] lg:grid-cols-4">
             {stats.map((s, i) => (
               <div
                 key={s.label}
-                className={`group relative px-6 py-6 transition-colors hover:bg-gray-50/50 ${i < stats.length - 1 ? 'border-r border-gray-100' : ''}`}
+                className={`group relative px-6 py-6 transition-colors hover:bg-white/50 ${i < stats.length - 1 ? 'border-r border-white/30' : ''}`}
               >
                 <div className="flex justify-between items-start">
                   <Label>{s.label}</Label>
@@ -184,7 +185,7 @@ function StudentDashboardContent() {
               
               {/* Action Items / Assessments */}
               <Card>
-                <div className="border-b border-gray-50 px-6 py-6 bg-gray-50/30">
+                <div className="border-b border-white/30 px-6 py-6 bg-white/30">
                   <Label>Required Action</Label>
                   <h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-900">
                     Pending Assessments
@@ -199,9 +200,9 @@ function StudentDashboardContent() {
                       <p className="text-gray-500 text-sm">You have no pending assessments to complete.</p>
                     </div>
                   ) : (
-                    <ul className="divide-y divide-gray-50/50">
+                    <ul className="divide-y divide-white/20">
                       {pendingAssignments.map((assignment: any) => (
-                        <li key={assignment._id} className="group flex items-start gap-4 py-4 transition-colors hover:bg-gray-50/30 -mx-6 px-6">
+                        <li key={assignment._id} className="group flex items-start gap-4 py-4 transition-colors hover:bg-white/40 -mx-6 px-6">
                           <div className="min-w-0 flex-1">
                             <p className="text-base font-semibold text-slate-900 flex items-center gap-2">
                               <FileText size={18} className="text-emerald-500" />
@@ -223,7 +224,7 @@ function StudentDashboardContent() {
               </Card>
 
               <Card>
-                <div className="border-b border-gray-50 px-6 py-6 bg-gray-50/30">
+                <div className="border-b border-white/30 px-6 py-6 bg-white/30">
                   <Label>Library</Label>
                   <h2 className="mt-2 text-xl font-bold tracking-tight text-gray-900">Session Recordings</h2>
                 </div>
@@ -258,7 +259,7 @@ function StudentDashboardContent() {
             <div className="space-y-8">
               
               <Card>
-                <div className="border-b border-gray-50 px-6 py-6 bg-gray-50/30">
+                <div className="border-b border-white/30 px-6 py-6 bg-white/30">
                   <Label>Timeline</Label>
                   <h2 className="mt-2 text-xl font-bold tracking-tight text-gray-900">Upcoming Sessions</h2>
                 </div>
@@ -289,11 +290,14 @@ function StudentDashboardContent() {
                               </span>
                             </p>
                             <p className="text-sm text-slate-500 mt-1">with {booking.mentor?.name || 'Mentor'}</p>
-                            {booking.meetingLink && (
-                              <a href={booking.meetingLink} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-xs font-bold text-emerald-600 hover:text-emerald-800 tracking-wide uppercase bg-emerald-50 px-3 py-1 rounded w-fit">
-                                Join Meeting
-                              </a>
-                            )}
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              {booking.meetingLink && (
+                                <a href={booking.meetingLink} target="_blank" rel="noreferrer" className="inline-flex text-xs font-bold text-emerald-600 hover:text-emerald-800 tracking-wide uppercase bg-emerald-50 px-3 py-1 rounded w-fit">
+                                  Join Meeting
+                                </a>
+                              )}
+                              <CalendarSyncButton booking={booking} userRole="student" />
+                            </div>
                           </div>
                         </div>
                       ))}
