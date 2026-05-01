@@ -87,36 +87,18 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
   }, [stopActiveStreams]);
 
   const buildRecordingStream = useCallback(async () => {
-    const preferredDisplayOptions: DisplayMediaStreamOptionsWithHints = {
-      video: { frameRate: 30 },
-      audio: true,
-      // Browser-specific hints: when supported these increase the chance of
-      // capturing shared audio instead of a silent window-only stream,
-      // without biasing the picker toward the current tab.
-      surfaceSwitching: 'include',
-      systemAudio: 'include',
-      windowAudio: 'system',
-      monitorTypeSurfaces: 'include',
-    };
-
     let displayStream: MediaStream;
     try {
-      displayStream = await navigator.mediaDevices.getDisplayMedia(preferredDisplayOptions);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error || '');
-      const shouldRetryWithBasicOptions =
-        message.includes('Self-contradictory configuration') ||
-        message.includes('systemAudio') ||
-        message.includes('windowAudio');
-
-      if (!shouldRetryWithBasicOptions) {
-        throw error;
-      }
-
-      console.warn('[ScreenRecorder] Retrying screen capture with basic options:', error);
+      // Use the simplest possible options first for maximum compatibility
       displayStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { frameRate: 30 },
-        audio: true,
+        video: true,
+        audio: true
+      });
+    } catch (error) {
+      console.warn('[ScreenRecorder] Initial screen capture failed, retrying without audio:', error);
+      displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: false
       });
     }
 
@@ -251,15 +233,7 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
       recordingStreamRef.current = recordingStream;
 
       if (!hasDisplayAudio) {
-        stopActiveStreams();
-        setState('error');
-        setErrorMsg(
-          hasMicAudio
-            ? 'Shared screen audio was not detected. To record meeting audio, start again and choose a browser tab or entire screen with audio enabled. Window-only sharing for the Zoom desktop app usually records silent video.'
-            : 'No audio source was captured. Start again and choose a browser tab or entire screen with audio enabled.'
-        );
-        toast.error('Shared audio was not detected. Please restart and share with audio enabled.');
-        return;
+        toast('Shared screen audio was not detected. Meeting audio might not be recorded.', { icon: '⚠️' });
       }
 
       // Pick best supported mime
@@ -350,143 +324,126 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
   return (
     <>
       {/* Floating badge while recording */}
-      {state === 'recording' && <RecordingBadge elapsed={formatTime(elapsed)} />}
+      {state === 'recording' && <RecordingBadge elapsed={formatTime(elapsed)} onStop={stopRecording} />}
 
-      <div style={s.overlay} onClick={state === 'recording' ? undefined : onClose}>
-        <div style={s.modal} onClick={(e) => e.stopPropagation()}>
-          {/* Header */}
-          <div style={s.header}>
-            <div>
-              <h2 style={s.title}>Screen Recording</h2>
-              <p style={s.subtitle}>Record your session screen</p>
+      {state !== 'recording' && (
+        <div style={s.overlay} onClick={onClose}>
+          <div style={s.modal} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={s.header}>
+              <div>
+                <h2 style={s.title}>Screen Recording</h2>
+                <p style={s.subtitle}>Record your session screen</p>
+              </div>
+              {state !== 'uploading' && onClose && (
+                <button onClick={onClose} style={s.close}><X size={18} /></button>
+              )}
             </div>
-            {state !== 'recording' && state !== 'uploading' && onClose && (
-              <button onClick={onClose} style={s.close}><X size={18} /></button>
-            )}
-          </div>
 
-          {/* Body */}
-          <div style={s.body}>
-            {/* IDLE */}
-            {state === 'idle' && (
-              <div style={s.center}>
-                <div style={{ width: 64, height: 64, borderRadius: 16, background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Monitor size={28} color="#ef4444" />
-                </div>
-                <p style={{ fontSize: 14, color: '#64748b', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
-                  Click below to choose what to record. You can pick any app window or your entire screen. For audio, Chrome or Edge works best.
-                </p>
-                {!isScreenCaptureSupported() && (
-                  <div style={{ padding: '10px 16px', borderRadius: 12, background: '#fef2f2', border: '1px solid #fecaca', fontSize: 13, color: '#991b1b', fontWeight: 600 }}>
-                    Screen recording is not supported in this browser. Please use Chrome or Edge.
+            {/* Body */}
+            <div style={s.body}>
+              {/* IDLE */}
+              {state === 'idle' && (
+                <div style={s.center}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Monitor size={28} color="#ef4444" />
                   </div>
-                )}
-                <button
-                  onClick={startRecording}
-                  disabled={!isScreenCaptureSupported()}
-                  style={{ ...s.btnPrimary, background: '#ef4444', boxShadow: '0 4px 14px rgba(239,68,68,0.25)', opacity: isScreenCaptureSupported() ? 1 : 0.5 }}
-                >
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
-                  Start Recording
-                </button>
-              </div>
-            )}
-
-            {/* RECORDING */}
-            {state === 'recording' && (
-              <div style={s.center}>
-                <div style={{ fontSize: 36, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: '#0f172a', letterSpacing: '0.05em' }}>
-                  {formatTime(elapsed)}
-                </div>
-                <p style={{ fontSize: 13, color: '#64748b', fontWeight: 500, margin: 0 }}>
-                  Recording in progress... Your screen is being captured.
-                </p>
-                <button
-                  onClick={stopRecording}
-                  style={{ ...s.btnPrimary, background: '#ef4444', boxShadow: '0 4px 14px rgba(239,68,68,0.25)' }}
-                >
-                  <Square size={16} fill="#fff" />
-                  Stop &amp; Save
-                </button>
-              </div>
-            )}
-
-            {/* UPLOADING */}
-            {state === 'uploading' && (
-              <div style={s.center}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 4 }}>
-                  <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Uploading recording...</span>
-                  <span style={{ fontSize: 20, fontWeight: 800, color: '#10b981', fontVariantNumeric: 'tabular-nums' }}>{progress}%</span>
-                </div>
-                <div style={s.track}>
-                  <div style={{ ...s.fill, width: `${progress}%` }} />
-                </div>
-                <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0 }}>
-                  {blobSize > 0 ? `${(blobSize / 1024 / 1024).toFixed(1)} MB · ` : ''}
-                  {uploadStage === 'preparing'
-                    ? 'Preparing secure upload...'
-                    : uploadStage === 'finalizing'
-                      ? 'Saving recording details...'
-                      : 'Uploading directly to cloud storage. Please keep this window open.'}
-                </p>
-              </div>
-            )}
-
-            {/* SUCCESS */}
-            {state === 'success' && (
-              <div style={s.center}>
-                <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <CheckCircle2 size={36} color="#10b981" />
-                </div>
-                <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>Recording Saved!</h3>
-                <p style={{ fontSize: 14, color: '#64748b', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
-                  Your recording has been uploaded and the student has been notified.
-                </p>
-                <button onClick={onClose} style={{ ...s.btnPrimary, background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 14px rgba(16,185,129,0.25)' }}>
-                  Done
-                </button>
-              </div>
-            )}
-
-            {/* ERROR */}
-            {state === 'error' && (
-              <div style={s.center}>
-                <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <AlertCircle size={36} color="#ef4444" />
-                </div>
-                <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>Upload Failed</h3>
-                <p style={{ fontSize: 13, color: '#991b1b', fontWeight: 600, margin: 0 }}>{errorMsg}</p>
-                <div style={{ display: 'flex', gap: 10, width: '100%' }}>
-                  {blobSize > 0 && (
-                    <button onClick={handleRetry} style={{ ...s.btnPrimary, background: '#ef4444', boxShadow: '0 4px 14px rgba(239,68,68,0.25)' }}>
-                      Retry Upload
-                    </button>
+                  <p style={{ fontSize: 14, color: '#64748b', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
+                    Click below to choose what to record. You can pick any app window or your entire screen. For audio, Chrome or Edge works best.
+                  </p>
+                  {!isScreenCaptureSupported() && (
+                    <div style={{ padding: '10px 16px', borderRadius: 12, background: '#fef2f2', border: '1px solid #fecaca', fontSize: 13, color: '#991b1b', fontWeight: 600 }}>
+                      Screen recording is not supported in this browser. Please use Chrome or Edge.
+                    </div>
                   )}
-                  <button onClick={handleReset} style={s.btnOutline}>
-                    Start Over
+                  <button
+                    onClick={startRecording}
+                    disabled={!isScreenCaptureSupported()}
+                    style={{ ...s.btnPrimary, background: '#ef4444', boxShadow: '0 4px 14px rgba(239,68,68,0.25)', opacity: isScreenCaptureSupported() ? 1 : 0.5 }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
+                    Start Recording
                   </button>
                 </div>
+              )}
+
+              {/* UPLOADING */}
+              {state === 'uploading' && (
+                <div style={s.center}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>Uploading recording...</span>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: '#10b981', fontVariantNumeric: 'tabular-nums' }}>{progress}%</span>
+                  </div>
+                  <div style={s.track}>
+                    <div style={{ ...s.fill, width: `${progress}%` }} />
+                  </div>
+                  <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0 }}>
+                    {blobSize > 0 ? `${(blobSize / 1024 / 1024).toFixed(1)} MB · ` : ''}
+                    {uploadStage === 'preparing'
+                      ? 'Preparing secure upload...'
+                      : uploadStage === 'finalizing'
+                        ? 'Saving recording details...'
+                        : 'Uploading directly to cloud storage. Please keep this window open.'}
+                  </p>
+                </div>
+              )}
+
+              {/* SUCCESS */}
+              {state === 'success' && (
+                <div style={s.center}>
+                  <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <CheckCircle2 size={36} color="#10b981" />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>Recording Saved!</h3>
+                  <p style={{ fontSize: 14, color: '#64748b', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
+                    Your recording has been uploaded and the student has been notified.
+                  </p>
+                  <button onClick={onClose} style={{ ...s.btnPrimary, background: 'linear-gradient(135deg,#10b981,#059669)', boxShadow: '0 4px 14px rgba(16,185,129,0.25)' }}>
+                    Done
+                  </button>
+                </div>
+              )}
+
+              {/* ERROR */}
+              {state === 'error' && (
+                <div style={s.center}>
+                  <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <AlertCircle size={36} color="#ef4444" />
+                  </div>
+                  <h3 style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', margin: 0 }}>Upload Failed</h3>
+                  <p style={{ fontSize: 13, color: '#991b1b', fontWeight: 600, margin: 0 }}>{errorMsg}</p>
+                  <div style={{ display: 'flex', gap: 10, width: '100%' }}>
+                    {blobSize > 0 && (
+                      <button onClick={handleRetry} style={{ ...s.btnPrimary, background: '#ef4444', boxShadow: '0 4px 14px rgba(239,68,68,0.25)' }}>
+                        Retry Upload
+                      </button>
+                    )}
+                    <button onClick={handleReset} style={s.btnOutline}>
+                      Start Over
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            {state !== 'success' && (
+              <div style={{ padding: '14px 24px', borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
+                <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0, textAlign: 'center' }}>
+                  🎬 You can record any window or the full screen. If you need meeting audio, turn audio on in the share dialog.
+                </p>
               </div>
             )}
           </div>
-
-          {/* Footer */}
-          {state !== 'success' && (
-            <div style={{ padding: '14px 24px', borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
-              <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0, textAlign: 'center' }}>
-                🎬 You can record any window or the full screen. If you need meeting audio, turn audio on in the share dialog.
-              </p>
-            </div>
-          )}
         </div>
+      )}
 
-        <style>{`
-          @keyframes sr-fadein {
-            from { opacity: 0; transform: scale(0.96) translateY(8px); }
-            to   { opacity: 1; transform: scale(1) translateY(0); }
-          }
-        `}</style>
-      </div>
+      <style>{`
+        @keyframes sr-fadein {
+          from { opacity: 0; transform: scale(0.96) translateY(8px); }
+          to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+      `}</style>
     </>
   );
 }

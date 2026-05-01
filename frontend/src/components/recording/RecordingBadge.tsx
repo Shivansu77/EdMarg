@@ -12,9 +12,11 @@ import React from 'react';
 interface RecordingBadgeProps {
   /** Elapsed time formatted as HH:MM:SS */
   elapsed: string;
+  /** Optional callback to stop recording */
+  onStop?: () => void;
 }
 
-export default function RecordingBadge({ elapsed }: RecordingBadgeProps) {
+export default function RecordingBadge({ elapsed, onStop }: RecordingBadgeProps) {
   return (
     <div
       style={{
@@ -79,6 +81,31 @@ export default function RecordingBadge({ elapsed }: RecordingBadgeProps) {
       >
         {elapsed}
       </span>
+
+      {onStop && (
+        <button
+          onClick={onStop}
+          style={{
+            marginLeft: 8,
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: '#ef4444',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 8,
+            padding: '4px 10px',
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'background 0.2s',
+          }}
+          onMouseOver={(e) => (e.currentTarget.style.background = '#dc2626')}
+          onMouseOut={(e) => (e.currentTarget.style.background = '#ef4444')}
+        >
+          Stop
+        </button>
+      )}
 
       {/* Keyframes */}
       <style>{`

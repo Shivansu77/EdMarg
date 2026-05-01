@@ -568,18 +568,32 @@ function MentorRequestsContent() {
                     )}
 
                     {booking.status === 'confirmed' && (
-                      <button
-                        onClick={() => handleAction(booking._id, 'start')}
-                        disabled={actionLoading === booking._id}
-                        className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
-                      >
-                        {actionLoading === booking._id ? (
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <PlayCircle className="w-4 h-4" />
-                        )}
-                        Start Session
-                      </button>
+                      <>
+                        <div className="flex flex-col gap-2">
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-1.5 rounded-lg border border-amber-200 text-center">
+                            Please start recording first
+                          </p>
+                          <button
+                            onClick={() => setRecordSessionId(booking._id)}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-red-600 bg-red-50 border border-red-200 rounded-xl hover:bg-red-100 transition-all active:scale-95"
+                          >
+                            <Video size={16} />
+                            Record Screen
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => handleAction(booking._id, 'start')}
+                          disabled={actionLoading === booking._id}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                        >
+                          {actionLoading === booking._id ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <PlayCircle className="w-4 h-4" />
+                          )}
+                          Start Session & Join
+                        </button>
+                      </>
                     )}
 
                     {booking.status === 'in-progress' && (
