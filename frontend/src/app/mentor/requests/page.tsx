@@ -184,7 +184,7 @@ function MentorRequestsContent() {
     inFlightActionsRef.current.add(bookingId);
     setActionLoading(bookingId);
     try {
-      const payload = reason ? { reason } : undefined;
+      const payload = reason ? { reason } : {};
       const res = await apiClient.put<Booking>(
         `/api/v1/mentor/bookings/${bookingId}/${action}`,
         payload
