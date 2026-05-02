@@ -155,7 +155,7 @@ exports.acceptBooking = async (req, res, next) => {
 exports.rejectBooking = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { reason } = req.body;
+    const { reason } = req.body || {};
 
     const booking = await bookingService.rejectBooking(id, req.user._id, reason);
 
@@ -187,7 +187,7 @@ exports.startSession = async (req, res, next) => {
 exports.completeSession = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { mentorNotes } = req.body;
+    const { mentorNotes } = req.body || {};
 
     const booking = await bookingService.completeSession(id, req.user._id, mentorNotes);
 
