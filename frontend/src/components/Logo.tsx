@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import AppImage from '@/components/AppImage';
 
 interface LogoProps {
   className?: string;
@@ -18,8 +18,8 @@ const Logo: React.FC<LogoProps> = ({
   return (
     <Link href="/" className={`group flex items-center gap-3 ${className}`}>
       <div className={`relative flex-shrink-0 ${imgClassName}`}>
-        <Image
-          src="/image.png"
+        <AppImage
+          src="/logo.png"
           alt="EdMarg Logo"
           fill
           className="object-contain transition-transform duration-300 group-hover:-translate-y-0.5"

@@ -5,7 +5,7 @@ import { resolveApiBaseUrl } from '@/utils/api-base';
 import React, { useRef, useEffect, useState } from 'react';
 import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
+import AppImage from '@/components/AppImage';
 
 type Mentor = {
   _id: string;
@@ -112,7 +112,7 @@ const TopMentorsSection = () => {
             >
               {/* Image */}
               <div className="relative aspect-4/3 w-full overflow-hidden bg-emerald-100">
-                <Image 
+                <AppImage 
                   src={image} 
                   alt={mentor.name} 
                   fill

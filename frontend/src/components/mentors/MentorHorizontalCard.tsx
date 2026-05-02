@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import AppImage from '@/components/AppImage';
 import Link from 'next/link';
 import { Star, Briefcase, ChevronRight, User, Globe } from 'lucide-react';
 
@@ -59,7 +59,7 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
           {/* Image */}
           <div className="relative w-full md:w-[160px] h-[160px] rounded-xl overflow-hidden border border-gray-200 flex-shrink-0">
             {mentor.profileImage ? (
-              <Image
+              <AppImage
                 src={getImageUrl(mentor.profileImage, mentor.name)}
                 alt={mentor.name}
                 fill

@@ -413,16 +413,27 @@ class BookingService {
       throw new NotFoundError('Booking not found');
     }
 
-    if (String(booking.mentor._id) !== String(mentorId)) {
+    // Guard against missing mentor reference (e.g. deleted user)
+    const bookingMentorId = booking.mentor?._id || booking.mentor;
+    if (!bookingMentorId || String(bookingMentorId) !== String(mentorId)) {
       throw new ValidationError('You are not authorized to complete this session');
+    }
+
+    // Idempotent: if already completed, return the existing booking
+    if (booking.status === 'completed') {
+      return booking;
     }
 
     if (!['confirmed', 'in-progress'].includes(booking.status)) {
       throw new ValidationError(`Cannot complete a session with status "${booking.status}"`);
     }
 
-    // Increment mentor's total sessions count
-    await userRepository.incrementMentorSessions(mentorId);
+    // Increment mentor's total sessions count (non-blocking — don't let stats failure break completion)
+    try {
+      await userRepository.incrementMentorSessions(mentorId);
+    } catch (statsErr) {
+      console.error('[BookingService] Failed to increment mentor session count:', statsErr.message);
+    }
 
     return bookingRepository.updateStatus(bookingId, 'completed', {
       completedAt: new Date(),

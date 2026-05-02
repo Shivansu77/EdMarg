@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
+import AppImage from '@/components/AppImage';
 import { motion } from 'framer-motion';
 import {
   ArrowUpRight,
@@ -74,7 +74,7 @@ export default function MentorMarketplaceCard({
     >
       {/* ── Hero Image ── */}
       <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
-        <Image
+        <AppImage
           src={imageUrl}
           alt={mentor.name}
           fill

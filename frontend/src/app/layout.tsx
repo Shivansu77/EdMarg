@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     ],
     apple: '/logo.png',
   },
-  manifest: '/site.webmanifest',
+  manifest: '/manifest.webmanifest',
   keywords: 'career mentorship, AI career guidance, career assessment, mentor platform, career clarity, professional guidance, 1:1 mentor video calls',
   authors: [{ name: 'Edmarg' }],
   creator: 'Edmarg',

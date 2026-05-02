@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Monitor, Square, CheckCircle2, AlertCircle, X } from 'lucide-react';
+import { Monitor, CheckCircle2, AlertCircle, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import RecordingBadge from './RecordingBadge';
 import {
@@ -10,21 +10,13 @@ import {
   type UploadStage,
 } from '@/utils/uploadRecording';
 
-type RecordingState = 'idle' | 'recording' | 'uploading' | 'success' | 'error';
+type RecordingState = 'idle' | 'preparing' | 'recording' | 'uploading' | 'success' | 'error';
 
 interface ScreenRecorderProps {
   sessionId: string;
   onComplete?: () => void;
   onClose?: () => void;
 }
-
-type DisplayMediaStreamOptionsWithHints = DisplayMediaStreamOptions & {
-  selfBrowserSurface?: 'include' | 'exclude';
-  surfaceSwitching?: 'include' | 'exclude';
-  systemAudio?: 'include' | 'exclude';
-  windowAudio?: 'exclude' | 'window' | 'system';
-  monitorTypeSurfaces?: 'include' | 'exclude';
-};
 
 const formatTime = (s: number) => {
   const h = Math.floor(s / 3600);
@@ -35,11 +27,55 @@ const formatTime = (s: number) => {
 
 const isScreenCaptureSupported = () =>
   typeof navigator !== 'undefined' &&
+  typeof window !== 'undefined' &&
   navigator.mediaDevices &&
   typeof navigator.mediaDevices.getDisplayMedia === 'function';
 
 const isFirefox = () =>
   typeof navigator !== 'undefined' && /firefox/i.test(navigator.userAgent);
+
+const isSafari = () =>
+  typeof navigator !== 'undefined' &&
+  /safari/i.test(navigator.userAgent) &&
+  !/chrome/i.test(navigator.userAgent);
+
+/** Pick the best supported MIME type for MediaRecorder */
+const pickMimeType = (): string => {
+  if (typeof MediaRecorder === 'undefined') return 'video/webm';
+  const candidates = [
+    'video/webm;codecs=vp8,opus',
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8',
+    'video/webm',
+    'video/mp4',
+  ];
+  for (const mime of candidates) {
+    if (MediaRecorder.isTypeSupported(mime)) return mime;
+  }
+  return 'video/webm';
+};
+
+/** Try to get mic stream with a timeout so it never hangs */
+const requestMicWithTimeout = async (timeoutMs = 5000): Promise<MediaStream | null> => {
+  try {
+    const micPromise = navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    });
+
+    const timeoutPromise = new Promise<null>((resolve) =>
+      setTimeout(() => resolve(null), timeoutMs)
+    );
+
+    return await Promise.race([micPromise, timeoutPromise]);
+  } catch (err) {
+    console.warn('[ScreenRecorder] Mic access denied or unavailable:', err);
+    return null;
+  }
+};
 
 export default function ScreenRecorder({ sessionId, onComplete, onClose }: ScreenRecorderProps) {
   const [state, setState] = useState<RecordingState>('idle');
@@ -86,94 +122,6 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
     };
   }, [stopActiveStreams]);
 
-  const buildRecordingStream = useCallback(async () => {
-    let displayStream: MediaStream;
-    try {
-      // Use the simplest possible options first for maximum compatibility
-      displayStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true
-      });
-    } catch (error) {
-      console.warn('[ScreenRecorder] Initial screen capture failed, retrying without audio:', error);
-      displayStream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: false
-      });
-    }
-
-    let micStream: MediaStream | null = null;
-    try {
-      micStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          // Keep the mic fallback as raw as possible so it can still pick up
-          // meeting sound from speakers when the browser cannot expose
-          // system/window audio to getDisplayMedia.
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          channelCount: 2,
-        },
-      });
-    } catch (error) {
-      console.warn('[ScreenRecorder] Microphone capture unavailable:', error);
-    }
-
-    const videoTrack = displayStream.getVideoTracks()[0];
-    if (!videoTrack) {
-      displayStream.getTracks().forEach((track) => track.stop());
-      micStream?.getTracks().forEach((track) => track.stop());
-      throw new Error('No video track available from screen capture');
-    }
-
-    const displayAudioTracks = displayStream.getAudioTracks();
-    const micAudioTracks = micStream?.getAudioTracks() || [];
-    let audioContext: AudioContext | null = null;
-    let mixedAudioTrack: MediaStreamTrack | null = null;
-
-    if (displayAudioTracks.length > 0 || micAudioTracks.length > 0) {
-      audioContext = new AudioContext();
-      const destination = audioContext.createMediaStreamDestination();
-
-      if (displayAudioTracks.length > 0) {
-        const displayAudioSource = audioContext.createMediaStreamSource(
-          new MediaStream(displayAudioTracks)
-        );
-        displayAudioSource.connect(destination);
-      }
-
-      if (micAudioTracks.length > 0) {
-        const micAudioSource = audioContext.createMediaStreamSource(
-          new MediaStream(micAudioTracks)
-        );
-        const micGain = audioContext.createGain();
-        micGain.gain.value = 1;
-        micAudioSource.connect(micGain);
-        micGain.connect(destination);
-      }
-
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-
-      mixedAudioTrack = destination.stream.getAudioTracks()[0] || null;
-    }
-
-    const recordingTracks = [videoTrack];
-    if (mixedAudioTrack) {
-      recordingTracks.push(mixedAudioTrack);
-    }
-
-    return {
-      displayStream,
-      micStream,
-      audioContext,
-      recordingStream: new MediaStream(recordingTracks),
-      hasDisplayAudio: displayAudioTracks.length > 0,
-      hasMicAudio: micAudioTracks.length > 0,
-    };
-  }, []);
-
   const handleUpload = useCallback(async (blob: Blob) => {
     const sizeMB = blob.size / (1024 * 1024);
 
@@ -209,41 +157,136 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
     }
   }, [onComplete, sessionId]);
 
+  /**
+   * IMPORTANT: getDisplayMedia MUST be called synchronously from the click
+   * handler to preserve the "user gesture / transient activation" context.
+   * Any setState before await will cause React to re-render and the browser
+   * will reject the getDisplayMedia call or not show the picker.
+   *
+   * Flow: click → getDisplayMedia (browser picker opens) → user picks screen
+   *       → then we set state to 'preparing' while we set up mic & recorder.
+   */
   const startRecording = useCallback(async () => {
+    // Pre-checks (all sync — no state changes before getDisplayMedia)
     if (!isScreenCaptureSupported()) {
-      toast.error('Screen recording is not supported in this browser.');
+      toast.error('Screen recording is not supported in this browser. Please use Chrome, Edge, or Firefox.');
       return;
     }
     if (isFirefox()) {
-      toast('Firefox may not capture audio. Use Chrome or Edge for best results.', { icon: '⚠️', duration: 5000 });
+      toast('Firefox may not capture system audio. Use Chrome or Edge for best results.', { icon: '⚠️', duration: 5000 });
+    }
+
+    // ── Step 1: Get screen share IMMEDIATELY (preserves user gesture) ──
+    // DO NOT call setState before this — it will break the user gesture chain.
+    let displayStream: MediaStream;
+    try {
+      displayStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+        audio: true,
+      });
+    } catch (firstErr) {
+      if ((firstErr as DOMException).name === 'NotAllowedError') {
+        toast.error('Screen sharing was cancelled.');
+        return;
+      }
+      // Some browsers don't support audio in getDisplayMedia — retry video-only
+      console.warn('[ScreenRecorder] Retrying without audio:', firstErr);
+      try {
+        displayStream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false,
+        });
+      } catch (secondErr) {
+        if ((secondErr as DOMException).name === 'NotAllowedError') {
+          toast.error('Screen sharing was cancelled.');
+          return;
+        }
+        console.error('[ScreenRecorder] getDisplayMedia failed:', secondErr);
+        toast.error('Failed to start screen capture. Please try again.');
+        return;
+      }
+    }
+
+    // User has selected a screen/window — now show "preparing" state
+    setState('preparing');
+    displayStreamRef.current = displayStream;
+
+    const videoTrack = displayStream.getVideoTracks()[0];
+    if (!videoTrack) {
+      displayStream.getTracks().forEach((t) => t.stop());
+      setState('idle');
+      toast.error('No video track found. Please try again.');
+      return;
     }
 
     try {
-      const {
-        displayStream,
-        micStream,
-        audioContext,
-        recordingStream,
-        hasDisplayAudio,
-        hasMicAudio,
-      } = await buildRecordingStream();
-      displayStreamRef.current = displayStream;
+      // ── Step 2: Get mic (AFTER screen share is confirmed) with timeout ──
+      const micStream = await requestMicWithTimeout(5000);
       micStreamRef.current = micStream;
-      audioContextRef.current = audioContext;
-      recordingStreamRef.current = recordingStream;
 
-      if (!hasDisplayAudio) {
-        toast('Shared screen audio was not detected. Meeting audio might not be recorded.', { icon: '⚠️' });
+      // ── Step 3: Mix audio tracks ──
+      const displayAudioTracks = displayStream.getAudioTracks();
+      const micAudioTracks = micStream?.getAudioTracks() || [];
+      let audioContext: AudioContext | null = null;
+      let mixedAudioTrack: MediaStreamTrack | null = null;
+
+      if (displayAudioTracks.length > 0 || micAudioTracks.length > 0) {
+        try {
+          audioContext = new AudioContext();
+          const destination = audioContext.createMediaStreamDestination();
+
+          if (displayAudioTracks.length > 0) {
+            const displayAudioSource = audioContext.createMediaStreamSource(
+              new MediaStream(displayAudioTracks)
+            );
+            displayAudioSource.connect(destination);
+          }
+
+          if (micAudioTracks.length > 0) {
+            const micAudioSource = audioContext.createMediaStreamSource(
+              new MediaStream(micAudioTracks)
+            );
+            const micGain = audioContext.createGain();
+            // Lower mic volume when display audio is present to prevent
+            // echo/feedback from the mic picking up speaker output
+            micGain.gain.value = displayAudioTracks.length > 0 ? 0.5 : 1.0;
+            micAudioSource.connect(micGain);
+            micGain.connect(destination);
+          }
+
+          if (audioContext.state === 'suspended') {
+            await audioContext.resume();
+          }
+
+          mixedAudioTrack = destination.stream.getAudioTracks()[0] || null;
+        } catch (audioErr) {
+          console.warn('[ScreenRecorder] Audio mixing failed, proceeding without audio:', audioErr);
+        }
       }
 
-      // Pick best supported mime
-      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')
-        ? 'video/webm;codecs=vp8,opus'
-        : MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
-          ? 'video/webm;codecs=vp9,opus'
-          : 'video/webm';
+      audioContextRef.current = audioContext;
 
-      const recorder = new MediaRecorder(recordingStream, { mimeType });
+      // ── Step 4: Build the recording stream ──
+      const recordingTracks: MediaStreamTrack[] = [videoTrack];
+      if (mixedAudioTrack) {
+        recordingTracks.push(mixedAudioTrack);
+      }
+      const recordingStream = new MediaStream(recordingTracks);
+      recordingStreamRef.current = recordingStream;
+
+      if (displayAudioTracks.length === 0) {
+        toast('Screen audio was not detected. Only your microphone (if any) will be recorded.', { icon: '⚠️' });
+      }
+
+      // ── Step 5: Create and start MediaRecorder ──
+      const mimeType = pickMimeType();
+
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(recordingStream, { mimeType });
+      } catch {
+        recorder = new MediaRecorder(recordingStream);
+      }
       mediaRecorderRef.current = recorder;
       chunksRef.current = [];
 
@@ -252,35 +295,41 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mimeType });
+        const actualMime = recorder.mimeType || mimeType;
+        const blob = new Blob(chunksRef.current, { type: actualMime });
         blobRef.current = blob;
         setBlobSize(blob.size);
         stopActiveStreams();
         handleUpload(blob);
       };
 
-      // Auto-stop when user stops sharing
-      displayStream.getVideoTracks()[0]?.addEventListener('ended', () => {
+      recorder.onerror = (e) => {
+        console.error('[ScreenRecorder] MediaRecorder error:', e);
+        stopActiveStreams();
+        setState('error');
+        setErrorMsg('Recording encountered an error. Please try again.');
+        toast.error('Recording failed.');
+      };
+
+      // Auto-stop when user stops sharing via browser controls
+      videoTrack.addEventListener('ended', () => {
         if (mediaRecorderRef.current?.state === 'recording') {
           mediaRecorderRef.current.stop();
         }
       });
 
-      recorder.start(1000); // collect data every second
+      recorder.start(1000);
       setState('recording');
       setElapsed(0);
       timerRef.current = setInterval(() => setElapsed((p) => p + 1), 1000);
       toast.success('Recording started!');
     } catch (err) {
-      if ((err as DOMException).name === 'NotAllowedError') {
-        toast.error('Screen sharing was cancelled.');
-      } else {
-        toast.error('Failed to start recording.');
-        console.error('[ScreenRecorder]', err);
-        stopActiveStreams();
-      }
+      console.error('[ScreenRecorder] Failed to start recording:', err);
+      stopActiveStreams();
+      setState('idle');
+      toast.error('Failed to start recording. Please try again.');
     }
-  }, [buildRecordingStream, handleUpload, stopActiveStreams]);
+  }, [handleUpload, stopActiveStreams]);
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === 'recording') {
@@ -321,13 +370,16 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
     fill: { height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,#10b981,#059669)', transition: 'width 0.3s ease' },
   };
 
+  const showModal = state !== 'recording';
+  const canClose = state === 'idle' || state === 'success' || state === 'error';
+
   return (
     <>
       {/* Floating badge while recording */}
       {state === 'recording' && <RecordingBadge elapsed={formatTime(elapsed)} onStop={stopRecording} />}
 
-      {state !== 'recording' && (
-        <div style={s.overlay} onClick={onClose}>
+      {showModal && (
+        <div style={s.overlay} onClick={canClose ? onClose : undefined}>
           <div style={s.modal} onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div style={s.header}>
@@ -335,7 +387,7 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
                 <h2 style={s.title}>Screen Recording</h2>
                 <p style={s.subtitle}>Record your session screen</p>
               </div>
-              {state !== 'uploading' && onClose && (
+              {canClose && onClose && (
                 <button onClick={onClose} style={s.close}><X size={18} /></button>
               )}
             </div>
@@ -364,6 +416,26 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
                     <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#fff', display: 'inline-block' }} />
                     Start Recording
                   </button>
+                  {isSafari() && (
+                    <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>
+                      ⚠️ Safari has limited recording support. For best results, use Chrome or Edge.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* PREPARING – screen share confirmed, setting up mic & recorder */}
+              {state === 'preparing' && (
+                <div style={s.center}>
+                  <div style={{ width: 64, height: 64, borderRadius: 16, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Loader2 size={28} color="#3b82f6" style={{ animation: 'sr-spin 1s linear infinite' }} />
+                  </div>
+                  <h3 style={{ fontSize: 16, fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    Setting up recorder...
+                  </h3>
+                  <p style={{ fontSize: 14, color: '#64748b', maxWidth: 320, lineHeight: 1.6, margin: 0 }}>
+                    Configuring audio and preparing to record. This will only take a moment.
+                  </p>
                 </div>
               )}
 
@@ -427,7 +499,7 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
             </div>
 
             {/* Footer */}
-            {state !== 'success' && (
+            {state === 'idle' && (
               <div style={{ padding: '14px 24px', borderTop: '1px solid #f1f5f9', background: '#fafbfc' }}>
                 <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0, textAlign: 'center' }}>
                   🎬 You can record any window or the full screen. If you need meeting audio, turn audio on in the share dialog.
@@ -442,6 +514,10 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
         @keyframes sr-fadein {
           from { opacity: 0; transform: scale(0.96) translateY(8px); }
           to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes sr-spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
         }
       `}</style>
     </>

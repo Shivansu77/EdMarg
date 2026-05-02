@@ -7,8 +7,14 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  ...(isStaticExport
+    ? {
+        output: "export",
+        trailingSlash: true,
+      }
+    : {}),
   images: {
-    unoptimized: isStaticExport,
+    unoptimized: true,
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {

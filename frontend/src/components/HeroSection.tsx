@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import AppImage from '@/components/AppImage';
 import { ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 
 const heroSlides = [
@@ -113,7 +113,7 @@ const HeroSection = () => {
           <div className="relative mx-auto w-full max-w-lg animate-fade-up delay-150">
             <div className="relative aspect-square overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-[0_30px_70px_rgba(15,23,42,0.16)]">
               {heroSlides.map((slide, index) => (
-                <Image
+                <AppImage
                   key={slide.src}
                   src={slide.src}
                   alt={slide.alt}
