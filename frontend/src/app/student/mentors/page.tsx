@@ -22,6 +22,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import MentorMarketplaceCard, {
   type MentorMarketplaceCardData,
 } from '@/components/mentors/MentorMarketplaceCard';
+import RecommendedMentors from '@/components/RecommendedMentors';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { resolveApiBaseUrl } from '@/utils/api-base';
 
@@ -339,6 +340,10 @@ function MentorsContent() {
           </section>
 
           {/* Content */}
+          {!loading && !error && isLoggedIn && sorted.length > 0 && search.trim() === '' && domain === ALL && price === 'all' && (
+            <RecommendedMentors variant="marketplace" />
+          )}
+
           {loading ? (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (

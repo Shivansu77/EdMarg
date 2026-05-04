@@ -15,6 +15,7 @@ const {
   googleAuthCallback,
   sendEmailVerificationOtp,
   verifyEmailVerificationOtp,
+  getRecommendedMentors,
 } = require('../../controllers/user.controller');
 
 const router = express.Router();
@@ -32,5 +33,6 @@ router.post('/logout', logoutUser);
 router.put('/profile', protect, updateUserProfile);
 router.get('/assessment', protect, authorize('student'), getMyAssessment);
 router.post('/assessment', protect, authorize('student'), submitAssessment);
+router.get('/recommended-mentors', protect, authorize('student'), cacheResponse({ ttlSeconds: 60 }), getRecommendedMentors);
 
 module.exports = router;

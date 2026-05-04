@@ -3,26 +3,22 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
 import {
   AlertCircle,
-  ArrowRight,
   CheckCircle2,
-  Clock3,
-  IndianRupee,
   Loader2,
-  MessageSquare,
-  Settings2,
-  Star,
   Bell,
-  Calendar,
   CreditCard,
   Trash2,
   Globe,
   Mail,
   Smartphone,
   Megaphone,
+  Eye,
+  EyeOff,
+  Settings,
 } from 'lucide-react';
 
 interface NotificationPreferences {
@@ -31,26 +27,16 @@ interface NotificationPreferences {
   marketing: boolean;
 }
 
-interface MentorSettings {
+interface StudentSettings {
   timezone: string;
   notificationPreferences: NotificationPreferences;
-  pricePerSession: number;
-  sessionDuration: number;
-  autoConfirm: boolean;
-  sessionNotes: string;
-  totalSessions: number;
-  rating: number;
+  profileVisibility: 'public' | 'private';
 }
 
-const DEFAULT_SETTINGS: MentorSettings = {
+const DEFAULT_SETTINGS: StudentSettings = {
   timezone: 'Asia/Kolkata',
   notificationPreferences: { email: true, sms: false, marketing: false },
-  pricePerSession: 0,
-  sessionDuration: 45,
-  autoConfirm: false,
-  sessionNotes: '',
-  totalSessions: 0,
-  rating: 0,
+  profileVisibility: 'public',
 };
 
 const TIMEZONES = [
@@ -64,16 +50,15 @@ const TIMEZONES = [
   'Australia/Sydney',
 ];
 
-function MentorSettingsContent() {
-  const [settings, setSettings] = useState<MentorSettings>(DEFAULT_SETTINGS);
+function StudentSettingsContent() {
+  const [settings, setSettings] = useState<StudentSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   // Mock states for integrations
-  const [calendarConnected, setCalendarConnected] = useState(true);
-  const [stripeConnected, setStripeConnected] = useState(false);
+  const [cardConnected, setCardConnected] = useState(true);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -87,7 +72,6 @@ function MentorSettingsContent() {
         }
 
         const userData = response.data;
-        const mp = userData.mentorProfile || {};
         const prefs = userData.notificationPreferences || {};
 
         setSettings({
@@ -97,12 +81,7 @@ function MentorSettingsContent() {
             sms: prefs.sms ?? false,
             marketing: prefs.marketing ?? false,
           },
-          pricePerSession: mp.pricePerSession ?? 0,
-          sessionDuration: mp.sessionDuration || 45,
-          autoConfirm: mp.autoConfirm ?? false,
-          sessionNotes: mp.sessionNotes || '',
-          totalSessions: mp.totalSessions || 0,
-          rating: mp.rating || 0,
+          profileVisibility: userData.profileVisibility || 'public',
         });
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Unable to load settings');
@@ -122,16 +101,10 @@ function MentorSettingsContent() {
       setError('');
       setSuccess('');
 
-      // Save to full user profile to handle timezone & notifications
       const payload = {
         timezone: settings.timezone,
         notificationPreferences: settings.notificationPreferences,
-        mentorProfile: {
-          pricePerSession: Number(settings.pricePerSession),
-          sessionDuration: Number(settings.sessionDuration),
-          autoConfirm: settings.autoConfirm,
-          sessionNotes: settings.sessionNotes.trim(),
-        }
+        profileVisibility: settings.profileVisibility,
       };
 
       const response = await apiClient.put('/api/v1/users/profile', payload);
@@ -161,16 +134,16 @@ function MentorSettingsContent() {
 
   if (loading) {
     return (
-      <MentorDashboardLayout>
+      <DashboardLayout userName="Settings">
         <div className="flex min-h-[60vh] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
         </div>
-      </MentorDashboardLayout>
+      </DashboardLayout>
     );
   }
 
   return (
-    <MentorDashboardLayout>
+    <DashboardLayout userName="Settings">
       <div className="max-w-6xl pb-16 relative">
         <div className="mb-8 overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/40 backdrop-blur-xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
@@ -179,15 +152,15 @@ function MentorSettingsContent() {
                 Platform Configuration
               </p>
               <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">
-                Mentor Settings
+                Student Settings
               </h1>
               <p className="mt-3 text-base text-slate-600 font-medium leading-relaxed max-w-2xl">
-                Configure your availability, notifications, integrations, and how students book sessions.
+                Configure your account preferences, notifications, privacy, and billing details.
               </p>
             </div>
             <div className="flex gap-3">
               <Link
-                href="/mentor/profile"
+                href="/student/profile"
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/60 bg-white/80 px-5 py-3 text-sm font-bold text-slate-700 transition-all hover:bg-white hover:shadow-sm"
               >
                 View Profile
@@ -240,88 +213,62 @@ function MentorSettingsContent() {
                   <Globe className="h-5 w-5 text-slate-300" />
                 </div>
               </div>
-              <p className="text-xs text-slate-500 ml-1">All your bookings will be displayed in this timezone.</p>
+              <p className="text-xs text-slate-500 ml-1">All your bookings and schedules will be displayed in this timezone.</p>
             </div>
           </section>
 
-          {/* Session & Rates */}
+          {/* Privacy */}
           <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
             <div className="mb-8 flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 -rotate-3">
-                <Settings2 className="w-6 h-6" />
+                <Settings className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Session & Rates</h2>
-                <p className="text-sm text-slate-600 font-medium">How students book and pay you</p>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Privacy Settings</h2>
+                <p className="text-sm text-slate-600 font-medium">Control who can see your profile</p>
               </div>
             </div>
 
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Price Per Session (INR)</label>
-                  <div className="relative">
-                    <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                    <input
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={settings.pricePerSession}
-                      onChange={(e) => setSettings(s => ({ ...s, pricePerSession: Number(e.target.value) }))}
-                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
-                    />
-                  </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setSettings(s => ({ ...s, profileVisibility: 'public' }))}
+                className={`flex flex-col items-start p-6 rounded-[2rem] border transition-all text-left ${
+                  settings.profileVisibility === 'public'
+                    ? 'bg-emerald-50 border-emerald-200 ring-2 ring-emerald-500/20 shadow-sm'
+                    : 'bg-white/60 border-white hover:border-emerald-100 hover:bg-emerald-50/30'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <Eye className={`w-5 h-5 ${settings.profileVisibility === 'public' ? 'text-emerald-600' : 'text-slate-400'}`} />
+                  <span className={`font-bold ${settings.profileVisibility === 'public' ? 'text-emerald-900' : 'text-slate-700'}`}>
+                    Public Profile
+                  </span>
                 </div>
+                <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                  Mentors can view your full academic background and career interests when you request a session.
+                </p>
+              </button>
 
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Session Duration</label>
-                  <div className="relative">
-                    <Clock3 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
-                    <select
-                      value={settings.sessionDuration}
-                      onChange={(e) => setSettings(s => ({ ...s, sessionDuration: Number(e.target.value) }))}
-                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm appearance-none cursor-pointer"
-                    >
-                      {[15, 30, 45, 60, 90, 120].map((duration) => (
-                        <option key={duration} value={duration}>{duration} minutes</option>
-                      ))}
-                    </select>
-                  </div>
+              <button
+                type="button"
+                onClick={() => setSettings(s => ({ ...s, profileVisibility: 'private' }))}
+                className={`flex flex-col items-start p-6 rounded-[2rem] border transition-all text-left ${
+                  settings.profileVisibility === 'private'
+                    ? 'bg-slate-900 border-slate-800 ring-2 ring-slate-900/20 shadow-sm'
+                    : 'bg-white/60 border-white hover:border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center gap-3 mb-2">
+                  <EyeOff className={`w-5 h-5 ${settings.profileVisibility === 'private' ? 'text-white' : 'text-slate-400'}`} />
+                  <span className={`font-bold ${settings.profileVisibility === 'private' ? 'text-white' : 'text-slate-700'}`}>
+                    Private Profile
+                  </span>
                 </div>
-              </div>
-
-              <div className="flex items-center justify-between p-6 sm:p-8 rounded-[2rem] bg-emerald-50/50 border border-emerald-100 ring-1 ring-emerald-500/5">
-                <div className="max-w-lg">
-                  <h4 className="text-sm font-bold text-slate-950 uppercase tracking-tight">Auto-Confirm Bookings</h4>
-                  <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
-                    Automatically accept all session requests without manual approval. Recommended for high-volume mentors.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setSettings(s => ({ ...s, autoConfirm: !s.autoConfirm }))}
-                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 shadow-inner shrink-0 ${
-                    settings.autoConfirm ? 'bg-emerald-500' : 'bg-slate-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
-                      settings.autoConfirm ? 'translate-x-7' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Default Session Note</label>
-                <textarea
-                  rows={4}
-                  value={settings.sessionNotes}
-                  onChange={(e) => setSettings(s => ({ ...s, sessionNotes: e.target.value }))}
-                  placeholder="Add a reusable note students should know before booking."
-                  className="w-full p-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm resize-none leading-relaxed"
-                />
-              </div>
+                <p className={`text-xs font-medium leading-relaxed ${settings.profileVisibility === 'private' ? 'text-slate-300' : 'text-slate-500'}`}>
+                  Mentors will only see your name and profile picture. Your background details remain hidden.
+                </p>
+              </button>
             </div>
           </section>
 
@@ -339,7 +286,7 @@ function MentorSettingsContent() {
 
             <div className="grid gap-4">
               {[
-                { key: 'email', label: 'Email Notifications', desc: 'Receive booking confirmations and messages via email', icon: Mail },
+                { key: 'email', label: 'Email Notifications', desc: 'Receive booking confirmations and mentor messages via email', icon: Mail },
                 { key: 'sms', label: 'SMS Alerts', desc: 'Get text messages for upcoming session reminders', icon: Smartphone },
                 { key: 'marketing', label: 'Platform Updates', desc: 'Tips, features, and platform news', icon: Megaphone },
               ].map(({ key, label, desc, icon: Icon }) => (
@@ -371,70 +318,47 @@ function MentorSettingsContent() {
             </div>
           </section>
 
-          {/* Integrations (Mock SaaS UI) */}
+          {/* Billing (Mock SaaS UI) */}
           <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
             <div className="mb-8 flex items-center gap-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 -rotate-3">
-                <Calendar className="w-6 h-6" />
+                <CreditCard className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Integrations</h2>
-                <p className="text-sm text-slate-600 font-medium">Connect external services</p>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Billing & Payments</h2>
+                <p className="text-sm text-slate-600 font-medium">Manage payment methods for sessions</p>
               </div>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="p-6 rounded-[2rem] bg-white/60 border border-white shadow-sm flex flex-col justify-between min-h-[180px]">
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <Calendar className="h-6 w-6 text-blue-500" />
-                    <h3 className="font-bold text-slate-900">Google Calendar</h3>
+            <div className="max-w-xl">
+              <div className="p-6 rounded-[2rem] bg-white/60 border border-white shadow-sm flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div className="flex items-center gap-4 w-full">
+                  <div className="h-12 w-16 bg-slate-900 rounded-xl flex items-center justify-center text-white shadow-md">
+                    <span className="font-extrabold text-lg italic">VISA</span>
                   </div>
-                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                    Sync your bookings automatically and prevent double-booking.
-                  </p>
-                </div>
-                <div className="mt-6 flex items-center justify-between">
-                  <span className={`text-xs font-bold uppercase tracking-wider ${calendarConnected ? 'text-emerald-500' : 'text-slate-400'}`}>
-                    {calendarConnected ? 'Connected' : 'Not Connected'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setCalendarConnected(!calendarConnected)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                      calendarConnected ? 'bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600' : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                    }`}
-                  >
-                    {calendarConnected ? 'Disconnect' : 'Connect'}
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-6 rounded-[2rem] bg-white/60 border border-white shadow-sm flex flex-col justify-between min-h-[180px]">
-                <div>
-                  <div className="flex items-center gap-3 mb-3">
-                    <CreditCard className="h-6 w-6 text-indigo-500" />
-                    <h3 className="font-bold text-slate-900">Stripe Payouts</h3>
+                  <div>
+                    <h3 className="font-bold text-slate-900 flex items-center gap-2">
+                      Visa ending in 4242
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700 text-[10px] uppercase tracking-wider">Default</span>
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">Expires 12/28</p>
                   </div>
-                  <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                    Receive payouts directly to your bank account after completed sessions.
-                  </p>
                 </div>
-                <div className="mt-6 flex items-center justify-between">
-                  <span className={`text-xs font-bold uppercase tracking-wider ${stripeConnected ? 'text-emerald-500' : 'text-slate-400'}`}>
-                    {stripeConnected ? 'Active' : 'Pending Setup'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setStripeConnected(!stripeConnected)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                      stripeConnected ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
-                    }`}
-                  >
-                    {stripeConnected ? 'Manage' : 'Setup Payouts'}
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setCardConnected(!cardConnected)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all whitespace-nowrap"
+                >
+                  Edit
+                </button>
               </div>
+              
+              <button
+                type="button"
+                className="mt-4 text-sm font-bold text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded-xl transition-colors inline-flex items-center gap-2"
+              >
+                + Add new payment method
+              </button>
             </div>
           </section>
 
@@ -471,14 +395,14 @@ function MentorSettingsContent() {
 
         </form>
       </div>
-    </MentorDashboardLayout>
+    </DashboardLayout>
   );
 }
 
-export default function MentorSettingsPage() {
+export default function StudentSettingsPage() {
   return (
-    <ProtectedRoute requiredRole="mentor">
-      <MentorSettingsContent />
+    <ProtectedRoute requiredRole="student">
+      <StudentSettingsContent />
     </ProtectedRoute>
   );
 }

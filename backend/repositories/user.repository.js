@@ -133,6 +133,14 @@ class UserRepository {
     if (profileData.profileImage !== undefined) updateObj.profileImage = profileData.profileImage;
     if (profileData.phoneNumber !== undefined) updateObj.phoneNumber = profileData.phoneNumber;
     if (profileData.role !== undefined) updateObj.role = profileData.role;
+    if (profileData.timezone !== undefined) updateObj.timezone = profileData.timezone;
+    if (profileData.profileVisibility !== undefined) updateObj.profileVisibility = profileData.profileVisibility;
+    
+    if (profileData.notificationPreferences) {
+      if (profileData.notificationPreferences.email !== undefined) updateObj['notificationPreferences.email'] = profileData.notificationPreferences.email;
+      if (profileData.notificationPreferences.sms !== undefined) updateObj['notificationPreferences.sms'] = profileData.notificationPreferences.sms;
+      if (profileData.notificationPreferences.marketing !== undefined) updateObj['notificationPreferences.marketing'] = profileData.notificationPreferences.marketing;
+    }
     
     // Manage nested studentProfile fields
     if (profileData.studentProfile) {

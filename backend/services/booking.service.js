@@ -407,7 +407,7 @@ class BookingService {
   /**
    * Mentor completes a session.
    */
-  async completeSession(bookingId, mentorId, mentorNotes) {
+  async completeSession(bookingId, mentorId, mentorNotes, { sessionSummary, actionItems, goalId } = {}) {
     const booking = await bookingRepository.findById(bookingId);
     if (!booking) {
       throw new NotFoundError('Booking not found');
@@ -435,11 +435,38 @@ class BookingService {
       console.error('[BookingService] Failed to increment mentor session count:', statsErr.message);
     }
 
-    return bookingRepository.updateStatus(bookingId, 'completed', {
+    const updateData = {
       completedAt: new Date(),
       mentorNotes: mentorNotes || '',
       ...(booking.status !== 'in-progress' ? { conductedAt: new Date() } : {}),
-    });
+    };
+
+    if (sessionSummary) updateData.sessionSummary = sessionSummary;
+    if (actionItems && Array.isArray(actionItems)) {
+      updateData.actionItems = actionItems.map(item => ({
+        text: String(item.text || '').trim(),
+        completed: Boolean(item.completed),
+      })).filter(item => item.text);
+    }
+    if (goalId) updateData.goalId = goalId;
+
+    const completed = await bookingRepository.updateStatus(bookingId, 'completed', updateData);
+
+    // Auto-link to goal if provided
+    if (goalId) {
+      try {
+        const { Goal } = require('../models/goal.model');
+        const studentId = booking.student?._id || booking.student;
+        await Goal.findOneAndUpdate(
+          { _id: goalId, student: studentId },
+          { $addToSet: { linkedSessions: bookingId } }
+        );
+      } catch (linkErr) {
+        console.error('[BookingService] Failed to link session to goal:', linkErr.message);
+      }
+    }
+
+    return completed;
   }
 
   /**

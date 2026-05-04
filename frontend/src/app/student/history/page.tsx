@@ -19,7 +19,10 @@ import {
   CheckCircle2,
   MessageSquareText,
   MessageSquare,
-  Star
+  Star,
+  FileText,
+  CheckCircle,
+  Circle
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -42,6 +45,8 @@ interface Booking {
   notes: string;
   price: number;
   createdAt: string;
+  sessionSummary?: string;
+  actionItems?: { text: string; completed: boolean }[];
   recordingUrl?: string;
   reviewSubmitted?: boolean;
   review?: {
@@ -186,6 +191,42 @@ function HistoryContent() {
                       {booking.startTime} ({booking.sessionDuration} min)
                     </div>
                   </div>
+
+                  {/* Session Notes */}
+                  {(booking.sessionSummary || (booking.actionItems && booking.actionItems.length > 0)) && (
+                    <div className="mb-6 rounded-2xl bg-emerald-50/50 border border-emerald-100 p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <FileText className="w-4 h-4 text-emerald-600" />
+                        <h4 className="text-sm font-bold text-slate-900">Mentor's Session Notes</h4>
+                      </div>
+                      
+                      {booking.sessionSummary && (
+                        <p className="text-sm text-slate-700 leading-relaxed mb-4 whitespace-pre-wrap">
+                          {booking.sessionSummary}
+                        </p>
+                      )}
+
+                      {booking.actionItems && booking.actionItems.length > 0 && (
+                        <div>
+                          <h5 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Action Items</h5>
+                          <ul className="space-y-2">
+                            {booking.actionItems.map((item, idx) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                {item.completed ? (
+                                  <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                ) : (
+                                  <Circle className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />
+                                )}
+                                <span className={`text-sm ${item.completed ? 'text-slate-500 line-through' : 'text-slate-700'}`}>
+                                  {item.text}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   {booking.status === 'completed' && (
                     <div className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">

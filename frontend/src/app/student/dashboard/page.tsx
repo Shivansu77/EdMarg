@@ -8,6 +8,8 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import CalendarSyncButton from '@/components/CalendarSyncButton';
 import Link from 'next/link';
 import { apiClient } from '@/utils/api-client';
+import RecommendedMentors from '@/components/RecommendedMentors';
+import GoalProgressWidget from '@/components/GoalProgressWidget';
 import {
   ArrowRight,
   CalendarDays,
@@ -156,6 +158,9 @@ function StudentDashboardContent() {
         </div>
 
         <div className="space-y-8 px-6 pt-8 sm:px-8 max-w-6xl mx-auto">
+
+          {/* Recommendation Engine */}
+          <RecommendedMentors variant="dashboard" />
           
           {/* Stats Glassmorphic Board */}
           <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.04)] lg:grid-cols-4">
@@ -257,8 +262,10 @@ function StudentDashboardContent() {
 
             </div>
 
-            {/* Right Sidebar Area: Timeline / Upcoming */}
+            {/* Right Sidebar Area: Timeline / Upcoming / Goals */}
             <div className="space-y-8">
+              
+              <GoalProgressWidget />
               
               <Card>
                 <div className="border-b border-white/30 px-6 py-6 bg-white/30">

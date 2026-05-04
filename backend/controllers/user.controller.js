@@ -1,4 +1,5 @@
 const userService = require('../services/user.service');
+const recommendationService = require('../services/recommendation.service');
 const googleAuthUtil = require('../utils/google-auth');
 
 const parseGoogleState = (rawState) => {
@@ -499,5 +500,24 @@ exports.logoutUser = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+/* ================= RECOMMENDED MENTORS ================= */
+exports.getRecommendedMentors = async (req, res, next) => {
+  try {
+    const studentId = req.user._id;
+    let limit = Number(req.query.limit);
+    limit = Number.isInteger(limit) && limit > 0 ? Math.min(limit, 20) : 8;
+
+    const recommendations = await recommendationService.getRecommendedMentors(studentId, limit);
+
+    return res.status(200).json({
+      success: true,
+      count: recommendations.length,
+      data: recommendations,
+    });
+  } catch (err) {
+    next(err);
   }
 };

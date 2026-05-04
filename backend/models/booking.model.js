@@ -64,6 +64,20 @@ const bookingSchema = new mongoose.Schema(
     startUrl: String,
     recordingUrl: String,
     zoomError: String,
+    sessionSummary: {
+      type: String,
+      maxlength: 2000,
+    },
+    actionItems: [
+      {
+        text: { type: String, maxlength: 500 },
+        completed: { type: Boolean, default: false },
+      },
+    ],
+    goalId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Goal',
+    },
   },
   { timestamps: true }
 );

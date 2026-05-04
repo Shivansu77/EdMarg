@@ -83,12 +83,7 @@ function MentorProfileContent() {
   const [experienceYears, setExperienceYears] = useState<number | ''>('');
   const [expertise, setExpertise] = useState<string[]>([]);
   
-  // Form State - Session Settings
-  const [pricePerSession, setPricePerSession] = useState<number | ''>('');
-  const [sessionDuration, setSessionDuration] = useState<number>(45);
-  const [autoConfirm, setAutoConfirm] = useState<boolean>(false);
-  const [sessionNotes, setSessionNotes] = useState('');
-  
+  // Form State - Session Settings removed to be in Settings page instead
   // Form State - About You
   const [languages, setLanguages] = useState<string[]>(['English']);
   const [currentCompany, setCurrentCompany] = useState('');
@@ -132,10 +127,6 @@ function MentorProfileContent() {
           setExperienceYears(mProfile.experienceYears || '');
           setExpertise(mProfile.expertise || []);
           
-          setPricePerSession(mProfile.pricePerSession ?? '');
-          setSessionDuration(mProfile.sessionDuration || 45);
-          setAutoConfirm(mProfile.autoConfirm ?? false);
-          setSessionNotes(mProfile.sessionNotes || '');
           setLanguages(mProfile.languages?.length ? mProfile.languages : ['English']);
           setCurrentCompany(mProfile.currentCompany || '');
           setCurrentTitle(mProfile.currentTitle || '');
@@ -203,10 +194,6 @@ function MentorProfileContent() {
         bio,
         experienceYears: experienceYears === '' ? 0 : Number(experienceYears),
         expertise,
-        pricePerSession: pricePerSession === '' ? 0 : Number(pricePerSession),
-        sessionDuration: Number(sessionDuration),
-        autoConfirm,
-        sessionNotes,
         languages,
         currentCompany,
         currentTitle,
@@ -567,90 +554,7 @@ function MentorProfileContent() {
             </div>
           </section>
 
-          {/* Session Settings */}
-          <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-            <div className="mb-10 flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-6">
-                <Settings className="w-6 h-6" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Session & Rates</h2>
-                <p className="text-sm text-slate-600 font-medium leading-relaxed">How students book and pay you</p>
-              </div>
-            </div>
-            
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Price Per Session (INR)</label>
-                  <div className="relative">
-                    <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                    <input
-                      type="number"
-                      min="0"
-                      value={pricePerSession}
-                      onChange={(e) => setPricePerSession(e.target.value === '' ? '' : Number(e.target.value))}
-                      placeholder="0 (Free)"
-                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Session Duration</label>
-                  <div className="relative">
-                    <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
-                    <select
-                      value={sessionDuration}
-                      onChange={(e) => setSessionDuration(Number(e.target.value))}
-                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm appearance-none cursor-pointer"
-                    >
-                      <option value={15}>15 Minutes</option>
-                      <option value={30}>30 Minutes</option>
-                      <option value={45}>45 Minutes</option>
-                      <option value={60}>60 Minutes</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-4">
-                <div className="flex items-center justify-between p-8 rounded-[2rem] bg-emerald-50/50 border border-emerald-100 ring-1 ring-emerald-500/5">
-                  <div className="max-w-md">
-                    <h4 className="text-sm font-bold text-slate-950 uppercase tracking-tight">Auto-Confirm Bookings</h4>
-                    <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
-                      Automatically accept all session requests without manual approval. Recommended for high-volume mentors.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setAutoConfirm(!autoConfirm)}
-                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 shadow-inner ${
-                      autoConfirm ? 'bg-emerald-500' : 'bg-slate-200'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
-                        autoConfirm ? 'translate-x-7' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Welcome Message</label>
-                <textarea
-                  value={sessionNotes}
-                  onChange={(e) => setSessionNotes(e.target.value)}
-                  rows={3}
-                  placeholder="Instructions for students after booking..."
-                  className="w-full p-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm resize-none leading-relaxed"
-                />
-              </div>
-            </div>
-          </section>
-
+          {/* Session Settings section moved to Settings page */}
           {/* Submit Action */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-8 pt-10 border-t border-slate-200">
             <div className="flex items-center gap-3">

@@ -15,11 +15,13 @@ import {
   LayoutGrid,
   UserCircle,
   Users,
+  Settings,
   X,
   ChevronLeft,
   Heart,
   LogOut,
   Sparkles,
+  Target,
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -35,6 +37,7 @@ interface SidebarProps {
 
 const studentNavItems = [
   { name: 'Dashboard', href: '/student/dashboard', icon: LayoutGrid },
+  { name: 'Goals', href: '/student/goals', icon: Target },
   { name: 'Assessments', href: '/student/assessments', icon: ClipboardCheck },
   { name: 'Results', href: '/student/results', icon: BadgeCheck },
   { name: 'Mentors', href: '/student/mentors', icon: Users },
@@ -43,6 +46,7 @@ const studentNavItems = [
   { name: 'History', href: '/student/history', icon: History },
   { name: 'Recordings', href: '/student/recordings', icon: Film },
   { name: 'Profile', href: '/student/profile', icon: UserCircle },
+  { name: 'Settings', href: '/student/settings', icon: Settings },
 ];
 
 const mentorNavItems = [
@@ -51,6 +55,7 @@ const mentorNavItems = [
   { name: 'Schedule', href: '/mentor/schedule', icon: CalendarDays },
   { name: 'Students', href: '/mentor/students', icon: Users },
   { name: 'Profile', href: '/mentor/profile', icon: UserCircle },
+  { name: 'Settings', href: '/mentor/settings', icon: Settings },
 ];
 
 const adminNavItems = [

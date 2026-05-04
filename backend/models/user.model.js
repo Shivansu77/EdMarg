@@ -41,6 +41,13 @@ const userSchema = new mongoose.Schema(
       default: 'student',
     },
     profileImage: { type: String, default: "" },
+    timezone: { type: String, default: 'Asia/Kolkata' },
+    notificationPreferences: {
+      email: { type: Boolean, default: true },
+      sms: { type: Boolean, default: false },
+      marketing: { type: Boolean, default: false },
+    },
+    profileVisibility: { type: String, enum: ['public', 'private'], default: 'public' },
     emailVerification: {
       isVerified: { type: Boolean, default: false },
       otpHash: String,

@@ -12,6 +12,7 @@ import {
   FileText,
   Calendar,
   Check,
+  Settings,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -304,6 +305,16 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                 >
                   <User size={16} className="text-slate-400" />
                   View Profile
+                </button>
+                <button
+                  onClick={() => {
+                    router.push('/mentor/settings');
+                    setIsProfileOpen(false);
+                  }}
+                  className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
+                >
+                  <Settings size={16} className="text-slate-400" />
+                  Settings
                 </button>
                 <hr className="my-1 border-slate-100" />
                 <button
