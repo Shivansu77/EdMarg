@@ -15,6 +15,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
     pathname.startsWith('/about') ||
+    pathname.startsWith('/contact') ||
     pathname.startsWith('/pricing') ||
     pathname.startsWith('/terms') ||
     pathname.startsWith('/privacy') ||

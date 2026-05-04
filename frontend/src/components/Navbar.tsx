@@ -54,13 +54,13 @@ const Navbar = () => {
 
         <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-2 rounded-full border border-slate-200/80 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-600 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-md">
           <Link href="/" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Home</Link>
+          <Link href="/pricing" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Pricing</Link>
           <Link href="/about" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">About</Link>
           <Link href="/blogs" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Blog</Link>
           {!isLoggedIn && (
             <>
               <Link href="/#how-it-works" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">How it Works</Link>
               <Link href="/#mentors" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Mentors</Link>
-              <Link href="/#success-stories" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Success Stories</Link>
             </>
           )}
         </nav>
@@ -92,11 +92,11 @@ const Navbar = () => {
             </div>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">
+              <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">
                 Log in
               </Link>
-              <Link href="/signup" className="px-5 py-2.5 bg-linear-to-r from-emerald-300 to-green-400 hover:from-emerald-400 hover:to-green-500 text-slate-900 text-sm font-bold rounded-full transition-all shadow-[0_10px_24px_rgba(16,185,129,0.28)]">
-                Sign up
+              <Link href="/signup" className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5 active:scale-95">
+                Get Started
               </Link>
             </>
           )}
@@ -113,13 +113,13 @@ const Navbar = () => {
           <div className="fixed inset-0 z-40 lg:hidden bg-linear-to-b from-emerald-50 to-white pt-24 px-6">
             <nav className="flex flex-col gap-4 text-lg font-semibold text-slate-900 mb-8">
               <Link href="/" onClick={() => setIsOpen(false)}>Home</Link>
+              <Link href="/pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
               <Link href="/about" onClick={() => setIsOpen(false)}>About</Link>
               <Link href="/blogs" onClick={() => setIsOpen(false)}>Blog</Link>
               {!isLoggedIn && (
                 <>
                 <Link href="/#how-it-works" onClick={() => setIsOpen(false)}>How it Works</Link>
                 <Link href="/#mentors" onClick={() => setIsOpen(false)}>Mentors</Link>
-                <Link href="/#success-stories" onClick={() => setIsOpen(false)}>Success Stories</Link>
                 </>
               )}
             </nav>

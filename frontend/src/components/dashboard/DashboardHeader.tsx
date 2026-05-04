@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 import { apiClient } from '@/utils/api-client';
-
+import Link from 'next/link';
 
 import { getImageUrl } from '@/utils/imageUrl';
 interface HeaderProps {
@@ -193,6 +193,8 @@ const DashboardHeader = ({
         </form>
 
         <div className="flex items-center gap-2">
+
+
           <div className="relative" ref={notificationsRef}>
             <button 
               type="button" 

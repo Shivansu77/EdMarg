@@ -228,30 +228,32 @@ function MentorDashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-emerald-50/50 pb-16">
+    <div className="min-h-screen bg-slate-50/50 pb-16">
       {/* Dynamic Header */}
-      <div className="relative overflow-hidden border-b border-emerald-100 bg-linear-to-br from-emerald-50/80 via-white to-green-50/40 px-6 pb-10 pt-8 sm:px-8">
-        <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-emerald-100/40 rounded-full blur-3xl opacity-60"></div>
-        <div className="absolute bottom-0 left-10 w-60 h-60 bg-green-100/40 rounded-full blur-3xl opacity-60"></div>
+      <div className="relative overflow-hidden border-b border-white/60 bg-white/40 backdrop-blur-3xl px-6 pb-12 pt-10 sm:px-12">
+        <div className="absolute -top-32 -right-32 h-[40rem] w-[40rem] rounded-full bg-emerald-200/20 blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 -left-32 h-[30rem] w-[30rem] rounded-full bg-cyan-100/30 blur-[100px] pointer-events-none" />
         
-        <div className="relative z-10">
-          <Label>Mentor Workspace</Label>
-          <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-5xl">
-            Welcome back, {user?.name?.split(' ')[0] || 'Mentor'}.
+        <div className="relative z-10 w-full max-w-7xl mx-auto">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 mb-8">
+            Mentor Workspace
+          </div>
+          <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-6xl max-w-4xl">
+            Welcome back, <span className="text-emerald-600">{user?.name?.split(' ')[0] || 'Mentor'}</span>.
           </h1>
-          <p className="mt-3 max-w-2xl text-lg text-slate-600/90 leading-relaxed tracking-wide">
-            Manage your mentoring sessions, respond to requests, and see the difference you&apos;re making — all in one beautifully connected space.
+          <p className="mt-6 max-w-2xl text-xl text-slate-600 font-medium leading-relaxed">
+            Manage your mentoring sessions, respond to requests, and see the difference you're making — all in one beautifully connected space.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-10 flex flex-wrap gap-4">
             <Link
               href="/mentor/requests"
-              className="group relative inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-emerald-600 to-green-600 px-7 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-emerald-500/30 active:scale-95"
+              className="group relative inline-flex h-14 items-center gap-3 rounded-2xl bg-emerald-500 px-8 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:bg-emerald-600 hover:-translate-y-0.5 active:scale-95"
             >
-              Review {stats?.pending || 0} requests <ArrowRight size={18} strokeWidth={2.5} className="transition-transform group-hover:translate-x-1" />
+              Review {stats?.pending || 0} requests <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="/mentor/schedule"
-              className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-base font-semibold text-emerald-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
+              className="inline-flex h-14 items-center gap-3 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl px-8 text-base font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
             >
               Set Availability
             </Link>

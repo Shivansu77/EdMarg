@@ -8,6 +8,8 @@ import {
   GraduationCap,
   Loader2,
   MailCheck,
+  CheckCircle2,
+  ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Logo from '@/components/Logo';
@@ -351,58 +353,76 @@ export default function CompleteProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f8f4]">
-      <div className="border-b border-slate-200 bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+    <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col">
+      {/* Dynamic Background Blobs */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute -top-[10%] -right-[10%] h-[500px] w-[500px] rounded-full bg-emerald-200/30 blur-[120px]" />
+        <div className="absolute top-[20%] -left-[10%] h-[400px] w-[400px] rounded-full bg-cyan-100/40 blur-[100px]" />
+        <div className="absolute -bottom-[10%] right-[20%] h-[600px] w-[600px] rounded-full bg-emerald-100/30 blur-[140px]" />
+      </div>
+
+      <div className="relative z-10 px-6 py-5 border-b border-white/40 bg-white/40 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
           <Logo />
-          <div className="hidden text-sm font-medium text-slate-500 md:block">
-            Complete profile
+          <div className="flex items-center gap-3">
+            <span className="hidden text-sm font-bold text-slate-500 tracking-wide md:block">
+              {email}
+            </span>
+            <div className="h-8 w-px bg-slate-200 hidden md:block" />
+            <div className="text-xs font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
+              Profile Setup
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="mx-auto max-w-5xl px-6 py-12">
-        <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-          <aside className="space-y-6">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Step 2 of 2</p>
-              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900">{title}</h1>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
-                Google gave us your basic details. Add the rest so we can set up your account properly.
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-12 flex-1 w-full flex items-center justify-center">
+        <div className="grid gap-12 lg:grid-cols-[320px_1fr] w-full items-start">
+          <aside className="space-y-8 lg:sticky lg:top-8">
+            <div className="space-y-4">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700">
+                Step 2 of 2
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">{title}</h1>
+              <p className="text-base leading-relaxed text-slate-600 font-medium">
+                Complete these details to unlock your personalized dashboard and start connecting with mentors.
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Summary</p>
-              <div className="mt-4 space-y-4 text-sm text-slate-600">
-                <div>
-                  <p className="font-medium text-slate-900">Role</p>
-                  <p className="mt-1">{role === 'mentor' ? 'Mentor setup' : 'Student setup'}</p>
+            <div className="rounded-[2rem] border border-white/60 bg-white/60 backdrop-blur-2xl p-7 shadow-[0_20px_50px_rgba(16,185,129,0.08)]">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600 mb-5">Configuration</p>
+              <div className="space-y-5">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-500">Selected Role</span>
+                  <span className="text-sm font-extrabold text-slate-900 bg-white px-3 py-1 rounded-lg border border-slate-100 shadow-sm">{role === 'mentor' ? 'Mentor' : 'Student'}</span>
                 </div>
-                <div>
-                  <p className="font-medium text-slate-900">Email status</p>
-                  <p className="mt-1">{emailVerified ? 'Verified' : 'Pending verification'}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-500">Email Status</span>
+                  <span className={`text-sm font-extrabold ${emailVerified ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    {emailVerified ? 'Verified' : 'Pending'}
+                  </span>
                 </div>
-                <div>
-                  <p className="font-medium text-slate-900">Next</p>
-                  <p className="mt-1">{role === 'mentor' ? 'Admin review after completion' : 'Direct dashboard access after completion'}</p>
-                </div>
+                <div className="h-px bg-slate-200/60" />
+                <p className="text-xs leading-relaxed text-slate-500 font-medium">
+                  {role === 'mentor' 
+                    ? 'Mentor profiles require manual admin approval after completion.' 
+                    : 'Students get immediate access to the platform.'}
+                </p>
               </div>
             </div>
 
-            <Link href="/login" className="inline-flex text-sm font-medium text-slate-500 transition hover:text-slate-900">
-              Back to login
+            <Link href="/login" className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 transition hover:text-slate-900">
+              <span className="h-px w-4 bg-slate-300" /> Back to login
             </Link>
           </aside>
 
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-            <div className="border-b border-slate-100 pb-6">
-              <p className="text-sm font-medium text-slate-500">Profile</p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">Complete your account</h2>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{helperText}</p>
+          <section className="rounded-[3rem] border border-white/80 bg-white/40 backdrop-blur-3xl p-8 sm:p-12 shadow-[0_40px_100px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
+            <div className="mb-10">
+              <h2 className="text-3xl font-extrabold text-slate-950 tracking-tight">Tell us about yourself</h2>
+              <p className="mt-3 text-base leading-relaxed text-slate-600 font-medium">{helperText}</p>
             </div>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 mb-12">
               {roleCards.map(({ role: roleValue, title: cardTitle, subtitle, icon: Icon }) => {
                 const active = role === roleValue;
 
@@ -411,192 +431,188 @@ export default function CompleteProfilePage() {
                     key={roleValue}
                     type="button"
                     onClick={() => setRole(roleValue)}
-                    className={`rounded-2xl border px-4 py-4 text-left transition ${
+                    className={`group relative rounded-3xl border p-6 text-left transition-all duration-300 ${
                       active
-                        ? 'border-slate-900 bg-slate-50'
-                        : 'border-slate-200 bg-white hover:border-slate-300'
+                        ? 'border-emerald-500 bg-white shadow-xl shadow-emerald-500/10 ring-4 ring-emerald-500/5'
+                        : 'border-white/60 bg-white/30 hover:border-emerald-200 hover:bg-white/60'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`rounded-xl p-2 ${active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                        <Icon className="h-4 w-4" />
+                    <div className="flex flex-col gap-4">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 ${active ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-3' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600'}`}>
+                        <Icon className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900">{cardTitle}</p>
-                        <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+                        <p className={`text-lg font-bold ${active ? 'text-slate-950' : 'text-slate-700'}`}>{cardTitle}</p>
+                        <p className={`mt-1 text-sm leading-relaxed ${active ? 'text-slate-600' : 'text-slate-400'} font-medium`}>{subtitle}</p>
                       </div>
                     </div>
+                    {active && (
+                      <div className="absolute top-4 right-4 h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      </div>
+                    )}
                   </button>
                 );
               })}
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-8">
-              <div className="grid gap-5 sm:grid-cols-2">
-                <label className="block text-sm font-medium text-slate-700">
-                  Full name
+            <form onSubmit={handleSubmit} className="space-y-10">
+              <div className="grid gap-8 sm:grid-cols-2">
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">Full Name</label>
                   <input
                     value={name}
                     onChange={(event) => setName(event.target.value)}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
-                    placeholder="Your full name"
+                    className="w-full rounded-2xl border border-slate-200 bg-white/80 px-5 py-4 text-slate-950 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 placeholder:text-slate-300 font-medium"
+                    placeholder="e.g. Shivansu Bisht"
                     required
                   />
-                </label>
+                </div>
 
-                <label className="block text-sm font-medium text-slate-700">
-                  Email
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">Email Address</label>
                   <input
                     value={email}
                     disabled
-                    className="mt-2 w-full cursor-not-allowed rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-500"
+                    className="w-full cursor-not-allowed rounded-2xl border border-slate-100 bg-slate-50/50 px-5 py-4 text-slate-400 font-medium"
                   />
-                </label>
+                </div>
 
-                <label className="block text-sm font-medium text-slate-700 sm:col-span-2">
-                  Phone number
-                  <input
-                    value={phoneNumber}
-                    onChange={(event) => setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 10))}
-                    className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
-                    placeholder="10-digit phone number"
-                  />
-                </label>
+                <div className="sm:col-span-2 space-y-3">
+                  <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">Phone Number</label>
+                  <div className="relative">
+                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold border-r border-slate-200 pr-3">+91</span>
+                    <input
+                      value={phoneNumber}
+                      onChange={(event) => setPhoneNumber(event.target.value.replace(/\D/g, '').slice(0, 10))}
+                      className="w-full rounded-2xl border border-slate-200 bg-white/80 pl-16 pr-5 py-4 text-slate-950 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 placeholder:text-slate-300 font-medium"
+                      placeholder="10-digit number"
+                    />
+                  </div>
+                </div>
               </div>
 
               {role === 'mentor' && (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex items-start gap-3">
-                      <div className={`rounded-xl p-2 ${emailVerified ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700'}`}>
-                        <MailCheck className="h-4 w-4" />
+                <div className="rounded-[2rem] border border-white bg-emerald-50/30 p-8 ring-1 ring-emerald-500/10">
+                  <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all ${emailVerified ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-600 shadow-sm'}`}>
+                        <MailCheck className="h-6 w-6" />
                       </div>
                       <div>
-                        <p className="font-medium text-slate-900">Verify email</p>
-                        <p className="mt-1 text-sm leading-6 text-slate-600">
-                          {emailVerified
-                            ? 'Your email is verified.'
-                            : 'Verify your email before your mentor account can move into review.'}
-                        </p>
+                        <p className="text-lg font-bold text-slate-950">Identity Verification</p>
+                        <p className="text-sm text-slate-600 font-medium">Required for mentor onboarding</p>
                       </div>
                     </div>
-                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-                      emailVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-700'
-                    }`}>
+                    <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${emailVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-white/80 text-amber-600 shadow-sm'}`}>
                       {emailVerified ? 'Verified' : 'Pending'}
-                    </span>
+                    </div>
                   </div>
 
                   {!emailVerified && (
-                    <div className="mt-4 grid gap-3 sm:grid-cols-[auto_1fr_auto]">
+                    <div className="mt-8 flex flex-col sm:flex-row gap-3">
                       <button
                         type="button"
                         onClick={handleSendOtp}
                         disabled={!canSendOtp}
-                        className="rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:opacity-70"
+                        className="h-14 px-6 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50"
                       >
-                        {sendingOtp
-                          ? 'Sending...'
-                          : otpCooldownSeconds > 0
-                            ? `Resend in ${otpCooldownSeconds}s`
-                            : 'Send OTP'}
+                        {sendingOtp ? '...' : otpCooldownSeconds > 0 ? `${otpCooldownSeconds}s` : 'Send OTP'}
                       </button>
                       <input
                         value={otp}
                         onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="Enter 6-digit OTP"
-                        className="min-w-0 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
+                        placeholder="6-digit code"
+                        className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-5 text-slate-950 outline-none transition-all focus:border-emerald-400 font-bold tracking-[0.5em] text-center"
                       />
                       <button
                         type="button"
                         onClick={handleVerifyOtp}
                         disabled={verifyingOtp}
-                        className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-70"
+                        className="h-14 px-8 rounded-2xl bg-slate-950 text-white font-bold transition-all hover:bg-slate-800 disabled:opacity-50 shadow-lg shadow-slate-950/20"
                       >
-                        {verifyingOtp ? 'Verifying...' : 'Verify'}
+                        {verifyingOtp ? '...' : 'Verify'}
                       </button>
                     </div>
                   )}
-                  {!emailVerified && otpCooldownSeconds > 0 && (
-                    <p className="mt-3 text-sm text-slate-500">
-                      You can request a new OTP in {otpCooldownSeconds}s.
-                    </p>
-                  )}
                 </div>
               )}
 
-              {role === 'student' ? (
-                <div className="grid gap-5">
-                  <label className="block text-sm font-medium text-slate-700">
-                    Class or level
-                    <input
-                      value={classLevel}
-                      onChange={(event) => setClassLevel(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
-                      placeholder="Class 12, Graduate, Early career"
-                      required
-                    />
-                  </label>
+              <div className="space-y-8">
+                {role === 'student' ? (
+                  <div className="grid gap-8">
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">Academic Level</label>
+                      <input
+                        value={classLevel}
+                        onChange={(event) => setClassLevel(event.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white/80 px-5 py-4 text-slate-950 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 placeholder:text-slate-300 font-medium"
+                        placeholder="e.g. Final Year B.Tech, Class 12"
+                        required
+                      />
+                    </div>
 
-                  <label className="block text-sm font-medium text-slate-700">
-                    Interests
-                    <input
-                      value={interests}
-                      onChange={(event) => setInterests(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
-                      placeholder="Design, engineering, finance"
-                    />
-                  </label>
-                </div>
-              ) : (
-                <div className="grid gap-5">
-                  <label className="block text-sm font-medium text-slate-700">
-                    LinkedIn profile link
-                    <input
-                      value={linkedinUrl}
-                      onChange={(event) => setLinkedinUrl(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
-                      placeholder="https://www.linkedin.com/in/your-profile"
-                      required
-                    />
-                  </label>
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">Interests & Skills</label>
+                      <input
+                        value={interests}
+                        onChange={(event) => setInterests(event.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white/80 px-5 py-4 text-slate-950 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 placeholder:text-slate-300 font-medium"
+                        placeholder="e.g. UI/UX Design, Python, Product Management"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-8">
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">LinkedIn Profile</label>
+                      <input
+                        value={linkedinUrl}
+                        onChange={(event) => setLinkedinUrl(event.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white/80 px-5 py-4 text-slate-950 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 placeholder:text-slate-300 font-medium"
+                        placeholder="https://www.linkedin.com/in/your-profile"
+                        required
+                      />
+                    </div>
 
-                  <label className="block text-sm font-medium text-slate-700">
-                    Expertise
-                    <input
-                      value={expertise}
-                      onChange={(event) => setExpertise(event.target.value)}
-                      className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
-                      placeholder="Career coaching, system design, product strategy"
-                      required
-                    />
-                  </label>
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">Core Expertise</label>
+                      <input
+                        value={expertise}
+                        onChange={(event) => setExpertise(event.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-white/80 px-5 py-4 text-slate-950 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 placeholder:text-slate-300 font-medium"
+                        placeholder="e.g. Backend Architecture, Data Science, GTM Strategy"
+                        required
+                      />
+                    </div>
 
-                  <label className="block text-sm font-medium text-slate-700">
-                    Short bio
-                    <textarea
-                      value={bio}
-                      onChange={(event) => setBio(event.target.value)}
-                      className="mt-2 min-h-32 w-full rounded-2xl border border-slate-200 px-4 py-3 text-slate-900 outline-none transition focus:border-slate-400"
-                      placeholder="Describe your background and what kind of students you help."
-                    />
-                  </label>
-                </div>
-              )}
+                    <div className="space-y-3">
+                      <label className="text-sm font-bold text-slate-900 tracking-wide ml-1 uppercase text-[10px]">Professional Bio</label>
+                      <textarea
+                        value={bio}
+                        onChange={(event) => setBio(event.target.value)}
+                        className="w-full min-h-[140px] rounded-2xl border border-slate-200 bg-white/80 px-5 py-4 text-slate-950 outline-none transition-all focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/5 placeholder:text-slate-300 font-medium resize-none"
+                        placeholder="Tell students about your journey and how you can help them..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
 
-              <div className="flex flex-col gap-4 border-t border-slate-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-slate-500">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pt-6 border-t border-slate-100">
+                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
                   {role === 'mentor'
-                    ? 'Mentor accounts need email verification and admin review.'
-                    : 'You can update these details later from your profile.'}
+                    ? 'Account enters admin review after save'
+                    : 'Changes take effect immediately'}
                 </p>
 
                 <button
                   type="submit"
                   disabled={saving}
-                  className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-6 py-3 text-sm font-medium text-white transition hover:bg-slate-800 disabled:opacity-70"
+                  className="w-full sm:w-auto inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-emerald-500 px-10 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition-all hover:bg-emerald-600 hover:shadow-emerald-600/30 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50"
                 >
-                  {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save and continue'}
+                  {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Save and Continue'}
+                  <ArrowRight className="h-5 w-5" />
                 </button>
               </div>
             </form>

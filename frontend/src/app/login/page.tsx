@@ -131,27 +131,29 @@ const LoginContent: React.FC = () => {
   }, [apiBaseUrl, searchParams, router, redirectParam]);
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-linear-to-b from-emerald-50 via-green-50/40 to-white flex flex-col">
-      {/* ... (existing background) ... */}
+    <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col">
+      {/* Dynamic Background Accents */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-emerald-200/55 blur-[100px]" />
-        <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-cyan-100/60 blur-[100px]" />
+        <div className="absolute -top-48 -right-48 h-[40rem] w-[40rem] rounded-full bg-emerald-200/20 blur-[120px]" />
+        <div className="absolute top-1/2 -left-48 h-[50rem] w-[50rem] rounded-full bg-cyan-100/30 blur-[140px]" />
       </div>
 
-      <div className="relative z-10 px-6 py-4 border-b border-emerald-100/50 bg-white/70 backdrop-blur-md">
+      <div className="relative z-10 border-b border-white/60 bg-white/40 px-6 py-5 backdrop-blur-xl sm:px-12">
         <Logo />
       </div>
 
-      <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-sm animate-fade-up">
-          <div className="bg-white/85 backdrop-blur-xl border border-white/60 p-8 rounded-4xl shadow-[0_30px_70px_rgba(16,185,129,0.12)]">
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-10">
+        <div className="w-full max-w-md animate-fade-up">
+          <div className="rounded-[2.5rem] border border-white/60 bg-white/40 p-8 shadow-[0_28px_70px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03] backdrop-blur-3xl sm:p-9">
             <div className="mb-8">
-              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-bold text-emerald-700 tracking-wide">
-                Sign in to continue
-              </p>
-              <h1 className="mt-5 text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Welcome back</h1>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                Access your EdMarg dashboard, bookings, and mentor journey from one place.
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                Authentication Required
+              </div>
+              <h1 className="mb-3 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-[2rem]">
+                Welcome back to <span className="text-emerald-600">EdMarg</span>
+              </h1>
+              <p className="text-sm leading-7 text-slate-600 sm:text-[15px]">
+                Log in to continue your professional growth journey and manage your bookings.
               </p>
             </div>
 
@@ -159,34 +161,35 @@ const LoginContent: React.FC = () => {
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:bg-slate-50 hover:border-emerald-200 transition-all shadow-sm group/google mb-6"
+              className="group mb-7 flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-white bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-xl hover:shadow-slate-200/50 active:scale-95"
             >
-              <Image
-                src="/google-logo.png"
-                alt="Google"
-                width={32}
-                height={32}
-                className="h-8 w-8 object-contain transition-transform group-hover/google:scale-110"
-              />
+              <div className="relative h-7 w-7 shrink-0">
+                <Image
+                  src="/google-logo.png"
+                  alt="Google"
+                  fill
+                  className="object-contain transition-transform group-hover:scale-110"
+                />
+              </div>
               <span>Continue with Google</span>
             </button>
 
-            <div className="relative mb-6">
+            <div className="relative mb-7">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
+                <div className="w-full border-t border-slate-200/60"></div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white/85 px-2 text-slate-400 font-bold">Or continue with email</span>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-[0.18em]">
+                <span className="bg-white/10 px-4 font-semibold text-slate-400 backdrop-blur-sm">Or continue with email</span>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Email address
+              <div className="space-y-2">
+                <label htmlFor="email" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Email Address
                 </label>
                 <div className="relative">
-                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                   <input
                     id="email"
                     type="email"
@@ -194,19 +197,17 @@ const LoginContent: React.FC = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
                     required
-                    className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
+                    className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
                   />
                 </div>
               </div>
 
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label htmlFor="password" className="block text-sm font-semibold text-slate-900">
-                    Password
-                  </label>
-                </div>
+              <div className="space-y-2">
+                <label htmlFor="password" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                  Password
+                </label>
                 <div className="relative">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <Lock size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                   <input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
@@ -215,13 +216,12 @@ const LoginContent: React.FC = () => {
                     placeholder="••••••••"
                     required
                     minLength={4}
-                    className="w-full pl-10 pr-10 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
+                    className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-11 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((current) => !current)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                    aria-label="Toggle password visibility"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500 transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -229,45 +229,41 @@ const LoginContent: React.FC = () => {
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl">
-                  <p className="text-sm font-medium text-red-700">{error}</p>
+                <div className="p-4 bg-red-50/50 backdrop-blur-sm border border-red-100 rounded-2xl animate-shake">
+                  <p className="text-sm font-semibold text-red-600">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 mt-2 bg-linear-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 disabled:from-slate-300 disabled:to-slate-300 text-slate-900 font-bold rounded-xl transition-all duration-200 shadow-[0_12px_24px_rgba(16,185,129,0.25)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.35)] disabled:shadow-none flex items-center justify-center gap-2"
+                className="mt-3 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-slate-950 text-sm font-semibold text-white shadow-xl shadow-slate-950/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95 disabled:opacity-50"
               >
                 {loading ? (
                   <>
-                    <Loader size={18} className="animate-spin text-slate-700" />
+                    <Loader size={20} className="animate-spin" />
                     Signing in...
                   </>
                 ) : (
-                  'Sign in'
+                  'Sign in to Dashboard'
                 )}
               </button>
             </form>
 
-            <div className="my-7 flex items-center gap-3">
-              <div className="flex-1 h-px bg-slate-200" />
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">OR</span>
-              <div className="flex-1 h-px bg-slate-200" />
+            <div className="mt-8 border-t border-slate-200/60 pt-6 text-center">
+              <p className="text-sm text-slate-600">
+                Don&apos;t have an account?{' '}
+                <Link href="/signup" className="font-semibold text-emerald-600 transition-all decoration-2 underline-offset-4 hover:text-emerald-700 hover:underline">
+                  Create account
+                </Link>
+              </p>
             </div>
-
-            <p className="text-center text-sm font-medium text-slate-600">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-emerald-600 hover:text-emerald-700 font-bold transition-colors">
-                Create account
-              </Link>
-            </p>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 px-6 py-6 text-center text-sm font-medium text-slate-500">
-        <p>&copy; {new Date().getFullYear()} EdMarg. All rights reserved.</p>
+      <div className="relative z-10 px-6 py-8 text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <p>&copy; {new Date().getFullYear()} EdMarg. Crafted for professional excellence.</p>
       </div>
     </div>
   );

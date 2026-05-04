@@ -291,12 +291,25 @@ function MentorProfileContent() {
 
   return (
     <MentorDashboardLayout>
-      <div className="max-w-4xl pb-16">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Mentor Profile</h1>
-          <p className="mt-2 text-sm text-gray-500">
-            Manage your professional details, session rates, and booking preferences.
-          </p>
+      <div className="max-w-4xl pb-16 relative">
+        <div className="mb-10 overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/40 backdrop-blur-xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+                Professional Identity
+              </p>
+              <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">Mentor Profile</h1>
+              <p className="mt-3 text-base text-slate-600 font-medium leading-relaxed max-w-2xl">
+                Manage your professional details, session rates, and booking preferences. Your profile is your brand.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-sm backdrop-blur-md">
+              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Verification Status</p>
+              <p className={`mt-1 text-base font-extrabold ${approvalStatus === 'approved' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                {approvalStatus.charAt(0).toUpperCase() + approvalStatus.slice(1)}
+              </p>
+            </div>
+          </div>
         </div>
 
         {approvalStatus !== 'approved' && (
@@ -382,140 +395,53 @@ function MentorProfileContent() {
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-8">
+        <form onSubmit={handleSave} className="space-y-10">
           {/* Personal Information */}
-          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <UserCircle className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Personal Information</h2>
+          <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
+            <div className="mb-10 flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-3">
+                <UserCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Personal Information</h2>
+                <p className="text-sm text-slate-600 font-medium leading-relaxed">Your public identity on the platform</p>
+              </div>
             </div>
             
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900">Full Name</label>
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Full Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                    className="w-full h-14 px-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900">Email Address</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                     <input
                       type="email"
                       value={user?.email || ''}
                       disabled
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 text-sm cursor-not-allowed"
+                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-slate-100 bg-slate-50/50 text-slate-400 text-sm font-bold cursor-not-allowed"
                     />
                   </div>
                 </div>
-
               </div>
 
-              <div className="space-y-3 pt-2">
-                <label className="text-sm font-semibold text-gray-900">Profile Picture</label>
-                <ProfileImageUpload 
-                  currentImage={profileImage}
-                  userName={name}
-                  onUploadSuccess={(url) => setProfileImage(url)}
-                />
-              </div>
-            </div>
-          </section>
-
-          {/* About You */}
-          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <Globe className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-lg font-semibold text-gray-900">About You</h2>
-            </div>
-            
-            <div className="p-6 space-y-6">
-              {/* Languages */}
-              <div className="space-y-3">
-                <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-gray-400" /> Languages You Speak
-                </label>
-                <p className="text-xs text-gray-500">Select all languages you're comfortable mentoring in.</p>
-                <div className="flex flex-wrap gap-2.5">
-                  {PREDEFINED_LANGUAGES.map(lang => {
-                    const isSelected = languages.includes(lang);
-                    return (
-                      <button
-                        key={lang}
-                        type="button"
-                        onClick={() => handleLanguageToggle(lang)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                          isSelected 
-                            ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600 ring-offset-2' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent hover:border-gray-300'
-                        }`}
-                      >
-                        {lang}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Current Company */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    <Building2 className="w-4 h-4 text-gray-400" /> Current Company
-                  </label>
-                  <input
-                    type="text"
-                    value={currentCompany}
-                    onChange={(e) => setCurrentCompany(e.target.value)}
-                    placeholder="e.g., Google, Microsoft, Flipkart"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                {/* Current Title */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900">Current Title / Role</label>
-                  <input
-                    type="text"
-                    value={currentTitle}
-                    onChange={(e) => setCurrentTitle(e.target.value)}
-                    placeholder="e.g., Senior Software Engineer, Product Manager"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                {/* Location */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-gray-400" /> Location
-                  </label>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., Bangalore, India"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                {/* Education */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                    <GraduationCap className="w-4 h-4 text-gray-400" /> Education
-                  </label>
-                  <input
-                    type="text"
-                    value={education}
-                    onChange={(e) => setEducation(e.target.value)}
-                    placeholder="e.g., IIT Delhi, B.Tech Computer Science"
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Profile Picture</label>
+                <div className="rounded-[2rem] border-2 border-dashed border-emerald-100 bg-emerald-50/30 p-8 transition-all hover:bg-emerald-50/50">
+                  <ProfileImageUpload 
+                    currentImage={profileImage}
+                    userName={name}
+                    onUploadSuccess={(url) => setProfileImage(url)}
                   />
                 </div>
               </div>
@@ -523,55 +449,102 @@ function MentorProfileContent() {
           </section>
 
           {/* Professional Details */}
-          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <Briefcase className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Professional Details</h2>
+          <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
+            <div className="mb-10 flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 -rotate-3">
+                <Briefcase className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Professional Details</h2>
+                <p className="text-sm text-slate-600 font-medium leading-relaxed">Your experience and background</p>
+              </div>
             </div>
             
-            <div className="p-6 space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-900">LinkedIn Profile</label>
-                <input
-                  type="url"
-                  value={linkedinUrl}
-                  onChange={(e) => setLinkedinUrl(e.target.value)}
-                  placeholder="https://www.linkedin.com/in/your-profile"
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
-                />
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">LinkedIn Profile</label>
+                <div className="relative">
+                  <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                  <input
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    placeholder="https://www.linkedin.com/in/your-profile"
+                    className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-900">Professional Bio</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Professional Bio</label>
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   rows={4}
-                  placeholder="Tell students about your professional background and how you can help them..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all resize-y"
+                  placeholder="Tell students about your professional journey..."
+                  className="w-full p-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm resize-none leading-relaxed"
                 />
               </div>
 
-              <div className="space-y-2 max-w-xs">
-                <label className="text-sm font-semibold text-gray-900">Years of Experience</label>
-                <div className="relative">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Current Company</label>
+                  <div className="relative">
+                    <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                    <input
+                      type="text"
+                      value={currentCompany}
+                      onChange={(e) => setCurrentCompany(e.target.value)}
+                      placeholder="e.g. Google, Meta"
+                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Current Title</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    value={experienceYears}
-                    onChange={(e) => setExperienceYears(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
+                    type="text"
+                    value={currentTitle}
+                    onChange={(e) => setCurrentTitle(e.target.value)}
+                    placeholder="e.g. Senior Software Engineer"
+                    className="w-full h-14 px-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
                   />
-                  <div className="absolute right-4 top-2.5 text-sm text-gray-500 pointer-events-none">years</div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Years of Experience</label>
+                  <div className="relative">
+                    <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value === '' ? '' : Number(e.target.value))}
+                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Location</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g. Bangalore, India"
+                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
-                <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-gray-400" /> Expertise
-                </label>
-                <div className="flex flex-wrap gap-2.5">
+              <div className="space-y-5 pt-4">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Core Expertise</label>
+                <div className="flex flex-wrap gap-3">
                   {PREDEFINED_EXPERTISE.map(skill => {
                     const isSelected = expertise.includes(skill);
                     return (
@@ -579,10 +552,10 @@ function MentorProfileContent() {
                         key={skill}
                         type="button"
                         onClick={() => handleExpertiseToggle(skill)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        className={`px-5 py-2.5 rounded-xl text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 ${
                           isSelected 
-                            ? 'bg-indigo-600 text-white shadow-sm ring-2 ring-indigo-600 ring-offset-2' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-transparent hover:border-gray-300'
+                            ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 scale-105' 
+                            : 'bg-white/60 text-slate-500 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50'
                         }`}
                       >
                         {skill}
@@ -594,40 +567,43 @@ function MentorProfileContent() {
             </div>
           </section>
 
-          {/* Session Settings & Pricing */}
-          <section className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm">
-            <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-indigo-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Session Settings & Rates</h2>
+          {/* Session Settings */}
+          <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
+            <div className="mb-10 flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-6">
+                <Settings className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Session & Rates</h2>
+                <p className="text-sm text-slate-600 font-medium leading-relaxed">How students book and pay you</p>
+              </div>
             </div>
             
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900">Price Per Session</label>
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Price Per Session (INR)</label>
                   <div className="relative">
-                    <IndianRupee className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                    <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                     <input
                       type="number"
                       min="0"
                       value={pricePerSession}
                       onChange={(e) => setPricePerSession(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all"
-                      placeholder="Free"
+                      placeholder="0 (Free)"
+                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
                     />
                   </div>
-                  <p className="text-xs text-gray-500">Leave empty or 0 for free sessions.</p>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-900">Session Duration</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Session Duration</label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                    <Clock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
                     <select
                       value={sessionDuration}
                       onChange={(e) => setSessionDuration(Number(e.target.value))}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all appearance-none"
-                      style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236b7280\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm appearance-none cursor-pointer"
                     >
                       <option value={15}>15 Minutes</option>
                       <option value={30}>30 Minutes</option>
@@ -638,60 +614,57 @@ function MentorProfileContent() {
                 </div>
               </div>
 
-              <div className="space-y-2 pt-2">
-                <label className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-gray-400" /> Welcome Message / Instructions
-                </label>
+              <div className="space-y-3 pt-4">
+                <div className="flex items-center justify-between p-8 rounded-[2rem] bg-emerald-50/50 border border-emerald-100 ring-1 ring-emerald-500/5">
+                  <div className="max-w-md">
+                    <h4 className="text-sm font-bold text-slate-950 uppercase tracking-tight">Auto-Confirm Bookings</h4>
+                    <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
+                      Automatically accept all session requests without manual approval. Recommended for high-volume mentors.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setAutoConfirm(!autoConfirm)}
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 shadow-inner ${
+                      autoConfirm ? 'bg-emerald-500' : 'bg-slate-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
+                        autoConfirm ? 'translate-x-7' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Welcome Message</label>
                 <textarea
                   value={sessionNotes}
                   onChange={(e) => setSessionNotes(e.target.value)}
                   rows={3}
-                  placeholder="Optional notes for students after they book (e.g., 'Please send me your resume before the session')..."
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all resize-y"
+                  placeholder="Instructions for students after booking..."
+                  className="w-full p-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm resize-none leading-relaxed"
                 />
-              </div>
-
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900">Auto-Confirm Bookings</h4>
-                  <p className="text-xs text-gray-500 mt-1 max-w-md">
-                    Automatically accept all incoming mentor requests. If unchecked, you will need to manually review and approve each session request.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setAutoConfirm(!autoConfirm)}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 ${
-                    autoConfirm ? 'bg-indigo-600' : 'bg-gray-200'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      autoConfirm ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                  />
-                </button>
               </div>
             </div>
           </section>
 
           {/* Submit Action */}
-          <div className="flex items-center justify-between gap-4 pt-4">
-            <div aria-live="polite" className="min-h-6">
-              {successMsg && (
-                <p className="text-sm font-semibold text-green-700">{successMsg}</p>
-              )}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-8 pt-10 border-t border-slate-200">
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400 leading-relaxed">
+                Updates may trigger manual admin review
+              </p>
             </div>
             <button
               type="submit"
               disabled={saving}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 transition-all disabled:opacity-70 shadow-sm"
+              className="w-full sm:w-auto inline-flex h-16 items-center justify-center gap-4 rounded-2xl bg-slate-950 px-12 text-base font-bold text-white shadow-2xl shadow-slate-950/30 transition-all hover:bg-slate-800 hover:-translate-y-1 active:scale-95 disabled:opacity-50"
             >
-              {saving ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Saving Changes...</>
-              ) : (
-                <><Save className="w-5 h-5" /> Save Profile</>
-              )}
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Save className="w-5 h-5" /> Update Portfolio</>}
             </button>
           </div>
         </form>

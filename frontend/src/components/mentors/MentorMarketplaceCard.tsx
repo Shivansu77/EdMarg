@@ -97,12 +97,14 @@ export default function MentorMarketplaceCard({
         </div>
 
         {/* Rating pill on image */}
-        {showRating && (
-          <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-xs font-bold text-slate-800 shadow-sm backdrop-blur-sm">
-            <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-            {mentor.rating.toFixed(1)}
-          </div>
-        )}
+        <div className="absolute right-3 top-3 flex items-center gap-2">
+          {showRating && (
+            <div className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1.5 text-xs font-bold text-slate-800 shadow-sm backdrop-blur-sm">
+              <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+              {mentor.rating.toFixed(1)}
+            </div>
+          )}
+        </div>
 
         {/* Name + role overlay on image */}
         <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5">

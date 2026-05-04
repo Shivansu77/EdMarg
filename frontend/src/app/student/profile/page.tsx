@@ -204,48 +204,48 @@ function ProfileContent() {
 
   return (
     <DashboardLayout userName="Profile">
-      <div className="max-w-5xl pb-16">
-        <div className="mb-8 overflow-hidden rounded-3xl border border-emerald-100/50 bg-linear-to-br from-white via-slate-50 to-emerald-50/50 p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="max-w-5xl pb-16 relative">
+        <div className="mb-8 overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/40 backdrop-blur-xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
+              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
                 Student Profile
               </p>
-              <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900">Your Profile</h1>
-              <p className="mt-2 text-sm text-slate-600">
+              <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">Your Profile</h1>
+              <p className="mt-3 text-base text-slate-600 font-medium leading-relaxed max-w-2xl">
                 Manage your personal information and academic background to get better mentor matches.
               </p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Account Role</p>
-              <p className="mt-1 text-sm font-bold text-slate-900">Student</p>
+            <div className="rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-sm backdrop-blur-md">
+              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Account Role</p>
+              <p className="mt-1 text-base font-extrabold text-slate-900">Student</p>
             </div>
           </div>
         </div>
 
-        <section className="mb-8 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex items-center justify-between gap-4">
+        <section className="mb-10 rounded-3xl border border-white/60 bg-white/40 backdrop-blur-xl p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Profile Completion</p>
-              <p className="mt-1 text-2xl font-extrabold text-slate-900">{completionPct}% complete</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Profile Completion</p>
+              <p className="mt-2 text-3xl font-extrabold text-slate-900">{completionPct}% complete</p>
             </div>
-            <p className="text-xs text-slate-500">Complete all fields for better mentor recommendations.</p>
+            <p className="text-sm text-slate-500 font-medium max-w-[240px]">Complete all fields for better mentor recommendations.</p>
           </div>
-          <div className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-linear-to-r from-emerald-400 to-cyan-500 transition-all" style={{ width: `${completionPct}%` }} />
+          <div className="mt-5 h-3 w-full overflow-hidden rounded-full bg-slate-100/50">
+            <div className="h-full rounded-full bg-linear-to-r from-emerald-400 to-cyan-500 transition-all duration-1000" style={{ width: `${completionPct}%` }} />
           </div>
         </section>
 
         {errorMsg && (
-          <div className="mb-8 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 shadow-sm">
+          <div className="mb-8 flex items-start gap-3 rounded-2xl border border-red-200/50 bg-red-50/80 backdrop-blur-sm p-4 shadow-sm">
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-900">{errorMsg}</p>
+              <p className="text-sm font-bold text-red-900">{errorMsg}</p>
               {errorMsg.toLowerCase().includes('load profile') && (
                 <button
                   type="button"
                   onClick={fetchProfile}
-                  className="mt-2 text-xs font-semibold text-red-700 underline underline-offset-2"
+                  className="mt-2 text-xs font-bold text-red-700 underline underline-offset-4"
                 >
                   Retry
                 </button>
@@ -255,97 +255,119 @@ function ProfileContent() {
         )}
 
         {successMsg && (
-          <div className="mb-8 flex items-start gap-3 rounded-2xl border border-green-200 bg-green-50 p-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-            <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
-            <p className="text-sm font-medium text-green-900">{successMsg}</p>
+          <div className="mb-8 flex items-start gap-3 rounded-2xl border border-emerald-200/50 bg-emerald-50/80 backdrop-blur-sm p-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 mt-0.5" />
+            <p className="text-sm font-bold text-emerald-900">{successMsg}</p>
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-8">
+        <form onSubmit={handleSave} className="space-y-10">
           {/* Personal Information */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-6 py-5">
-              <UserCircle className="w-5 h-5 text-emerald-500" />
-              <h2 className="text-lg font-bold text-slate-900">Personal Information</h2>
+          <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
+            <div className="mb-10 flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-3">
+                <UserCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Personal Information</h2>
+                <p className="text-sm text-slate-600 font-medium leading-relaxed">Your public identity on the platform</p>
+              </div>
             </div>
             
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-900">Full Name</label>
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Full Name</label>
                   <input
                     type="text"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     maxLength={NAME_MAX_LENGTH}
                     required
-                    className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full h-14 px-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
                   />
-                  <p className="text-xs text-slate-500">{name.length}/{NAME_MAX_LENGTH}</p>
+                  <div className="flex justify-between items-center px-1">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">{name.length}/{NAME_MAX_LENGTH} Characters</p>
+                  </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-900">Email Address</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                     <input
                       type="email"
                       value={user?.email || ''}
                       disabled
-                      className="w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-500"
+                      className="w-full h-14 pl-14 pr-6 rounded-2xl border border-slate-100 bg-slate-50/50 text-slate-400 text-sm font-bold cursor-not-allowed"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">Email cannot be changed.</p>
                 </div>
               </div>
 
-              <div className="space-y-3 pt-2">
-                <label className="text-sm font-semibold text-slate-900">Profile Picture</label>
-                <ProfileImageUpload 
-                  currentImage={profileImage}
-                  userName={name}
-                  onUploadSuccess={(url) => setProfileImage(url)}
-                />
+              <div className="space-y-4">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Profile Picture</label>
+                <div className="rounded-[2rem] border-2 border-dashed border-emerald-100 bg-emerald-50/30 p-8 transition-all hover:bg-emerald-50/50">
+                  <ProfileImageUpload 
+                    currentImage={profileImage}
+                    userName={name}
+                    onUploadSuccess={(url) => setProfileImage(url)}
+                  />
+                </div>
               </div>
             </div>
           </section>
 
           {/* Academic Background */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-6 py-5">
-              <GraduationCap className="w-5 h-5 text-emerald-500" />
-              <h2 className="text-lg font-bold text-slate-900">Academic Background</h2>
+          <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
+            <div className="mb-10 flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 -rotate-3">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Academic Background</h2>
+                <p className="text-sm text-slate-600 font-medium leading-relaxed">Your current education status</p>
+              </div>
             </div>
             
-            <div className="p-6">
-              <div className="space-y-2 max-w-md">
-                <label className="text-sm font-semibold text-slate-900">Current Class Level</label>
-                <select
-                  value={classLevel}
-                  onChange={(e) => setClassLevel(e.target.value)}
-                  className="w-full appearance-none rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                  style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke=\'%236b7280\'%3E%3Cpath stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'2\' d=\'M19 9l-7 7-7-7\'%3E%3C/path%3E%3C/svg%3E")', backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
-                >
-                  <option value="" disabled>Select your education level...</option>
-                  {CLASS_LEVELS.map(level => (
-                    <option key={level} value={level}>{level}</option>
-                  ))}
-                </select>
+            <div className="space-y-8">
+              <div className="space-y-3 max-w-md">
+                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Current Class Level</label>
+                <div className="relative">
+                  <select
+                    value={classLevel}
+                    onChange={(e) => setClassLevel(e.target.value)}
+                    className="w-full h-14 px-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>Select your education level...</option>
+                    {CLASS_LEVELS.map(level => (
+                      <option key={level} value={level}>{level}</option>
+                    ))}
+                  </select>
+                  <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <Sparkles className="h-5 w-5 text-slate-300" />
+                  </div>
+                </div>
               </div>
             </div>
           </section>
 
           {/* Interests */}
-          <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            <div className="flex items-center gap-2 border-b border-slate-100 bg-slate-50/70 px-6 py-5">
-              <Sparkles className="w-5 h-5 text-emerald-500" />
-              <h2 className="text-lg font-bold text-slate-900">Career Interests</h2>
+          <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
+            <div className="mb-10 flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-6">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Career Interests</h2>
+                <p className="text-sm text-slate-600 font-medium leading-relaxed">What you want to explore or learn</p>
+              </div>
             </div>
             
-            <div className="p-6">
-              <p className="mb-4 text-sm text-slate-600">Select the fields you are interested in exploring or getting mentorship in.</p>
+            <div className="space-y-8">
+              <p className="text-sm text-slate-600 font-medium leading-relaxed">Select the fields you are interested in exploring or getting mentorship in. These help us curate your dashboard experience.</p>
               
-              <div className="flex flex-wrap gap-2.5">
+              <div className="flex flex-wrap gap-3">
                 {PREDEFINED_INTERESTS.map(interest => {
                   const isSelected = interests.includes(interest);
                   return (
@@ -353,10 +375,10 @@ function ProfileContent() {
                       key={interest}
                       type="button"
                       onClick={() => handleInterestToggle(interest)}
-                      className={`rounded-full px-4 py-2 text-sm font-bold transition-all ${
+                      className={`px-5 py-2.5 rounded-xl text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 ${
                         isSelected 
-                          ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-500 ring-offset-2' 
-                          : 'border border-transparent bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200'
+                          ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 scale-105' 
+                          : 'bg-white/60 text-slate-500 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50'
                       }`}
                     >
                       {interest}
@@ -368,24 +390,24 @@ function ProfileContent() {
           </section>
 
           {/* Submit Action */}
-          <div className="sticky bottom-4 z-10 flex flex-wrap justify-end gap-3 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg shadow-slate-900/5 backdrop-blur">
+          <div className="sticky bottom-8 z-10 flex flex-wrap items-center justify-end gap-6 rounded-[2rem] border border-white/60 bg-white/40 p-5 shadow-2xl shadow-slate-950/10 backdrop-blur-3xl ring-1 ring-black/[0.03]">
             <button
               type="button"
               onClick={handleReset}
               disabled={!isDirty || saving}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition-all hover:bg-slate-50 disabled:opacity-50"
+              className="px-6 py-3 text-sm font-bold text-slate-500 transition-all hover:text-slate-950 disabled:opacity-50 uppercase tracking-widest"
             >
               Reset Changes
             </button>
             <button
               type="submit"
               disabled={saving || !isDirty}
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-6 py-3 font-semibold text-white shadow-sm transition-all hover:bg-slate-800 disabled:opacity-70"
+              className="inline-flex h-14 items-center gap-4 rounded-2xl bg-slate-950 px-12 text-base font-bold text-white shadow-2xl shadow-slate-950/30 transition-all hover:bg-slate-800 hover:-translate-y-1 active:scale-95 disabled:opacity-50"
             >
               {saving ? (
-                <><Loader2 className="w-5 h-5 animate-spin" /> Saving Changes...</>
+                <><Loader2 className="h-5 w-5 animate-spin" /> Saving...</>
               ) : (
-                <><Save className="w-5 h-5" /> Save Profile</>
+                <><Save className="w-5 h-5" /> Save Changes</>
               )}
             </button>
           </div>

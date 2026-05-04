@@ -5,6 +5,7 @@ import ResultsSection from '@/components/ResultsSection';
 import TransformSection from '@/components/TransformSection';
 import TopMentorsSection from '@/components/TopMentorsSection';
 import TestimonialsSection from '@/components/TestimonialsSection';
+import FAQSection from '@/components/FAQSection';
 import JoinSection from '@/components/JoinSection';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -37,6 +38,8 @@ export default function Home() {
         <TopMentorsSection />
         {/* DARK: Testimonials */}
         <TestimonialsSection />
+        {/* LIGHT: FAQs */}
+        <FAQSection />
         {/* DARK: Final CTA */}
         <JoinSection />
       </main>

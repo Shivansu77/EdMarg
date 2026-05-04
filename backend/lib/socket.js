@@ -21,11 +21,10 @@ let io = null;
  * @param {import('http').Server} httpServer
  * @returns {import('socket.io').Server}
  */
+const { ALLOWED_ORIGINS } = require('./withCors');
+
 function initSocket(httpServer) {
-  const allowedOrigins = (process.env.FRONTEND_ORIGIN || 'http://localhost:3000')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
+  const allowedOrigins = ALLOWED_ORIGINS;
 
   io = new Server(httpServer, {
     cors: {

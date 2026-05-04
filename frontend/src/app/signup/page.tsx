@@ -51,7 +51,6 @@ function SignupContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const [role, setRole] = useState<"student" | "mentor">("student");
   const [classLevel, setClassLevel] = useState("");
@@ -165,7 +164,6 @@ function SignupContent() {
 
     window.dispatchEvent(new Event("edmarg-auth-user-change"));
 
-    setSuccess(`Welcome, ${createdUser.name || name}! Your account was created.`);
     toast.success(`Welcome, ${createdUser.name || name}! Your account was created.`);
 
     const fallbackPath = getPostAuthFallbackPath(createdUser);
@@ -187,8 +185,6 @@ function SignupContent() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    setSuccess("");
-
     const normalizedPhoneNumber = phoneNumber.replace(/\D/g, "");
 
     if (password !== confirmPassword) {
@@ -259,137 +255,146 @@ function SignupContent() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-linear-to-b from-emerald-50 via-green-50/40 to-white flex flex-col">
+    <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col">
+      {/* Dynamic Background Accents */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-emerald-200/55 blur-[100px]" />
-        <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-cyan-100/60 blur-[100px]" />
+        <div className="absolute -top-48 -right-48 h-[40rem] w-[40rem] rounded-full bg-emerald-200/20 blur-[120px]" />
+        <div className="absolute top-1/2 -left-48 h-[50rem] w-[50rem] rounded-full bg-cyan-100/30 blur-[140px]" />
       </div>
 
-      <div className="relative z-10 px-6 py-4 border-b border-emerald-100/50 bg-white/70 backdrop-blur-md">
+      <div className="relative z-10 border-b border-white/60 bg-white/40 px-6 py-5 backdrop-blur-xl sm:px-12">
         <Logo />
       </div>
 
-      <div className="relative z-10 flex-1 flex items-center justify-center px-6 py-12">
-        <div className="w-full max-w-md animate-fade-up">
-          <div className="bg-white/85 backdrop-blur-xl border border-white/60 p-8 rounded-4xl shadow-[0_30px_70px_rgba(16,185,129,0.12)]">
-            <div className="mb-8">
-              <h1 className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">Create account</h1>
-              <p className="text-slate-600 text-sm leading-relaxed">Join EdMarg to start learning or mentoring</p>
+      <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-10">
+        <div className="w-full max-w-2xl animate-fade-up">
+          <div className="rounded-[2.5rem] border border-white/60 bg-white/40 p-8 shadow-[0_28px_70px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03] backdrop-blur-3xl sm:p-9">
+            <div className="mb-8 text-center">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                Join the Community
+              </div>
+              <h1 className="mb-3 text-3xl font-bold leading-tight tracking-tight text-slate-950 sm:text-[2rem]">
+                Create your <span className="text-emerald-600">EdMarg</span> account
+              </h1>
+              <p className="mx-auto max-w-sm text-sm leading-7 text-slate-600 sm:text-[15px]">
+                Step into a world of expert guidance and structured professional growth.
+              </p>
             </div>
 
             <button
               type="button"
               onClick={handleGoogleSignup}
               disabled={loading}
-              className="mb-6 flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3.5 font-bold text-slate-700 shadow-sm transition-all hover:border-emerald-200 hover:bg-slate-50"
+              className="group mb-8 flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-white bg-white px-5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-xl hover:shadow-slate-200/50 active:scale-95"
             >
-              <Image
-                src="/google-logo.png"
-                alt="Google"
-                width={32}
-                height={32}
-                className="h-8 w-8 object-contain"
-              />
+              <div className="relative h-7 w-7 shrink-0">
+                <Image
+                  src="/google-logo.png"
+                  alt="Google"
+                  fill
+                  className="object-contain transition-transform group-hover:scale-110"
+                />
+              </div>
               <span>Continue with Google as {role}</span>
             </button>
 
-            <div className="relative mb-6">
+            <div className="relative mb-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
+                <div className="w-full border-t border-slate-200/60"></div>
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white/85 px-2 text-slate-400 font-bold">Or sign up with email</span>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-[0.18em]">
+                <span className="bg-white/10 px-4 font-semibold text-slate-400 backdrop-blur-sm">Or sign up with email</span>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <div className="flex gap-3 p-1.5 bg-slate-100/80 rounded-xl mb-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="mb-7 flex gap-2 rounded-2xl bg-slate-100/50 p-1.5 ring-1 ring-black/[0.03] backdrop-blur-sm">
                 <button
                   type="button"
                   onClick={() => handleRoleChange("student")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-bold text-sm transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-300 ${
                     role === "student"
-                      ? "bg-white text-emerald-600 shadow-sm"
+                      ? "bg-white text-emerald-600 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-100"
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <GraduationCap size={16} />
-                  Student
+                  <GraduationCap size={18} />
+                  I am a Student
                 </button>
                 <button
                   type="button"
                   onClick={() => handleRoleChange("mentor")}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg font-bold text-sm transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-300 ${
                     role === "mentor"
-                      ? "bg-white text-emerald-600 shadow-sm"
+                      ? "bg-white text-emerald-600 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-100"
                       : "text-slate-500 hover:text-slate-900"
                   }`}
                 >
-                  <Users size={16} />
-                  Mentor
+                  <Users size={18} />
+                  I am a Mentor
                 </button>
               </div>
 
-              <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Full name
-                </label>
-                <div className="relative">
-                  <User size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="John Doe"
-                    className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                    required
-                  />
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                    <input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="John Doe"
+                      className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Email address
-                </label>
-                <div className="relative">
-                  <Mail size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                    required
-                  />
+                <div className="space-y-2">
+                  <label htmlFor="email" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                    <input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="phone" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Phone number
-                </label>
-                <div className="relative">
-                  <Phone size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    placeholder="10-digit phone number"
-                    inputMode="numeric"
-                    pattern="[0-9]{10}"
-                    maxLength={10}
-                    className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                  />
+                <div className="space-y-2">
+                  <label htmlFor="phone" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Phone Number
+                  </label>
+                  <div className="relative">
+                    <Phone size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                    <input
+                      id="phone"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                      placeholder="10-digit number"
+                      inputMode="numeric"
+                      pattern="[0-9]{10}"
+                      maxLength={10}
+                      className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              {role === "student" ? (
-                <>
-                  <div>
-                    <label htmlFor="classLevel" className="block text-sm font-semibold text-slate-900 mb-2">
+                {role === "student" ? (
+                  <div className="space-y-2">
+                    <label htmlFor="classLevel" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                       Class / Level
                     </label>
                     <input
@@ -397,67 +402,71 @@ function SignupContent() {
                       type="text"
                       value={classLevel}
                       onChange={(e) => setClassLevel(e.target.value)}
-                      placeholder="e.g. Class 12, Graduate"
-                      className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
+                      placeholder="e.g. Class 12"
+                      className="h-12 w-full rounded-2xl border border-white bg-white/60 px-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
                       required
                     />
                   </div>
-                  <div>
-                    <label htmlFor="interests" className="block text-sm font-semibold text-slate-900 mb-2">
-                      Interests (comma separated)
-                    </label>
-                    <input
-                      id="interests"
-                      type="text"
-                      value={interests}
-                      onChange={(e) => setInterests(e.target.value)}
-                      placeholder="e.g. Design, Tech, Space"
-                      className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <label htmlFor="expertise" className="block text-sm font-semibold text-slate-900 mb-2">
-                      Expertise (comma separated)
+                ) : (
+                  <div className="space-y-2">
+                    <label htmlFor="expertise" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      Expertise
                     </label>
                     <input
                       id="expertise"
                       type="text"
                       value={expertise}
                       onChange={(e) => setExpertise(e.target.value)}
-                      placeholder="e.g. Career Coaching, Engineering"
-                      className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
+                      placeholder="e.g. Engineering"
+                      className="h-12 w-full rounded-2xl border border-white bg-white/60 px-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
                       required
                     />
                   </div>
-                  <div>
-                    <label htmlFor="bio" className="block text-sm font-semibold text-slate-900 mb-2">
-                      Short bio
+                )}
+              </div>
+
+              {role === "student" ? (
+                <div className="space-y-2">
+                  <label htmlFor="interests" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Interests (comma separated)
+                  </label>
+                  <input
+                    id="interests"
+                    type="text"
+                    value={interests}
+                    onChange={(e) => setInterests(e.target.value)}
+                    placeholder="e.g. Design, Tech, Space"
+                    className="h-12 w-full rounded-2xl border border-white bg-white/60 px-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <label htmlFor="bio" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      Short Bio
                     </label>
                     <textarea
                       id="bio"
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       placeholder="Tell us about yourself..."
-                      className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100 resize-none"
+                      className="w-full resize-none rounded-2xl border border-white bg-white/60 p-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
                       rows={3}
                     />
                   </div>
-                  <div>
-                    <label htmlFor="linkedinUrl" className="block text-sm font-semibold text-slate-900 mb-2">
-                      LinkedIn profile link
+                  <div className="space-y-2">
+                    <label htmlFor="linkedinUrl" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                      LinkedIn Profile Link
                     </label>
                     <div className="relative">
-                      <Link2 size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                      <Link2 size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
                       <input
                         id="linkedinUrl"
                         type="url"
                         value={linkedinUrl}
                         onChange={(e) => setLinkedinUrl(e.target.value)}
-                        placeholder="https://www.linkedin.com/in/your-profile"
-                        className="w-full pl-10 pr-4 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
+                        placeholder="https://www.linkedin.com/in/..."
+                        className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
                         required={role === "mentor"}
                       />
                     </div>
@@ -465,99 +474,96 @@ function SignupContent() {
                 </>
               )}
 
-              <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                    minLength={4}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                    aria-label="Toggle password visibility"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <label htmlFor="password" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                    <input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-11 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
+                      minLength={4}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500 transition-colors"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-900 mb-2">
-                  Confirm password
-                </label>
-                <div className="relative">
-                  <Lock size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-10 pr-10 py-3 bg-white/50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all shadow-sm shadow-slate-100"
-                    minLength={4}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-                    aria-label="Toggle password visibility"
-                  >
-                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Lock size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-11 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
+                      minLength={4}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-emerald-500 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50/80 backdrop-blur-sm border border-red-200 rounded-xl">
-                  <p className="text-sm font-medium text-red-700">{error}</p>
-                </div>
-              )}
-
-              {success && (
-                <div className="p-3 bg-emerald-50/80 backdrop-blur-sm border border-emerald-200 rounded-xl">
-                  <p className="text-sm font-medium text-emerald-700">{success}</p>
+                <div className="p-4 bg-red-50/50 backdrop-blur-sm border border-red-100 rounded-2xl animate-shake">
+                  <p className="text-sm font-semibold text-red-600">{error}</p>
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3.5 mt-2 bg-linear-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 disabled:from-slate-300 disabled:to-slate-300 text-slate-900 font-bold rounded-xl transition-all duration-200 shadow-[0_12px_24px_rgba(16,185,129,0.25)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.35)] disabled:shadow-none flex items-center justify-center gap-2"
+                className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-slate-950 text-sm font-semibold text-white shadow-xl shadow-slate-950/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95 disabled:opacity-50"
               >
-                {loading ? "Creating account..." : "Create account"}
+                {loading ? (
+                  <>
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Creating Account...
+                  </>
+                ) : (
+                  "Create EdMarg Account"
+                )}
               </button>
             </form>
 
-            <div className="my-7 flex items-center gap-3">
-              <div className="flex-1 h-px bg-slate-200" />
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">OR</span>
-              <div className="flex-1 h-px bg-slate-200" />
+            <div className="mt-8 border-t border-slate-200/60 pt-6 text-center">
+              <p className="text-sm text-slate-600">
+                Already have an account?{" "}
+                <Link href="/login" className="font-semibold text-emerald-600 transition-all decoration-2 underline-offset-4 hover:text-emerald-700 hover:underline">
+                  Sign in
+                </Link>
+              </p>
             </div>
-
-            <p className="text-center text-sm font-medium text-slate-600">
-              Already have an account?{" "}
-              <Link href="/login" className="text-emerald-600 hover:text-emerald-700 font-bold transition-colors">
-                Sign in
-              </Link>
-            </p>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 px-6 py-6 text-center text-sm font-medium text-slate-500">
-        <p>&copy; {new Date().getFullYear()} EdMarg. All rights reserved.</p>
+      <div className="relative z-10 px-6 py-8 text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <p>&copy; {new Date().getFullYear()} EdMarg. Empowering professional excellence.</p>
       </div>
     </div>
   );

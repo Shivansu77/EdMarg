@@ -23,8 +23,9 @@ const Footer = () => {
           </div>
           
           <nav className="flex flex-wrap justify-center gap-8 text-sm font-semibold text-emerald-200/80">
-            <Link href="#how-it-works" className="hover:text-emerald-400 transition-colors">How it Works</Link>
-            <Link href="#mentors" className="hover:text-emerald-400 transition-colors">Mentors</Link>
+            <Link href="/about" className="hover:text-emerald-400 transition-colors">About Us</Link>
+            <Link href="/pricing" className="hover:text-emerald-400 transition-colors">Pricing</Link>
+            <Link href="/contact" className="hover:text-emerald-400 transition-colors">Contact</Link>
             <Link href="/privacy" className="hover:text-emerald-400 transition-colors">Privacy</Link>
             <Link href="/terms" className="hover:text-emerald-400 transition-colors">Terms</Link>
           </nav>

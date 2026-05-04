@@ -112,42 +112,44 @@ function StudentDashboardContent() {
       <div className="min-h-dvh pb-16">
         
         {/* Dynamic Header */}
-        <div className="relative overflow-hidden border-b border-white/40 bg-white/30 backdrop-blur-md px-6 pb-10 pt-8 sm:px-8">
-          <div className="absolute -top-24 right-1/4 h-96 w-96 rounded-full bg-emerald-200/55 blur-[100px] pointer-events-none" />
-          <div className="absolute bottom-0 left-1/4 h-96 w-96 rounded-full bg-cyan-100/60 blur-[100px] pointer-events-none" />
+        <div className="relative overflow-hidden border-b border-white/60 bg-white/40 backdrop-blur-3xl px-6 pb-12 pt-10 sm:px-12">
+          <div className="absolute -top-32 -right-32 h-[40rem] w-[40rem] rounded-full bg-emerald-200/20 blur-[120px] pointer-events-none" />
+          <div className="absolute top-1/2 -left-32 h-[30rem] w-[30rem] rounded-full bg-cyan-100/30 blur-[100px] pointer-events-none" />
           
-          <div className="relative z-10 w-full max-w-6xl mx-auto">
-            <Label>Student Workspace</Label>
-            <h1 className="mt-3 text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl">
-              Welcome back, {user?.name?.split(' ')[0] || 'Student'}.
+          <div className="relative z-10 w-full max-w-7xl mx-auto">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 mb-8">
+              Student Workspace
+            </div>
+            <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-6xl max-w-4xl">
+              Welcome back, <span className="text-emerald-600">{user?.name?.split(' ')[0] || 'Student'}</span>.
             </h1>
-            <p className="mt-3 max-w-2xl text-lg text-gray-600/90 leading-relaxed tracking-wide">
+            <p className="mt-6 max-w-2xl text-xl text-slate-600 font-medium leading-relaxed">
               {upcomingBookings.length > 0 
-                ? "You have upcoming mentorship sessions. Review your notes and prepare your questions."
+                ? "Your journey is picking up speed. You have upcoming sessions to prepare for."
                 : pendingAssignments.length > 0 
-                  ? "Finish your pending assessments to unlock stronger mentor matches."
-                  : "Explore our mentor network and book your first session."}
+                  ? "Take your pending assessments to unlock a more personalized experience."
+                  : "Start your professional transformation by exploring our world-class mentor network."}
             </p>
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-10 flex flex-wrap gap-4">
               {pendingAssignments.length > 0 && (
                 <Link
                   href={`/student/assessments/${pendingAssignments[0]._id}`}
-                  className="group relative inline-flex items-center gap-2 rounded-xl bg-linear-to-r from-emerald-400 to-green-500 hover:from-emerald-500 hover:to-green-600 px-7 py-3.5 text-base font-bold text-slate-900 shadow-[0_12px_24px_rgba(16,185,129,0.25)] hover:shadow-[0_16px_32px_rgba(16,185,129,0.35)] transition-all duration-300 hover:-translate-y-0.5 active:scale-95"
+                  className="group relative inline-flex h-14 items-center gap-3 rounded-2xl bg-emerald-500 px-8 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:bg-emerald-600 hover:-translate-y-0.5 active:scale-95"
                 >
-                  Continue Assessment <ArrowRight size={18} strokeWidth={2.5} className="transition-transform group-hover:translate-x-1" />
+                  Continue Assessment <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
                 </Link>
               )}
               <Link
                 href="/student/mentors"
-                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-base font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
+                className="inline-flex h-14 items-center gap-3 rounded-2xl bg-slate-950 px-8 text-base font-bold text-white shadow-xl shadow-slate-950/20 transition-all hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95"
               >
                 Browse Mentors
               </Link>
               <Link
                 href="/student/assessments"
-                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-white/80 backdrop-blur-sm px-7 py-3.5 text-base font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
+                className="inline-flex h-14 items-center gap-3 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl px-8 text-base font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
               >
-                Take Assessment
+                Take New Assessment
               </Link>
             </div>
           </div>

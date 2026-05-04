@@ -17,6 +17,9 @@ import {
   Users,
   X,
   ChevronLeft,
+  Heart,
+  LogOut,
+  Sparkles,
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -60,16 +63,21 @@ const adminNavItems = [
 
 const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed }: SidebarProps) => {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const isRightSide = side === 'right';
   
   const navItems =
     user?.role === 'admin' ? adminNavItems : user?.role === 'mentor' ? mentorNavItems : studentNavItems;
 
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
+
   return (
     <>
       <div
-        className={`fixed inset-0 z-40 bg-slate-950/30 transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-sm transition-all duration-500 lg:hidden ${
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
@@ -77,58 +85,31 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
       />
 
       <aside
-        className={`fixed inset-y-0 z-50 flex flex-col bg-white border-r border-gray-200 pb-4 pt-4 shadow-sm backdrop-blur-xl transition-all duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:left-auto lg:right-auto lg:shadow-none ${
+        className={`fixed inset-y-0 z-50 flex h-full flex-col border-r border-white/40 bg-white/40 backdrop-blur-3xl transition-all duration-500 ease-in-out lg:static ${
           isRightSide
             ? `right-0 border-l border-r-0 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`
-            : `left-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`
-        } ${isCollapsed ? 'w-20' : 'w-64'}`}
+            : `left-0 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`
+        } ${isCollapsed ? 'w-24' : 'w-72'}`}
       >
-        {/* Header */}
-        <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
-          {!isCollapsed && (
-            <div className="group block">
-              <Logo imgClassName="h-12 w-auto" className="mb-0" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
-                Workspace
-              </p>
-            </div>
-          )}
-          
-          <div className="flex items-center gap-2">
-            {/* Close button for mobile */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
-              aria-label="Close navigation"
-            >
-              <X size={16} />
-            </button>
-
-            {/* Collapse button for desktop */}
-            <button
-              type="button"
-              onClick={onToggleCollapsed}
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-              aria-label="Toggle sidebar"
-            >
-              <ChevronLeft size={16} className={`transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
-            </button>
+        <div className="flex h-20 items-center justify-between border-b border-white/40 px-6">
+          <div className={`transition-all duration-300 ${isCollapsed ? 'scale-0 opacity-0 w-0' : 'scale-100 opacity-100'}`}>
+            <Logo imgClassName="h-10 w-auto" />
           </div>
+          <button
+            onClick={onToggleCollapsed}
+            className="group flex h-10 w-10 items-center justify-center rounded-2xl bg-white/60 text-slate-400 border border-white/80 shadow-sm transition-all hover:bg-emerald-500 hover:text-white hover:border-emerald-400 hover:shadow-lg hover:shadow-emerald-500/20"
+          >
+            <ChevronLeft className={`h-5 w-5 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
-        {/* Navigation */}
-        <div className="flex h-full flex-col px-2">
-          {!isCollapsed && (
-            <p className="text-xs font-semibold uppercase tracking-widest text-gray-500 px-2 mb-4">
+        <div className="flex flex-1 flex-col gap-8 overflow-y-auto px-4 py-8 custom-scrollbar">
+          <div className="space-y-1.5">
+            <p className={`mb-4 px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 transition-opacity duration-300 ${isCollapsed ? 'opacity-0' : 'opacity-100'}`}>
               Navigation
             </p>
-          )}
-
-          <nav className="space-y-1 flex-1">
             {navItems.map((item) => {
-              const isActive =
-                pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
               const Icon = item.icon;
 
               return (
@@ -136,50 +117,52 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
                   key={item.name}
                   href={item.href}
                   onClick={onClose}
-                  className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
+                  className={`group flex items-center gap-3.5 rounded-2xl px-4 py-3.5 text-sm font-bold transition-all duration-300 ${
                     isActive
-                      ? 'bg-emerald-50/80 text-emerald-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
+                      ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/25 ring-4 ring-emerald-500/5'
+                      : 'text-slate-500 hover:bg-white/80 hover:text-emerald-600 hover:shadow-sm'
                   }`}
-                  title={isCollapsed ? item.name : undefined}
                 >
-                  <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors duration-300 ${
-                      isActive
-                        ? 'bg-linear-to-br from-emerald-400 to-green-500 text-slate-900 shadow-sm shadow-emerald-500/20'
-                        : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
-                    }`}
-                  >
-                    <Icon size={18} strokeWidth={2} />
-                  </span>
-                  {!isCollapsed && (
-                    <>
-                      <span className={`flex-1 text-sm ${isActive ? 'font-bold' : 'font-semibold'}`}>{item.name}</span>
-                      <ChevronRight
-                        size={14}
-                        className={`transition-transform ${isActive ? 'text-emerald-700' : 'text-slate-400 opacity-0 group-hover:opacity-100'}`}
-                      />
-                    </>
+                  <div className={`flex items-center justify-center transition-transform duration-300 ${isActive ? 'rotate-3 scale-110' : 'group-hover:scale-110'}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  {!isCollapsed && <span className="truncate">{item.name}</span>}
+                  {isActive && !isCollapsed && (
+                    <div className="ml-auto h-1.5 w-1.5 rounded-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]" />
                   )}
                 </Link>
               );
             })}
-          </nav>
+          </div>
 
-          {/* Workspace Tip */}
           {!isCollapsed && (
-            <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/50 p-4 mt-auto shadow-[0_4px_20px_rgba(16,185,129,0.03)]">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
-                Workspace Tip
-              </p>
-              <p className="mt-2 text-sm font-extrabold text-slate-900">
-                Everything at your fingertips
-              </p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600 font-medium">
-                Move seamlessly between assessments, mentors, and your profile to manage your journey.
-              </p>
+            <div className="mt-auto px-2">
+              <div className="rounded-[2rem] border border-white/60 bg-white/40 p-5 shadow-sm ring-1 ring-black/[0.02]">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                    <Sparkles className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-extrabold text-slate-900">Premium Pro</p>
+                    <p className="text-[10px] font-bold text-slate-500">Unlimited sessions</p>
+                  </div>
+                </div>
+                <button className="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95">
+                  Upgrade Now
+                </button>
+              </div>
             </div>
           )}
+        </div>
+
+        <div className="border-t border-white/40 p-4">
+          <button
+            onClick={handleLogout}
+            className="group flex w-full items-center gap-3.5 rounded-2xl px-4 py-3.5 text-sm font-bold text-slate-500 transition-all duration-300 hover:bg-red-50 hover:text-red-600"
+          >
+            <LogOut className="h-5 w-5 transition-transform group-hover:-translate-x-1" />
+            {!isCollapsed && <span>Sign Out</span>}
+          </button>
         </div>
       </aside>
     </>
