@@ -2,12 +2,13 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Menu, Search, LogOut, User, MessageSquare, Calendar, Check, Settings } from 'lucide-react';
+import { Bell, Menu, Search, LogOut, User, MessageSquare, Calendar, Check, Settings, Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Image from 'next/image';
 import { apiClient } from '@/utils/api-client';
 import Link from 'next/link';
+import AppImage from '@/components/AppImage';
 
 import { getImageUrl } from '@/utils/imageUrl';
 interface HeaderProps {
@@ -195,6 +196,16 @@ const DashboardHeader = ({
         <div className="flex items-center gap-2">
 
 
+          {user?.role === 'student' && (
+            <Link 
+              href="/student/wishlist" 
+              className={actionButtonClasses}
+              aria-label="Wishlist"
+            >
+              <Heart size={18} className="text-slate-500" />
+            </Link>
+          )}
+
           <div className="relative" ref={notificationsRef}>
             <button 
               type="button" 
@@ -274,18 +285,17 @@ const DashboardHeader = ({
             >
                {user?.profileImage ? (
                 <div className="relative h-full w-full rounded-full overflow-hidden">
-                  <img
+                  <AppImage
                     src={getImageUrl(user.profileImage, user.name, 300, user.profileImageUpdatedAt)}
                     alt={`${resolvedDisplayName} profile`}
-                    className="h-full w-full object-cover object-top"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = getImageUrl("", user.name);
-                      }}
-                    />
-                  </div>
-                ) : (
-                  avatarLetter
-                )}
+                    fill
+                    fallbackName={user.name}
+                    className="object-cover object-top"
+                  />
+                </div>
+              ) : (
+                avatarLetter
+              )}
             </button>
 
             {isProfileOpen && (

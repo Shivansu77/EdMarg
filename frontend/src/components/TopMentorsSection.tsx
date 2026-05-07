@@ -3,7 +3,9 @@ import { getImageUrl } from '@/utils/imageUrl';
 import { resolveApiBaseUrl } from '@/utils/api-base';
 
 import React, { useRef, useEffect, useState } from 'react';
-import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users } from 'lucide-react';
+import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users, Heart } from 'lucide-react';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import AppImage from '@/components/AppImage';
 
@@ -25,6 +27,8 @@ const TopMentorsSection = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { toggleWishlist, isWishlisted } = useWishlist();
 
   useEffect(() => {
     const fetchMentors = async () => {
@@ -108,7 +112,7 @@ const TopMentorsSection = () => {
             return (
             <div
               key={mentor._id}
-              className="group relative flex min-w-[85vw] snap-center flex-col overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/20 transition-all duration-300 hover:shadow-lg hover:border-emerald-300 sm:min-w-87.5 lg:min-w-0"
+              className="group relative flex min-w-[85vw] snap-center flex-col overflow-hidden rounded-2xl border border-white/60 bg-white/40 backdrop-blur-xl transition-all duration-300 hover:shadow-xl hover:border-emerald-300 sm:min-w-87.5 lg:min-w-0 shadow-[0_8px_32px_0_rgba(15,23,42,0.06)]"
             >
               {/* Image */}
               <div className="relative aspect-4/3 w-full overflow-hidden bg-emerald-100">
@@ -116,6 +120,7 @@ const TopMentorsSection = () => {
                   src={image} 
                   alt={mentor.name} 
                   fill
+                  fallbackName={mentor.name}
                   sizes="(max-width: 1024px) 100vw, 33vw"
                   className="object-cover object-top transition-transform duration-500 group-hover:scale-105" 
                 />
@@ -125,6 +130,22 @@ const TopMentorsSection = () => {
                   <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                   <span className="text-sm font-bold text-slate-900">{rating}</span>
                 </div>
+
+                {/* Wishlist Button */}
+                {user?.role === 'student' && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleWishlist(mentor._id);
+                    }}
+                    className={`absolute top-4 left-4 rounded-full bg-white/90 p-2 shadow-md backdrop-blur-sm transition-all hover:scale-110 active:scale-95 z-10 ${
+                      isWishlisted(mentor._id) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+                    }`}
+                  >
+                    <Heart size={16} className={isWishlisted(mentor._id) ? 'fill-current' : ''} />
+                  </button>
+                )}
 
                 {/* Company Badge */}
                 <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-white/95 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-md border border-emerald-100">
@@ -174,7 +195,7 @@ const TopMentorsSection = () => {
                 <div className="mt-auto pt-4 border-t border-emerald-100">
                   <Link
                     href="/browse-mentors"
-                    className="w-full py-2.5 rounded-lg font-semibold text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 flex items-center justify-center gap-2 transition-all hover:bg-emerald-100 hover:border-emerald-300"
+                    className="w-full py-2.5 rounded-lg font-bold text-sm text-white bg-[#00C091] border border-white/20 shadow-[0_4px_14px_rgba(0,192,145,0.3)] backdrop-blur-md flex items-center justify-center gap-2 transition-all hover:bg-[#00a87d] hover:shadow-[0_6px_20px_rgba(0,192,145,0.4)]"
                   >
                     View Profile
                   </Link>

@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Star, Search, X } from 'lucide-react';
+import { Star, Search, X, Heart } from 'lucide-react';
 import Image from 'next/image';
 
 
 import { getImageUrl } from '@/utils/imageUrl';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/context/AuthContext';
 type Mentor = {
   _id: string;
   name: string;
@@ -31,6 +33,8 @@ export default function BrowseMentorsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const { user } = useAuth();
+  const { toggleWishlist, isWishlisted } = useWishlist();
   const itemsPerPage = 12;
 
   useEffect(() => {
@@ -255,7 +259,7 @@ export default function BrowseMentorsPage() {
                       return (
                         <div
                           key={mentor._id}
-                          className="group rounded-2xl border border-emerald-100 bg-white overflow-hidden hover:shadow-xl hover:border-emerald-400 transition-all duration-300 flex flex-col"
+                          className="group rounded-2xl border border-white/60 bg-white/40 backdrop-blur-xl overflow-hidden hover:shadow-xl hover:border-emerald-400/50 transition-all duration-300 flex flex-col shadow-[0_8px_32px_0_rgba(15,23,42,0.08)]"
                         >
                           {/* Image Section with Overlay */}
                           <div className="relative h-48 bg-linear-to-br from-gray-700 via-gray-800 to-black overflow-hidden">
@@ -271,6 +275,21 @@ export default function BrowseMentorsPage() {
                                 <Star size={16} className="fill-yellow-400 text-yellow-400" />
                                 <span className="text-sm font-bold text-gray-900">{Number(rating).toFixed(1)}</span>
                               </div>
+                            )}
+                            
+                            {/* Wishlist Button */}
+                            {user?.role === 'student' && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  toggleWishlist(mentor._id);
+                                }}
+                                className={`absolute top-3 left-3 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110 active:scale-95 ${
+                                  isWishlisted(mentor._id) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+                                }`}
+                              >
+                                <Heart size={18} className={isWishlisted(mentor._id) ? 'fill-current' : ''} />
+                              </button>
                             )}
                           </div>
 
@@ -317,12 +336,12 @@ export default function BrowseMentorsPage() {
                             {/* Buttons */}
                             <div className="flex gap-3">
                               <Link href={`/browse-mentors/${mentor._id}`} className="flex-1">
-                                <button className="w-full rounded-lg bg-emerald-50 hover:bg-emerald-100 px-4 py-2.5 text-sm font-bold text-emerald-700 transition-all duration-200 border border-emerald-200">
+                                <button className="w-full rounded-lg bg-white/50 backdrop-blur-md hover:bg-white/80 px-4 py-2.5 text-sm font-bold text-emerald-700 transition-all duration-200 border border-white/40 shadow-sm">
                                   View Profile
                                 </button>
                               </Link>
                               <Link href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'} className="flex-1">
-                                <button className="w-full rounded-lg bg-emerald-500 hover:bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition-all duration-200 shadow-[0_10px_24px_rgba(16,185,129,0.3)] hover:shadow-[0_12px_30px_rgba(16,185,129,0.4)]">
+                                <button className="w-full rounded-lg bg-[#00C091] px-4 py-2.5 text-sm font-bold text-white border border-white/20 shadow-[0_4px_14px_rgba(0,192,145,0.4)] backdrop-blur-md transition-all hover:bg-[#00a87d] hover:shadow-[0_6px_20px_rgba(0,192,145,0.5)] hover:-translate-y-0.5">
                                   {isLoggedIn ? 'Connect' : 'Sign in'}
                                 </button>
                               </Link>

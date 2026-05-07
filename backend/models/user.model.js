@@ -26,9 +26,9 @@ const userSchema = new mongoose.Schema(
       validate: {
         validator: (value) => {
           if (!value) return true;
-          return /^\d{10}$/.test(String(value));
+          return /^(\+?\d{10,15})$/.test(String(value));
         },
-        message: 'Phone number must be exactly 10 digits',
+        message: 'Phone number must be between 10 and 15 digits',
       },
     },
     password: {
@@ -84,6 +84,7 @@ const userSchema = new mongoose.Schema(
       approvedBy: mongoose.Schema.Types.ObjectId,
       rejectionReason: String,
     },
+    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   { timestamps: true }
 );

@@ -15,7 +15,6 @@ const blogSchema = new mongoose.Schema(
   }
 );
 
-blogSchema.index({ slug: 1 }, { unique: true });
 blogSchema.index({ created_at: -1 });
 
 module.exports = mongoose.model('Blog', blogSchema);

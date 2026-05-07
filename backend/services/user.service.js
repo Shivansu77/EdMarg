@@ -23,8 +23,8 @@ const normalizePhoneNumber = (phoneNumber) => {
     return '';
   }
 
-  if (digits.length !== 10) {
-    throw new ValidationError('Phone number must be exactly 10 digits');
+  if (digits.length < 10 || digits.length > 15) {
+    throw new ValidationError('Phone number must be between 10 and 15 digits');
   }
 
   return digits;

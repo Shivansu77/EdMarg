@@ -45,57 +45,61 @@ const Navbar = () => {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'border-b border-emerald-100 bg-white/88 py-3 shadow-[0_10px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl'
-          : 'bg-transparent py-4'
+          ? 'border-b border-slate-200/60 bg-white/80 py-2 shadow-sm backdrop-blur-xl'
+          : 'bg-transparent py-3'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
         <Logo />
 
-        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-2 rounded-full border border-slate-200/80 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-600 shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-md">
-          <Link href="/" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Home</Link>
-          <Link href="/pricing" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Pricing</Link>
-          <Link href="/about" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">About</Link>
-          <Link href="/blogs" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Blog</Link>
+        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full border border-slate-200/60 bg-white/80 px-2 py-1.5 text-[13px] font-medium text-slate-600 shadow-sm backdrop-blur-md">
+          <Link href="/" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Home</Link>
+          <Link href="/pricing" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Pricing</Link>
+          <Link href="/about" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">About</Link>
+          <Link href="/blogs" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Blog</Link>
+          {isLoggedIn && userRole === 'student' && (
+            <Link href="/student/wishlist" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Wishlist</Link>
+          )}
           {!isLoggedIn && (
             <>
-              <Link href="/#how-it-works" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">How it Works</Link>
-              <Link href="/#mentors" className="rounded-full px-4 py-1.5 hover:bg-emerald-50 hover:text-slate-900 transition-colors">Mentors</Link>
+              <Link href="/#how-it-works" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">How it Works</Link>
+              <Link href="/#mentors" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Mentors</Link>
             </>
           )}
         </nav>
 
         <div className="hidden lg:flex items-center gap-4">
           {isLoggedIn ? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <AppImage
                 src={userAvatar}
                 alt={`${userName} avatar`}
-                width={32}
-                height={32}
-                className="h-8 w-8 rounded-full object-cover object-top"
+                width={28}
+                height={28}
+                fallbackName={userName}
+                className="h-7 w-7 rounded-full object-cover object-top"
               />
-              <span className="text-sm text-gray-600">Welcome, {userName}</span>
+              <span className="text-[13px] font-medium text-slate-500">Welcome, {userName}</span>
               <Link
                 href={`/${userRole}/dashboard`}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold rounded-full transition-colors"
+                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[13px] font-semibold rounded-full transition-colors"
               >
                 Dashboard
               </Link>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1.5 text-slate-500 hover:text-slate-900 transition-colors text-[13px] font-medium"
               >
-                <LogOut size={18} />
+                <LogOut size={16} />
                 Logout
               </button>
             </div>
           ) : (
             <>
-              <Link href="/login" className="text-sm font-bold text-slate-600 hover:text-emerald-600 transition-colors">
+              <Link href="/login" className="text-[13px] font-semibold text-slate-600 hover:text-emerald-600 transition-colors">
                 Log in
               </Link>
-              <Link href="/signup" className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-emerald-500/25 hover:-translate-y-0.5 active:scale-95">
+              <Link href="/signup" className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold rounded-full transition-all shadow-sm shadow-emerald-500/20 hover:-translate-y-0.5 active:scale-95">
                 Get Started
               </Link>
             </>
@@ -116,6 +120,9 @@ const Navbar = () => {
               <Link href="/pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
               <Link href="/about" onClick={() => setIsOpen(false)}>About</Link>
               <Link href="/blogs" onClick={() => setIsOpen(false)}>Blog</Link>
+              {isLoggedIn && userRole === 'student' && (
+                <Link href="/student/wishlist" onClick={() => setIsOpen(false)}>Wishlist</Link>
+              )}
               {!isLoggedIn && (
                 <>
                 <Link href="/#how-it-works" onClick={() => setIsOpen(false)}>How it Works</Link>

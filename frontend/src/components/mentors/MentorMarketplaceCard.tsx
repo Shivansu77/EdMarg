@@ -12,9 +12,11 @@ import {
   MapPin,
   Star,
   Users,
+  Heart,
 } from 'lucide-react';
 
 import { getImageUrl } from '@/utils/imageUrl';
+import { useWishlist } from '@/hooks/useWishlist';
 
 export interface MentorMarketplaceCardData {
   id: string;
@@ -62,6 +64,8 @@ export default function MentorMarketplaceCard({
     : `/login?redirect=${encodeURIComponent(`/student/booking?id=${mentor.id}`)}`;
 
   const imageUrl = getImageUrl(mentor.profileImage, mentor.name, 400);
+  const { toggleWishlist, isWishlisted } = useWishlist();
+  const wishlisted = isWishlisted(mentor.id);
 
   return (
     <motion.article
@@ -70,7 +74,7 @@ export default function MentorMarketplaceCard({
       viewport={{ once: true, amount: 0.15 }}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.28, ease: 'easeOut' }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-slate-200/70 bg-white shadow-[0_4px_24px_rgba(15,23,42,0.06)] transition-all duration-300 hover:border-emerald-300/60 hover:shadow-[0_12px_40px_rgba(16,185,129,0.1)]"
+      className="group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(15,23,42,0.08)] transition-all duration-300 hover:bg-white/50 hover:border-emerald-300/50 hover:shadow-[0_12px_40px_rgba(16,185,129,0.15)]"
     >
       {/* ── Hero Image ── */}
       <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
@@ -79,6 +83,7 @@ export default function MentorMarketplaceCard({
           alt={mentor.name}
           fill
           priority={priority}
+          fallbackName={mentor.name}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
           className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
         />
@@ -104,6 +109,17 @@ export default function MentorMarketplaceCard({
               {mentor.rating.toFixed(1)}
             </div>
           )}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              toggleWishlist(mentor.id);
+            }}
+            className={`inline-flex items-center justify-center rounded-full bg-white/90 p-2 shadow-sm backdrop-blur-sm transition-all hover:scale-110 active:scale-95 ${
+              wishlisted ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${wishlisted ? 'fill-current' : ''}`} />
+          </button>
         </div>
 
         {/* Name + role overlay on image */}
@@ -220,7 +236,7 @@ export default function MentorMarketplaceCard({
             </Link>
             <Link
               href={connectHref}
-              className="inline-flex min-h-[42px] items-center justify-center gap-1 rounded-xl bg-slate-950 px-3 text-[13px] font-semibold text-white shadow-[0_6px_16px_rgba(15,23,42,0.2)] transition-all hover:bg-slate-800 hover:shadow-[0_8px_24px_rgba(15,23,42,0.28)]"
+              className="inline-flex min-h-[42px] items-center justify-center gap-1 rounded-xl bg-[#00C091] px-3 text-[13px] font-bold text-white border border-white/20 shadow-[0_4px_14px_rgba(0,192,145,0.4)] backdrop-blur-md transition-all hover:bg-[#00a87d] hover:shadow-[0_6px_20px_rgba(0,192,145,0.5)] hover:-translate-y-0.5"
             >
               Connect
               <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

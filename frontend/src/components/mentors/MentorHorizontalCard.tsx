@@ -3,7 +3,9 @@
 import React from 'react';
 import AppImage from '@/components/AppImage';
 import Link from 'next/link';
-import { Star, Briefcase, ChevronRight, User, Globe } from 'lucide-react';
+import { Star, Briefcase, ChevronRight, User, Globe, Heart } from 'lucide-react';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/context/AuthContext';
 
 
 import { getImageUrl } from '@/utils/imageUrl';
@@ -25,6 +27,9 @@ interface MentorHorizontalCardProps {
 }
 
 const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps) => {
+  const { user } = useAuth();
+  const { toggleWishlist, isWishlisted } = useWishlist();
+  const wishlisted = isWishlisted(mentor._id);
   const rating = mentor.mentorProfile?.rating ?? 5.0;
   const reviews = mentor.mentorProfile?.totalSessions ?? 82;
   const expertise =
@@ -44,7 +49,7 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
   const experience = mentor.mentorProfile?.experienceYears ?? 5;
 
   return (
-    <div className="group w-full bg-white rounded-2xl border border-gray-200 transition-all duration-300 hover:shadow-lg">
+    <div className="group w-full bg-white/40 backdrop-blur-xl rounded-2xl border border-white/60 transition-all duration-300 hover:shadow-xl hover:border-emerald-300/50 shadow-[0_8px_32px_0_rgba(15,23,42,0.06)]">
 
       {/* Featured Badge */}
       <div className="absolute right-10">
@@ -63,6 +68,7 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
                 src={getImageUrl(mentor.profileImage, mentor.name)}
                 alt={mentor.name}
                 fill
+                fallbackName={mentor.name}
                 className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             ) : (
@@ -72,12 +78,30 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
             )}
 
             {/* Rating */}
+            {/* Rating */}
             <div className="absolute bottom-3 left-3 bg-white border border-gray-200 px-3 py-1 rounded-md flex items-center gap-1 shadow-sm">
               <Star size={12} className="fill-black text-black" />
               <span className="text-xs font-medium">
                 {Number(rating).toFixed(1)}
               </span>
             </div>
+
+            {/* Wishlist Button */}
+            {user?.role === 'student' && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleWishlist(mentor._id);
+                }}
+                className={`absolute top-3 right-3 rounded-full bg-white/90 p-2 shadow-sm backdrop-blur-sm transition-all hover:scale-110 active:scale-95 z-10 ${
+                  wishlisted ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+                }`}
+                title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                <Heart size={16} className={wishlisted ? 'fill-current' : ''} />
+              </button>
+            )}
           </div>
 
           {/* Info */}
@@ -143,7 +167,7 @@ const MentorHorizontalCard = ({ mentor, isLoggedIn }: MentorHorizontalCardProps)
               href={isLoggedIn ? `/student/booking?id=${mentor._id}` : '/login'}
               className="w-full"
             >
-              <button className="w-full bg-black text-white py-3 rounded-lg text-sm font-medium hover:bg-black/80 transition-all flex items-center justify-center gap-2">
+              <button className="w-full bg-[#00C091] text-white py-3 rounded-xl text-sm font-bold border border-white/20 shadow-[0_4px_14px_rgba(0,192,145,0.3)] backdrop-blur-md hover:bg-[#00a87d] hover:shadow-[0_6px_20px_rgba(0,192,145,0.4)] transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5">
                 Book Session
                 <ChevronRight size={18} />
               </button>

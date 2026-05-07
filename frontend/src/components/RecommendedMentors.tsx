@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
+import AppImage from '@/components/AppImage';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 import {
@@ -14,7 +15,10 @@ import {
   Briefcase,
   TrendingUp,
   Zap,
+  Heart,
 } from 'lucide-react';
+import { useWishlist } from '@/hooks/useWishlist';
+import { useAuth } from '@/context/AuthContext';
 
 interface RecommendedMentor {
   _id: string;
@@ -49,6 +53,8 @@ export default function RecommendedMentors({ variant = 'dashboard' }: Recommende
   const [mentors, setMentors] = useState<RecommendedMentor[]>([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const { toggleWishlist, isWishlisted } = useWishlist();
 
   useEffect(() => {
     const fetch = async () => {
@@ -157,7 +163,7 @@ export default function RecommendedMentors({ variant = 'dashboard' }: Recommende
               <Link
                 key={mentor._id}
                 href={`/student/mentors/${mentor._id}`}
-                className="group relative flex-shrink-0 w-[300px] rounded-[1.75rem] border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-emerald-200"
+                className="group relative flex-shrink-0 w-[300px] rounded-[1.75rem] border border-white/60 bg-white/50 backdrop-blur-xl p-5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-emerald-200 hover:bg-white/60"
                 style={{ scrollSnapAlign: 'start' }}
               >
                 {/* Match Badge */}
@@ -166,18 +172,32 @@ export default function RecommendedMentors({ variant = 'dashboard' }: Recommende
                   {mentor.matchScore}% match
                 </div>
 
+                {/* Wishlist Button */}
+                {user?.role === 'student' && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleWishlist(mentor._id);
+                    }}
+                    className={`absolute top-4 left-4 rounded-full bg-white/90 p-1.5 shadow-md backdrop-blur-sm transition-all hover:scale-110 active:scale-95 z-10 ${
+                      isWishlisted(mentor._id) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+                    }`}
+                  >
+                    <Heart size={14} className={isWishlisted(mentor._id) ? 'fill-current' : ''} />
+                  </button>
+                )}
+
                 {/* Avatar + Name */}
                 <div className="flex items-center gap-3.5 mb-4">
                   <div className="relative h-14 w-14 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-white font-extrabold text-xl shrink-0">
                     {mentor.profileImage ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <AppImage
                         src={getImageUrl(mentor.profileImage, mentor.name, 200)}
                         alt={mentor.name}
-                        className="h-full w-full object-cover object-top"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
+                        fill
+                        fallbackName={mentor.name}
+                        className="object-cover object-top"
                       />
                     ) : (
                       mentor.name.charAt(0).toUpperCase()

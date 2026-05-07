@@ -10,15 +10,18 @@ const withVersion = (value: string, version?: number) => {
 };
 
 export const getImageUrl = (url?: string, defaultName?: string, size = 300, version?: number) => {
-  if (!url || url === 'null' || url === 'undefined') {
+  if (!url || url === 'null' || url === 'undefined' || url === '') {
     if (defaultName) {
       return `https://ui-avatars.com/api/?background=f1f5f9&color=0f172a&name=${encodeURIComponent(defaultName)}&size=${size}&bold=true`;
     }
-    return '/default-avatar.png'; // Or some fallback
+    return `https://ui-avatars.com/api/?background=f1f5f9&color=0f172a&name=User&size=${size}&bold=true`;
   }
-  if (url.startsWith('http') || url.startsWith('data:')) {
-    return withVersion(url, version);
+
+  if (url.startsWith('http') || url.startsWith('data:') || url.startsWith('//')) {
+    const finalUrl = url.startsWith('//') ? `https:${url}` : url;
+    return withVersion(finalUrl, version);
   }
+
   const backendBaseUrl = resolveBackendBaseUrl();
   return withVersion(`${backendBaseUrl}${url.startsWith('/') ? '' : '/'}${url}`, version);
 };
