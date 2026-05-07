@@ -21,6 +21,16 @@ services:
         value: https://www.edmarg.com,https://edmarg.onrender.com
       - key: FRONTEND_ORIGINS
         value: https://www.edmarg.com,https://edmarg.com,https://edmarg.onrender.com
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
       - key: LOG_LEVEL
         value: info
     healthCheckPath: /api/v1/health

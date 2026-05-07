@@ -57,6 +57,7 @@ app.use(helmet({
 // Critical environment checks
 console.log('🔍 Environment check: JWT_SECRET =', process.env.JWT_SECRET ? 'SET (length: ' + process.env.JWT_SECRET.length + ')' : 'MISSING');
 console.log('🔍 Environment check: MONGODB_URI =', process.env.MONGODB_URI ? 'SET (starts with: ' + process.env.MONGODB_URI.substring(0, 15) + '...)' : 'MISSING');
+console.log('🔍 Environment check: SMTP =', (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ? 'YES' : 'NO (Missing SMTP Credentials)');
 console.log('🔍 Environment check: ZOOM_ENABLED =', (process.env.ZOOM_ACCOUNT_ID && process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET) ? 'YES' : 'NO (Missing Zoom Credentials)');
 console.log('🔍 Environment check: NODE_ENV =', process.env.NODE_ENV || 'development');
 
