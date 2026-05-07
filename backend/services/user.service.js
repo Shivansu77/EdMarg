@@ -239,14 +239,19 @@ class UserService {
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
     const otpHash = crypto.createHash('sha256').update(otp).digest('hex');
+    const previousEmailVerification = user.emailVerification?.toObject
+      ? user.emailVerification.toObject()
+      : user.emailVerification
+        ? { ...user.emailVerification }
+        : null;
 
     user.emailVerification = {
-      ...(user.emailVerification?.toObject ? user.emailVerification.toObject() : user.emailVerification),
+      ...(previousEmailVerification || {}),
       isVerified: false,
       otpHash,
       otpExpiresAt: new Date(now + 10 * 60 * 1000),
       lastSentAt: new Date(now),
-      verifiedAt: user.emailVerification?.verifiedAt,
+      verifiedAt: previousEmailVerification?.verifiedAt,
     };
 
     await user.save();
@@ -258,6 +263,16 @@ class UserService {
     });
 
     if (!sent) {
+      user.emailVerification = previousEmailVerification || {
+        isVerified: false,
+        otpHash: undefined,
+        otpExpiresAt: undefined,
+        lastSentAt: undefined,
+        verifiedAt: undefined,
+      };
+
+      await user.save();
+
       if (process.env.NODE_ENV !== 'production') {
         console.warn(`[EMAIL_OTP_DEV_FALLBACK] SMTP not configured. OTP for ${user.email}: ${otp}`);
         return { alreadyVerified: false, delivery: 'log' };
