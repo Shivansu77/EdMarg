@@ -30,12 +30,14 @@ function getTransporter() {
   const pass = (process.env.SMTP_PASS || '').trim();
   const host = configuredHost || (user && pass ? 'smtp.gmail.com' : '');
   const port = parseInt(process.env.SMTP_PORT || (host === 'smtp.gmail.com' ? '465' : '587'), 10);
+  const secure = port === 465;
+
+  console.log(`[Email Service] Initializing transporter: ${host}:${port} (secure: ${secure})`);
 
   if (!host || !user || !pass) {
     console.warn(
-      '[Email Service] SMTP credentials not configured — emails will be skipped. ' +
-      'Set SMTP_HOST, SMTP_USER, SMTP_PASS in your .env file. ' +
-      'For Gmail you can use SMTP_USER=<your gmail> and SMTP_PASS=<gmail app password>.'
+      '[Email Service] ⚠️ SMTP credentials not configured — emails will be skipped. ' +
+      'Set SMTP_HOST, SMTP_USER, SMTP_PASS in your environment variables.'
     );
     return null;
   }
@@ -43,18 +45,19 @@ function getTransporter() {
   transporter = nodemailer.createTransport({
     host,
     port,
-    // Use TLS for port 465, STARTTLS for everything else
-    secure: port === 465,
+    secure,
     auth: { user, pass },
-    // Connection pool for better performance with multiple sends
     pool: true,
     maxConnections: 3,
   });
 
-  // Verify connection on first creation (non-blocking)
+  // Verify connection on creation
   transporter.verify((err) => {
     if (err) {
-      console.error('[Email Service] SMTP connection verification failed:', err.message);
+      console.error('[Email Service] ❌ SMTP connection verification failed:', err.message);
+      if (err.message.includes('Username and Password not accepted')) {
+        console.error('[Email Service] 💡 TIP: Ensure you are using a Google App Password (16 chars), not your regular password.');
+      }
     } else {
       console.log('[Email Service] ✅ SMTP transporter verified and ready');
     }
