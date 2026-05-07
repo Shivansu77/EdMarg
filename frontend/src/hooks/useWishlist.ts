@@ -43,7 +43,7 @@ export const useWishlist = () => {
     try {
       const res = await apiClient.post<any>(`/api/v1/wishlist/toggle/${mentorId}`);
       if (res.success) {
-        if (res.action === 'added') {
+        if ((res as any).action === 'added') {
           setWishlistIds(prev => [...prev, mentorId]);
           toast.success('Added to wishlist');
         } else {
