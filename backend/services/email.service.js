@@ -47,6 +47,10 @@ function getTransporter() {
     port,
     secure,
     auth: { user, pass },
+    // Connection timeouts to prevent 502 Bad Gateway errors on Render
+    connectionTimeout: 8000, // 8 seconds
+    greetingTimeout: 8000,
+    socketTimeout: 10000,   // 10 seconds
     pool: true,
     maxConnections: 3,
   });
