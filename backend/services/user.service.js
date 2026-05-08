@@ -3,11 +3,19 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const userRepository = require('../repositories/user.repository');
 const { TokenBlacklist } = require('../models/user.model');
-const { UnauthorizedError, ValidationError } = require('../utils/errors');
+const { AppError, UnauthorizedError, ValidationError } = require('../utils/errors');
 const studentAssessmentRepository = require('../repositories/studentAssessment.repository');
 const careerAssessmentService = require('./careerAssessment.service');
 const { validateEmail } = require('../utils/validators');
 const { sendEmailVerificationOtpEmail } = require('./email.service');
+
+const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
+const OTP_EXPIRY_MS = 10 * 60 * 1000;
+
+const buildRetryableError = (message, statusCode, retryAfterSeconds) =>
+  Object.assign(new AppError(message, statusCode), {
+    retryAfterSeconds: Math.max(1, Math.ceil(Number(retryAfterSeconds) || 0)),
+  });
 
 const isBcryptHash = (value = '') =>
   typeof value === 'string' &&
@@ -225,7 +233,12 @@ class UserService {
     }
 
     if (user.emailVerification?.isVerified) {
-      return { alreadyVerified: true };
+      return {
+        alreadyVerified: true,
+        lastSentAt: user.emailVerification?.lastSentAt
+          ? new Date(user.emailVerification.lastSentAt).toISOString()
+          : undefined,
+      };
     }
 
     const now = Date.now();
@@ -233,8 +246,13 @@ class UserService {
       ? new Date(user.emailVerification.lastSentAt).getTime()
       : 0;
 
-    if (lastSentAt && now - lastSentAt < 60 * 1000) {
-      throw new ValidationError('Please wait a minute before requesting another OTP');
+    const retryAfterMs = lastSentAt ? OTP_RESEND_COOLDOWN_MS - (now - lastSentAt) : 0;
+    if (retryAfterMs > 0) {
+      throw buildRetryableError(
+        'Please wait a minute before requesting another OTP',
+        429,
+        retryAfterMs / 1000
+      );
     }
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -244,17 +262,26 @@ class UserService {
       : user.emailVerification
         ? { ...user.emailVerification }
         : null;
-
-    user.emailVerification = {
+    const pendingEmailVerification = {
       ...(previousEmailVerification || {}),
       isVerified: false,
       otpHash,
-      otpExpiresAt: new Date(now + 10 * 60 * 1000),
+      otpExpiresAt: new Date(now + OTP_EXPIRY_MS),
       lastSentAt: new Date(now),
       verifiedAt: previousEmailVerification?.verifiedAt,
     };
 
-    await user.save();
+    await user.updateOne({
+      $set: {
+        emailVerification: pendingEmailVerification,
+      },
+    });
+
+    const isSmtpConfigured = !!(
+      (process.env.SMTP_HOST || '').trim() &&
+      (process.env.SMTP_USER || '').trim() &&
+      (process.env.SMTP_PASS || '').trim()
+    );
 
     const sent = await sendEmailVerificationOtpEmail({
       to: user.email,
@@ -263,25 +290,35 @@ class UserService {
     });
 
     if (!sent) {
-      user.emailVerification = previousEmailVerification || {
+      const restoredEmailVerification = previousEmailVerification || {
         isVerified: false,
-        otpHash: undefined,
-        otpExpiresAt: undefined,
-        lastSentAt: undefined,
-        verifiedAt: undefined,
       };
 
-      await user.save();
+      await user.updateOne({
+        $set: {
+          emailVerification: restoredEmailVerification,
+        },
+      });
 
       if (process.env.NODE_ENV !== 'production') {
         console.warn(`[EMAIL_OTP_DEV_FALLBACK] SMTP not configured. OTP for ${user.email}: ${otp}`);
         return { alreadyVerified: false, delivery: 'log' };
       }
 
-      throw new ValidationError('Unable to send OTP email right now');
+      const reason = isSmtpConfigured
+        ? 'Failed to deliver OTP email. Check SMTP credentials on the server.'
+        : 'Email service is not configured. Set SMTP_HOST, SMTP_USER and SMTP_PASS in server environment.';
+
+      console.error(`[OTP] Email send failed — ${reason}`);
+      throw new ValidationError(reason);
     }
 
-    return { alreadyVerified: false, delivery: 'email' };
+    return {
+      alreadyVerified: false,
+      delivery: 'email',
+      lastSentAt: new Date(now).toISOString(),
+      resendAvailableAt: new Date(now + OTP_RESEND_COOLDOWN_MS).toISOString(),
+    };
   }
 
   async verifyEmailOtp(userId, otp) {
@@ -312,16 +349,20 @@ class UserService {
       throw new ValidationError('Invalid OTP');
     }
 
-    user.emailVerification = {
+    const verifiedEmailVerification = {
       isVerified: true,
       verifiedAt: new Date(),
       lastSentAt: user.emailVerification?.lastSentAt,
-      otpHash: undefined,
-      otpExpiresAt: undefined,
     };
 
-    await user.save();
-    return this.sanitizeUser(user);
+    await user.updateOne({
+      $set: {
+        emailVerification: verifiedEmailVerification,
+      },
+    });
+
+    const updatedUser = await userRepository.findById(userId);
+    return this.sanitizeUser(updatedUser);
   }
 }
 

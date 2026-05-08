@@ -35,10 +35,19 @@ const errorHandler = (err, req, res, next) => {
   }
 
   if (err instanceof AppError) {
+    const retryAfterSeconds = Number(err.retryAfterSeconds);
+
+    if (Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0) {
+      res.set('Retry-After', String(Math.ceil(retryAfterSeconds)));
+    }
+
     return res.status(err.statusCode).json({
       success: false,
       message: err.message,
       errors: err.errors || null,
+      ...(Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? { retryAfterSeconds: Math.ceil(retryAfterSeconds) }
+        : {}),
     });
   }
 

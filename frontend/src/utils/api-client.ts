@@ -27,11 +27,31 @@ interface ApiResponse<T> {
   data?: T;
   message?: string;
   error?: string;
+  errors?: unknown;
   page?: number;
   pages?: number;
   total?: number;
   count?: number;
+  status?: number;
+  retryAfterSeconds?: number;
 }
+
+const readResponseBody = async (response: Response): Promise<Record<string, unknown>> => {
+  const rawBody = await response.text();
+
+  if (!rawBody) {
+    return {};
+  }
+
+  try {
+    const parsed = JSON.parse(rawBody);
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {
+      message: rawBody,
+    };
+  }
+};
 
 class ApiClient {
   private baseUrl: string;
@@ -81,7 +101,7 @@ class ApiClient {
         headers,
       });
 
-      const data = await response.json();
+      const data = await readResponseBody(response);
 
       if (response.status === 401) {
         if (typeof window !== 'undefined') {
@@ -97,10 +117,29 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || data.error || 'Request failed');
+        const message =
+          typeof data.message === 'string'
+            ? data.message
+            : typeof data.error === 'string'
+              ? data.error
+              : 'Request failed';
+
+        return {
+          success: false,
+          error: message,
+          message,
+          errors: data.errors,
+          status: response.status,
+          retryAfterSeconds:
+            typeof data.retryAfterSeconds === 'number' ? data.retryAfterSeconds : undefined,
+        };
       }
 
-      return data;
+      return {
+        ...(data as ApiResponse<T>),
+        success: typeof data.success === 'boolean' ? data.success : true,
+        status: response.status,
+      };
     } catch (error) {
       return {
         success: false,

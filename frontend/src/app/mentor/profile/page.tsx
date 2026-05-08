@@ -68,6 +68,13 @@ interface MentorProfile {
   };
 }
 
+interface EmailOtpResponse {
+  alreadyVerified?: boolean;
+  delivery?: 'email' | 'log';
+  lastSentAt?: string;
+  resendAvailableAt?: string;
+}
+
 function MentorProfileContent() {
   const { user, updateUser } = useAuth();
   
@@ -108,7 +115,12 @@ function MentorProfileContent() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await apiClient.get<MentorProfile>('/api/v1/users/me');
+        const res = await apiClient.get<MentorProfile>('/api/v1/users/me', {
+          headers: {
+            'x-bypass-cache': '1',
+            'Cache-Control': 'no-cache',
+          },
+        });
         if (res.success && res.data) {
           const userData = res.data;
           
@@ -225,12 +237,22 @@ function MentorProfileContent() {
 
     setSendingOtp(true);
     setErrorMsg('');
-    const res = await apiClient.post('/api/v1/users/email/send-otp');
+    const res = await apiClient.post<EmailOtpResponse>('/api/v1/users/email/send-otp');
     setSendingOtp(false);
 
     if (!res.success) {
-      if ((res.error || res.message || '').includes('Please wait a minute')) {
-        const nextAvailableAt = Date.now() + OTP_RESEND_COOLDOWN_MS;
+      const isLegacyCooldown =
+        res.status === 400 &&
+        (res.error || res.message || '').includes('Please wait a minute');
+      const cooldownSeconds =
+        res.status === 429 && typeof res.retryAfterSeconds === 'number'
+          ? res.retryAfterSeconds
+          : isLegacyCooldown
+            ? OTP_RESEND_COOLDOWN_MS / 1000
+            : 0;
+
+      if (cooldownSeconds > 0) {
+        const nextAvailableAt = Date.now() + cooldownSeconds * 1000;
         setCurrentTime(Date.now());
         setOtpResendAvailableAt(nextAvailableAt);
       }
@@ -238,9 +260,18 @@ function MentorProfileContent() {
       return;
     }
 
+    if (res.data?.alreadyVerified) {
+      setEmailVerified(true);
+      setSuccessMsg(res.message || 'Email already verified');
+      return;
+    }
+
     const sentAt = Date.now();
+    const resendAvailableAt = res.data?.resendAvailableAt
+      ? new Date(res.data.resendAvailableAt).getTime()
+      : sentAt + OTP_RESEND_COOLDOWN_MS;
     setCurrentTime(sentAt);
-    setOtpResendAvailableAt(sentAt + OTP_RESEND_COOLDOWN_MS);
+    setOtpResendAvailableAt(resendAvailableAt);
     setSuccessMsg(res.message || 'OTP sent to your email');
   };
 

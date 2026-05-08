@@ -293,6 +293,7 @@ exports.sendEmailVerificationOtp = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
+      data: result,
       message: result.alreadyVerified
         ? 'Email address is already verified'
         : result.delivery === 'log'

@@ -56,6 +56,13 @@ interface ProfileResponse extends AuthProfileUser {
   };
 }
 
+interface EmailOtpResponse {
+  alreadyVerified?: boolean;
+  delivery?: 'email' | 'log';
+  lastSentAt?: string;
+  resendAvailableAt?: string;
+}
+
 const normalizeStudentProfile = (profile: ProfileResponse['studentProfile']) => {
   if (!profile) {
     return undefined;
@@ -155,7 +162,12 @@ export default function CompleteProfilePage() {
 
   useEffect(() => {
     const loadProfile = async () => {
-      const response = await apiClient.get<ProfileResponse>('/api/v1/users/me');
+      const response = await apiClient.get<ProfileResponse>('/api/v1/users/me', {
+        headers: {
+          'x-bypass-cache': '1',
+          'Cache-Control': 'no-cache',
+        },
+      });
 
       if (!response.success || !response.data) {
         router.replace('/login');
@@ -307,12 +319,22 @@ export default function CompleteProfilePage() {
     }
 
     setSendingOtp(true);
-    const response = await apiClient.post('/api/v1/users/email/send-otp');
+    const response = await apiClient.post<EmailOtpResponse>('/api/v1/users/email/send-otp');
     setSendingOtp(false);
 
     if (!response.success) {
-      if ((response.error || response.message || '').includes('Please wait a minute')) {
-        const nextAvailableAt = Date.now() + OTP_RESEND_COOLDOWN_MS;
+      const isLegacyCooldown =
+        response.status === 400 &&
+        (response.error || response.message || '').includes('Please wait a minute');
+      const cooldownSeconds =
+        response.status === 429 && typeof response.retryAfterSeconds === 'number'
+          ? response.retryAfterSeconds
+          : isLegacyCooldown
+            ? OTP_RESEND_COOLDOWN_MS / 1000
+            : 0;
+
+      if (cooldownSeconds > 0) {
+        const nextAvailableAt = Date.now() + cooldownSeconds * 1000;
         setCurrentTime(Date.now());
         setOtpResendAvailableAt(nextAvailableAt);
       }
@@ -320,9 +342,18 @@ export default function CompleteProfilePage() {
       return;
     }
 
+    if (response.data?.alreadyVerified) {
+      setEmailVerified(true);
+      toast.success(response.message || 'Email already verified');
+      return;
+    }
+
     const sentAt = Date.now();
+    const resendAvailableAt = response.data?.resendAvailableAt
+      ? new Date(response.data.resendAvailableAt).getTime()
+      : sentAt + OTP_RESEND_COOLDOWN_MS;
     setCurrentTime(sentAt);
-    setOtpResendAvailableAt(sentAt + OTP_RESEND_COOLDOWN_MS);
+    setOtpResendAvailableAt(resendAvailableAt);
     toast.success(response.message || 'OTP sent to your email');
   };
 
