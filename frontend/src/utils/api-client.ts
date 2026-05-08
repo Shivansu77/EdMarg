@@ -136,7 +136,7 @@ class ApiClient {
       }
 
       return {
-        ...(data as ApiResponse<T>),
+        ...(data as unknown as ApiResponse<T>),
         success: typeof data.success === 'boolean' ? data.success : true,
         status: response.status,
       };
