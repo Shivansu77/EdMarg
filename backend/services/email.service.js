@@ -27,7 +27,9 @@ function getTransporter() {
 
   const configuredHost = (process.env.SMTP_HOST || '').trim();
   const user = (process.env.SMTP_USER || '').trim();
-  const pass = (process.env.SMTP_PASS || '').trim();
+  // Gmail app passwords are often copied with spaces every 4 chars.
+  // Normalize them so production auth does not fail on formatted input.
+  const pass = (process.env.SMTP_PASS || '').replace(/\s+/g, '').trim();
   const host = configuredHost || (user && pass ? 'smtp.gmail.com' : '');
   const port = parseInt(process.env.SMTP_PORT || (host === 'smtp.gmail.com' ? '465' : '587'), 10);
   const secure = port === 465;
