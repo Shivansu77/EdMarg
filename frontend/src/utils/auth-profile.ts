@@ -36,7 +36,6 @@ export const isProfileComplete = (user?: AuthProfileUser | null) => {
 
   if (user.role === 'mentor') {
     return (
-      Boolean(user.emailVerification?.isVerified) &&
       hasText(user.mentorProfile?.linkedinUrl) &&
       hasItems(user.mentorProfile?.expertise)
     );

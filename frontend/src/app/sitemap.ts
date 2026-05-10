@@ -2,6 +2,8 @@ import { MetadataRoute } from 'next';
 import { getAllBlogsFromAPI } from '@/services/blog.service';
 import { SITE_URL } from '@/utils/site-url';
 
+export const dynamic = 'force-static';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const blogs = await getAllBlogsFromAPI();
 

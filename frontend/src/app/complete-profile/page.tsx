@@ -7,7 +7,6 @@ import {
   Briefcase,
   GraduationCap,
   Loader2,
-  MailCheck,
   CheckCircle2,
   ArrowRight,
 } from 'lucide-react';
@@ -18,8 +17,6 @@ import { apiClient } from '@/utils/api-client';
 import { getDefaultAuthenticatedPath, isProfileComplete, type AuthProfileUser } from '@/utils/auth-profile';
 
 type Role = 'student' | 'mentor';
-
-const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
 const roleCards: Array<{
   role: Role;
@@ -54,13 +51,6 @@ interface ProfileResponse extends AuthProfileUser {
   mentorProfile?: AuthProfileUser['mentorProfile'] & {
     bio?: string;
   };
-}
-
-interface EmailOtpResponse {
-  alreadyVerified?: boolean;
-  delivery?: 'email' | 'log';
-  lastSentAt?: string;
-  resendAvailableAt?: string;
 }
 
 const normalizeStudentProfile = (profile: ProfileResponse['studentProfile']) => {
@@ -147,12 +137,6 @@ export default function CompleteProfilePage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [otpResendAvailableAt, setOtpResendAvailableAt] = useState<number | null>(null);
-  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [role, setRole] = useState<Role>('student');
   const [classLevel, setClassLevel] = useState('');
   const [interests, setInterests] = useState('');
@@ -184,12 +168,6 @@ export default function CompleteProfilePage() {
 
       setName(profile.name || '');
       setEmail(profile.email || '');
-      setEmailVerified(Boolean(profile.emailVerification?.isVerified));
-      setOtpResendAvailableAt(
-        profile.emailVerification?.lastSentAt
-          ? new Date(profile.emailVerification.lastSentAt).getTime() + OTP_RESEND_COOLDOWN_MS
-          : null
-      );
       setPhoneNumber(profile.phoneNumber || '');
       setRole(profile.role === 'mentor' ? 'mentor' : 'student');
       setClassLevel(profile.studentProfile?.classLevel || '');
@@ -203,20 +181,6 @@ export default function CompleteProfilePage() {
     void loadProfile();
   }, [router]);
 
-  useEffect(() => {
-    if (!otpResendAvailableAt || otpResendAvailableAt <= Date.now()) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [otpResendAvailableAt]);
-
   const title = useMemo(
     () => (role === 'mentor' ? 'Finish your mentor setup' : 'Finish your student setup'),
     [role]
@@ -229,11 +193,6 @@ export default function CompleteProfilePage() {
         : 'Add a little context so we can personalize your dashboard and mentor recommendations.',
     [role]
   );
-
-  const otpCooldownSeconds = otpResendAvailableAt
-    ? Math.max(0, Math.ceil((otpResendAvailableAt - currentTime) / 1000))
-    : 0;
-  const canSendOtp = !sendingOtp && otpCooldownSeconds === 0;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -263,12 +222,6 @@ export default function CompleteProfilePage() {
 
     if (role === 'mentor' && expertiseList.length === 0) {
       toast.error('Add at least one area of expertise');
-      setSaving(false);
-      return;
-    }
-
-    if (role === 'mentor' && !emailVerified) {
-      toast.error('Please verify your email with OTP before continuing as a mentor');
       setSaving(false);
       return;
     }
@@ -313,76 +266,6 @@ export default function CompleteProfilePage() {
     );
   }
 
-  const handleSendOtp = async () => {
-    if (!canSendOtp) {
-      return;
-    }
-
-    setSendingOtp(true);
-    const response = await apiClient.post<EmailOtpResponse>('/api/v1/users/email/send-otp');
-    setSendingOtp(false);
-
-    if (!response.success) {
-      const isLegacyCooldown =
-        response.status === 400 &&
-        (response.error || response.message || '').includes('Please wait a minute');
-      const cooldownSeconds =
-        response.status === 429 && typeof response.retryAfterSeconds === 'number'
-          ? response.retryAfterSeconds
-          : isLegacyCooldown
-            ? OTP_RESEND_COOLDOWN_MS / 1000
-            : 0;
-
-      if (cooldownSeconds > 0) {
-        const nextAvailableAt = Date.now() + cooldownSeconds * 1000;
-        setCurrentTime(Date.now());
-        setOtpResendAvailableAt(nextAvailableAt);
-      }
-      toast.error(response.error || response.message || 'Unable to send OTP');
-      return;
-    }
-
-    if (response.data?.alreadyVerified) {
-      setEmailVerified(true);
-      toast.success(response.message || 'Email already verified');
-      return;
-    }
-
-    const sentAt = Date.now();
-    const resendAvailableAt = response.data?.resendAvailableAt
-      ? new Date(response.data.resendAvailableAt).getTime()
-      : sentAt + OTP_RESEND_COOLDOWN_MS;
-    setCurrentTime(sentAt);
-    setOtpResendAvailableAt(resendAvailableAt);
-    toast.success(response.message || 'OTP sent to your email');
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!/^\d{6}$/.test(otp.trim())) {
-      toast.error('Enter the 6-digit OTP');
-      return;
-    }
-
-    setVerifyingOtp(true);
-    const response = await apiClient.post<ProfileResponse>('/api/v1/users/email/verify-otp', {
-      otp: otp.trim(),
-    });
-    setVerifyingOtp(false);
-
-    if (!response.success || !response.data) {
-      toast.error(response.error || response.message || 'Unable to verify OTP');
-      return;
-    }
-
-    syncStoredUser(response.data);
-    setEmailVerified(true);
-    setOtp('');
-    updateUser({
-      emailVerification: response.data.emailVerification || undefined,
-    });
-    toast.success('Email verified successfully');
-  };
-
   return (
     <div className="min-h-screen relative overflow-hidden bg-slate-50 flex flex-col">
       {/* Dynamic Background Blobs */}
@@ -426,12 +309,6 @@ export default function CompleteProfilePage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-500">Selected Role</span>
                   <span className="text-sm font-extrabold text-slate-900 bg-white px-3 py-1 rounded-lg border border-slate-100 shadow-sm">{role === 'mentor' ? 'Mentor' : 'Student'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-500">Email Status</span>
-                  <span className={`text-sm font-extrabold ${emailVerified ? 'text-emerald-600' : 'text-amber-600'}`}>
-                    {emailVerified ? 'Verified' : 'Pending'}
-                  </span>
                 </div>
                 <div className="h-px bg-slate-200/60" />
                 <p className="text-xs leading-relaxed text-slate-500 font-medium">
@@ -522,52 +399,6 @@ export default function CompleteProfilePage() {
                   </div>
                 </div>
               </div>
-
-              {role === 'mentor' && (
-                <div className="rounded-[2rem] border border-white bg-emerald-50/30 p-8 ring-1 ring-emerald-500/10">
-                  <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all ${emailVerified ? 'bg-emerald-500 text-white' : 'bg-white text-emerald-600 shadow-sm'}`}>
-                        <MailCheck className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <p className="text-lg font-bold text-slate-950">Identity Verification</p>
-                        <p className="text-sm text-slate-600 font-medium">Required for mentor onboarding</p>
-                      </div>
-                    </div>
-                    <div className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ${emailVerified ? 'bg-emerald-100 text-emerald-700' : 'bg-white/80 text-amber-600 shadow-sm'}`}>
-                      {emailVerified ? 'Verified' : 'Pending'}
-                    </div>
-                  </div>
-
-                  {!emailVerified && (
-                    <div className="mt-8 flex flex-col sm:flex-row gap-3">
-                      <button
-                        type="button"
-                        onClick={handleSendOtp}
-                        disabled={!canSendOtp}
-                        className="h-14 px-6 rounded-2xl bg-white border border-slate-200 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 disabled:opacity-50"
-                      >
-                        {sendingOtp ? '...' : otpCooldownSeconds > 0 ? `${otpCooldownSeconds}s` : 'Send OTP'}
-                      </button>
-                      <input
-                        value={otp}
-                        onChange={(event) => setOtp(event.target.value.replace(/\D/g, '').slice(0, 6))}
-                        placeholder="6-digit code"
-                        className="h-14 flex-1 rounded-2xl border border-slate-200 bg-white px-5 text-slate-950 outline-none transition-all focus:border-emerald-400 font-bold tracking-[0.5em] text-center"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        disabled={verifyingOtp}
-                        className="h-14 px-8 rounded-2xl bg-slate-950 text-white font-bold transition-all hover:bg-slate-800 disabled:opacity-50 shadow-lg shadow-slate-950/20"
-                      >
-                        {verifyingOtp ? '...' : 'Verify'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
 
               <div className="space-y-8">
                 {role === 'student' ? (

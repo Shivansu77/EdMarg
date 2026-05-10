@@ -10,26 +10,15 @@ import {
   UserCircle, 
   Mail, 
   Briefcase, 
-  Sparkles, 
   Save, 
   Loader2,
   CheckCircle2,
   AlertCircle,
   Clock,
-  IndianRupee,
-  Settings,
-  MessageSquare,
   Globe,
   Building2,
   MapPin,
-  GraduationCap
 } from 'lucide-react';
-
-// Predefined set of common technical/career interests/expertise
-const PREDEFINED_LANGUAGES = [
-  'English', 'Hindi', 'Tamil', 'Telugu', 'Bengali', 'Marathi',
-  'Kannada', 'Gujarati', 'Malayalam', 'Punjabi', 'Urdu', 'Odia',
-];
 
 const PREDEFINED_EXPERTISE = [
   'Software Engineering', 'Data Science', 'Machine Learning', 
@@ -38,8 +27,6 @@ const PREDEFINED_EXPERTISE = [
   'Mobile Development', 'Cybersecurity', 'Cloud Computing',
   'DevOps', 'System Design', 'Interview Prep', 'Career Guidance'
 ];
-
-const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
 interface MentorProfile {
   name: string;
@@ -68,21 +55,12 @@ interface MentorProfile {
   };
 }
 
-interface EmailOtpResponse {
-  alreadyVerified?: boolean;
-  delivery?: 'email' | 'log';
-  lastSentAt?: string;
-  resendAvailableAt?: string;
-}
-
 function MentorProfileContent() {
   const { user, updateUser } = useAuth();
   
   // Form State - Personal
   const [name, setName] = useState('');
   const [profileImage, setProfileImage] = useState('');
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [otp, setOtp] = useState('');
   
   // Form State - Professional
   const [bio, setBio] = useState('');
@@ -101,10 +79,6 @@ function MentorProfileContent() {
   // UI State
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [otpResendAvailableAt, setOtpResendAvailableAt] = useState<number | null>(null);
-  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [approvalStatus, setApprovalStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
@@ -126,12 +100,6 @@ function MentorProfileContent() {
           
           setName(userData.name || '');
           setProfileImage(userData.profileImage || '');
-          setEmailVerified(Boolean(userData.emailVerification?.isVerified));
-          setOtpResendAvailableAt(
-            userData.emailVerification?.lastSentAt
-              ? new Date(userData.emailVerification.lastSentAt).getTime() + OTP_RESEND_COOLDOWN_MS
-              : null
-          );
           
           const mProfile = userData.mentorProfile || {};
           setLinkedinUrl(mProfile.linkedinUrl || '');
@@ -157,38 +125,11 @@ function MentorProfileContent() {
     fetchProfile();
   }, []);
 
-  useEffect(() => {
-    if (!otpResendAvailableAt || otpResendAvailableAt <= Date.now()) {
-      return;
-    }
-
-    const intervalId = window.setInterval(() => {
-      setCurrentTime(Date.now());
-    }, 1000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [otpResendAvailableAt]);
-
-  const otpCooldownSeconds = otpResendAvailableAt
-    ? Math.max(0, Math.ceil((otpResendAvailableAt - currentTime) / 1000))
-    : 0;
-  const canSendOtp = !sendingOtp && otpCooldownSeconds === 0;
-
   const handleExpertiseToggle = (skill: string) => {
     setExpertise(prev => 
       prev.includes(skill) 
         ? prev.filter(i => i !== skill)
         : [...prev, skill]
-    );
-  };
-
-  const handleLanguageToggle = (lang: string) => {
-    setLanguages(prev =>
-      prev.includes(lang)
-        ? prev.filter(l => l !== lang)
-        : [...prev, lang]
     );
   };
 
@@ -228,73 +169,6 @@ function MentorProfileContent() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleSendOtp = async () => {
-    if (!canSendOtp) {
-      return;
-    }
-
-    setSendingOtp(true);
-    setErrorMsg('');
-    const res = await apiClient.post<EmailOtpResponse>('/api/v1/users/email/send-otp');
-    setSendingOtp(false);
-
-    if (!res.success) {
-      const isLegacyCooldown =
-        res.status === 400 &&
-        (res.error || res.message || '').includes('Please wait a minute');
-      const cooldownSeconds =
-        res.status === 429 && typeof res.retryAfterSeconds === 'number'
-          ? res.retryAfterSeconds
-          : isLegacyCooldown
-            ? OTP_RESEND_COOLDOWN_MS / 1000
-            : 0;
-
-      if (cooldownSeconds > 0) {
-        const nextAvailableAt = Date.now() + cooldownSeconds * 1000;
-        setCurrentTime(Date.now());
-        setOtpResendAvailableAt(nextAvailableAt);
-      }
-      setErrorMsg(res.error || res.message || 'Unable to send OTP');
-      return;
-    }
-
-    if (res.data?.alreadyVerified) {
-      setEmailVerified(true);
-      setSuccessMsg(res.message || 'Email already verified');
-      return;
-    }
-
-    const sentAt = Date.now();
-    const resendAvailableAt = res.data?.resendAvailableAt
-      ? new Date(res.data.resendAvailableAt).getTime()
-      : sentAt + OTP_RESEND_COOLDOWN_MS;
-    setCurrentTime(sentAt);
-    setOtpResendAvailableAt(resendAvailableAt);
-    setSuccessMsg(res.message || 'OTP sent to your email');
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!/^\d{6}$/.test(otp.trim())) {
-      setErrorMsg('Enter a valid 6-digit OTP');
-      return;
-    }
-
-    setVerifyingOtp(true);
-    setErrorMsg('');
-    const res = await apiClient.post<MentorProfile>('/api/v1/users/email/verify-otp', { otp: otp.trim() });
-    setVerifyingOtp(false);
-
-    if (!res.success || !res.data) {
-      setErrorMsg(res.error || res.message || 'Unable to verify OTP');
-      return;
-    }
-
-    setEmailVerified(true);
-    setOtp('');
-    setSuccessMsg('EMAIL VERIFIED SUCCESSFULLY');
-    updateUser({ emailVerification: res.data.emailVerification, mentorProfile: res.data.mentorProfile });
   };
 
   if (loading) {
@@ -348,52 +222,6 @@ function MentorProfileContent() {
               </p>
               {approvalStatus === 'rejected' && rejectionReason && (
                 <p className="text-sm mt-2 text-red-800"><span className="font-semibold">Reason:</span> {rejectionReason}</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {!emailVerified && (
-          <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-blue-900">Verify your email before approval</p>
-                <p className="mt-1 text-sm text-blue-800">
-                  We need a verified email so admins and students can contact you reliably.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={handleSendOtp}
-                  disabled={!canSendOtp}
-                  className="rounded-xl border border-blue-300 bg-white px-4 py-2.5 text-sm font-semibold text-blue-900 hover:bg-blue-100 disabled:opacity-70"
-                >
-                  {sendingOtp
-                    ? 'Sending OTP...'
-                    : otpCooldownSeconds > 0
-                      ? `Resend in ${otpCooldownSeconds}s`
-                      : 'Send OTP'}
-                </button>
-                <input
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="Enter OTP"
-                  className="rounded-xl border border-blue-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="button"
-                  onClick={handleVerifyOtp}
-                  disabled={verifyingOtp}
-                  className="rounded-xl bg-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:opacity-70"
-                >
-                  {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
-                </button>
-              </div>
-              {otpCooldownSeconds > 0 && (
-                <p className="text-sm text-blue-800">
-                  You can request a new OTP in {otpCooldownSeconds}s.
-                </p>
               )}
             </div>
           </div>
