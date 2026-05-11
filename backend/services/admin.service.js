@@ -4,6 +4,7 @@ const bookingRepository = require('../repositories/booking.repository');
 const { User } = require('../models/user.model');
 const { Recording } = require('../models/Recording');
 const { Booking } = require('../models/booking.model');
+const { NotFoundError, ValidationError } = require('../utils/errors');
 
 class AdminService {
   async getAllUsers(page = 1, limit = 20, role = null, search = '') {
@@ -30,18 +31,15 @@ class AdminService {
 
   async approveMentor(mentorId, adminId) {
     const existingMentor = await userRepository.findById(mentorId);
-    if (!existingMentor) throw new Error('Mentor not found');
-    if (existingMentor.role !== 'mentor') throw new Error('User is not a mentor');
-    if (!existingMentor.emailVerification?.isVerified) {
-      throw new Error('Mentor email must be verified before approval');
-    }
+    if (!existingMentor) throw new NotFoundError('Mentor not found');
+    if (existingMentor.role !== 'mentor') throw new ValidationError('User is not a mentor');
 
     const mentor = await userRepository.updateMentorStatus(mentorId, 'approved', {
       approvedAt: new Date(),
       approvedBy: adminId,
     });
 
-    if (!mentor) throw new Error('Mentor not found');
+    if (!mentor) throw new NotFoundError('Mentor not found');
 
     return mentor;
   }
@@ -51,7 +49,7 @@ class AdminService {
       rejectionReason: reason,
     });
 
-    if (!mentor) throw new Error('Mentor not found');
+    if (!mentor) throw new NotFoundError('Mentor not found');
     return mentor;
   }
 
@@ -111,14 +109,14 @@ class AdminService {
 
   async getUserById(userId) {
     const user = await userRepository.findById(userId);
-    if (!user) throw new Error('User not found');
+    if (!user) throw new NotFoundError('User not found');
     return user;
   }
 
   async deleteUser(userId) {
     const user = await User.findById(userId);
-    if (!user) throw new Error('User not found');
-    if (user.role === 'admin') throw new Error('Cannot delete admin accounts');
+    if (!user) throw new NotFoundError('User not found');
+    if (user.role === 'admin') throw new ValidationError('Cannot delete admin accounts');
     await User.findByIdAndDelete(userId);
     return { deleted: true, id: userId };
   }
@@ -139,7 +137,7 @@ class AdminService {
 
   async cancelBooking(bookingId, reason) {
     const booking = await bookingRepository.cancelById(bookingId, reason);
-    if (!booking) throw new Error('Booking not found');
+    if (!booking) throw new NotFoundError('Booking not found');
     return booking;
   }
 

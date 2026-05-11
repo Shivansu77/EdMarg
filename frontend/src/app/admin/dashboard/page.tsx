@@ -388,13 +388,18 @@ function AdminDashboardContent() {
 
   const handleApproveMentor = async (mentorId: string) => {
     try {
+      setError(null);
       const res = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/approve`, {});
-      if (res.success) {
-        setPendingPage(1);
-        await Promise.all([loadDashboard(1), loadRecordingSummary()]);
-        setLastUpdatedAt(new Date().toISOString());
+      if (!res.success) {
+        setError(res.error || res.message || 'Failed to approve mentor');
+        return;
       }
+
+      setPendingPage(1);
+      await Promise.all([loadDashboard(1), loadRecordingSummary()]);
+      setLastUpdatedAt(new Date().toISOString());
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve mentor');
       console.error('Error approving mentor:', err);
     }
   };
@@ -404,16 +409,21 @@ function AdminDashboardContent() {
     if (!shouldReject) return;
 
     try {
+      setError(null);
       const res = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/reject`, {
         reason: 'Rejected by admin',
       });
 
-      if (res.success) {
-        setPendingPage(1);
-        await Promise.all([loadDashboard(1), loadRecordingSummary()]);
-        setLastUpdatedAt(new Date().toISOString());
+      if (!res.success) {
+        setError(res.error || res.message || 'Failed to reject mentor');
+        return;
       }
+
+      setPendingPage(1);
+      await Promise.all([loadDashboard(1), loadRecordingSummary()]);
+      setLastUpdatedAt(new Date().toISOString());
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject mentor');
       console.error('Error rejecting mentor:', err);
     }
   };
@@ -438,14 +448,23 @@ function AdminDashboardContent() {
 
     setIsProcessingBulk(true);
     try {
-      await Promise.all(
+      setError(null);
+      const responses = await Promise.all(
         Array.from(selectedMentors).map((id) => apiClient.put(`/api/v1/admin/mentors/${id}/approve`, {}))
       );
+
+      const failedResponse = responses.find((response) => !response.success);
+      if (failedResponse) {
+        setError(failedResponse.error || failedResponse.message || 'Failed to approve one or more mentors');
+        return;
+      }
+
       setSelectedMentors(new Set());
       setPendingPage(1);
       await Promise.all([loadDashboard(1), loadRecordingSummary()]);
       setLastUpdatedAt(new Date().toISOString());
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to approve mentors');
       console.error('Error in bulk approval:', err);
     } finally {
       setIsProcessingBulk(false);
@@ -463,16 +482,25 @@ function AdminDashboardContent() {
 
     setIsProcessingBulk(true);
     try {
-      await Promise.all(
+      setError(null);
+      const responses = await Promise.all(
         Array.from(selectedMentors).map((id) =>
           apiClient.put(`/api/v1/admin/mentors/${id}/reject`, { reason: 'Bulk rejected by admin' })
         )
       );
+
+      const failedResponse = responses.find((response) => !response.success);
+      if (failedResponse) {
+        setError(failedResponse.error || failedResponse.message || 'Failed to reject one or more mentors');
+        return;
+      }
+
       setSelectedMentors(new Set());
       setPendingPage(1);
       await Promise.all([loadDashboard(1), loadRecordingSummary()]);
       setLastUpdatedAt(new Date().toISOString());
     } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to reject mentors');
       console.error('Error in bulk rejection:', err);
     } finally {
       setIsProcessingBulk(false);
