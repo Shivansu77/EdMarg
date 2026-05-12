@@ -35,7 +35,7 @@ export const isProfileComplete = (user?: AuthProfileUser | null) => {
   }
 
   if (user.role === 'mentor') {
-    return (
+     return (
       hasText(user.mentorProfile?.linkedinUrl) &&
       hasItems(user.mentorProfile?.expertise)
     );
