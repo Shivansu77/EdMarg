@@ -1,0 +1,601 @@
+/**
+ * Recording Controller
+ * ====================
+ * Handles secure access to session recordings.
+ * Students and mentors can only access recordings for their own sessions.
+ * Returns a short-lived signed Cloudinary URL for secure playback.
+ */
+
+const { Recording } = require('../models/Recording');
+const { Booking } = require('../models/booking.model');
+const {
+  generateSignedDeliveryUrl,
+  uploadVideoBuffer,
+  createSignedVideoUploadParams,
+  deleteVideo,
+} = require('../services/cloudinary.service');
+const {
+  sanitizeRecordingUrl,
+  isSimulatedZoomTestUrl,
+} = require('../utils/recording.utils');
+const { getIO } = require('../lib/socket');
+
+const extractCloudinaryVersionFromUrl = (url = '') => {
+  const match = String(url).match(/\/v(\d+)\//);
+  if (!match) {
+    return undefined;
+  }
+
+  const parsed = Number(match[1]);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const getAuthorizedManualUploadBooking = async (sessionId, userId, role) => {
+  const booking = await Booking.findById(sessionId).lean();
+
+  if (!booking) {
+    const error = new Error('Session not found');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const bookingMentorId = String(booking.mentor?._id || booking.mentor);
+  if (role !== 'admin' && userId !== bookingMentorId) {
+    const error = new Error('Only the assigned mentor or an admin can upload this recording');
+    error.statusCode = 403;
+    throw error;
+  }
+
+  return booking;
+};
+
+const emitRecordingReadyEvent = (booking, recording, videoUrl) => {
+  try {
+    const io = getIO();
+    if (!io) {
+      return;
+    }
+
+    const studentId = String(booking.student?._id || booking.student);
+    io.to(`user:${studentId}`).emit('recording_ready', {
+      type: 'recording_ready',
+      sessionId: String(booking._id),
+      recordingId: String(recording._id),
+      url: videoUrl,
+      message: 'Your session recording is ready! Watch now →',
+    });
+    console.log(`[Socket.io] Emitted recording_ready to user:${studentId}`);
+  } catch (socketErr) {
+    // Non-critical: log but don't fail the request
+    console.warn('[Socket.io] Failed to emit recording_ready:', socketErr.message);
+  }
+};
+
+const getManualRecordingIdentifiers = (booking, existingRecording, sessionId) => {
+  const meetingId =
+    existingRecording?.meetingId ||
+    booking.zoomMeetingId ||
+    `manual-session-${String(sessionId)}`;
+
+  return {
+    meetingId,
+    folder: `recordings/${String(sessionId)}`,
+    publicId: `meeting-${meetingId}`,
+  };
+};
+
+// ─── Get Recording by Session ──────────────────────────────────────────────
+/**
+ * GET /api/v1/recordings/:sessionId
+ *
+ * Returns recording metadata and a signed video URL.
+ * Only accessible by the student or mentor who owns the session.
+ *
+ * Response:
+ * {
+ *   success: true,
+ *   data: {
+ *     _id, sessionId, meetingId, duration, recordingType,
+ *     processingStatus, createdAt,
+ *     videoUrl: "<signed-cloudinary-url>"  // 2-hour expiry
+ *   }
+ * }
+ */
+exports.getRecordingBySession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = String(req.user._id);
+    const sessionIdStr = String(sessionId);
+    const isMongoObjectId = /^[a-f\d]{24}$/i.test(sessionIdStr);
+
+    // ──────────────────────────────────────────────────────────────────
+    // 1. Resolve booking
+    // ──────────────────────────────────────────────────────────────────
+    let booking = null;
+
+    if (isMongoObjectId) {
+      booking = await Booking.findById(sessionIdStr).lean();
+    }
+
+    if (!booking) {
+      booking = await Booking.findOne({ zoomMeetingId: sessionIdStr }).lean();
+    }
+
+    if (!booking) {
+      // Fallback: try resolving through Recording if client sent meetingId/recordingId.
+      const recordingByAltId = await Recording.findOne({
+        $or: [{ meetingId: sessionIdStr }, ...(isMongoObjectId ? [{ _id: sessionIdStr }] : [])],
+      }).lean();
+
+      if (recordingByAltId) {
+        booking = await Booking.findById(recordingByAltId.sessionId).lean();
+      }
+
+      if (!booking) {
+        return res.status(404).json({
+          success: false,
+          message: 'Session not found',
+        });
+      }
+    }
+
+    const bookingStudentId = String(booking.student._id || booking.student);
+    const bookingMentorId = String(booking.mentor._id || booking.mentor);
+    const safeBookingRecordingUrl = sanitizeRecordingUrl(booking.recordingUrl || '');
+
+    if (userId !== bookingStudentId && userId !== bookingMentorId && req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'You are not authorized to access this recording',
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // 2. Find the recording for this session
+    // ──────────────────────────────────────────────────────────────────
+    const recording = await Recording.findOne({ sessionId: booking._id }).lean();
+
+    if (!recording) {
+      // Backward-compat fallback:
+      // Some sessions may only have booking.recordingUrl persisted.
+      if (safeBookingRecordingUrl) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            _id: null,
+            sessionId: booking._id,
+            meetingId: booking.zoomMeetingId || '',
+            duration: 0,
+            recordingType: 'zoom_playback',
+            processingStatus: 'completed',
+            fileSize: 0,
+            createdAt: booking.updatedAt || booking.createdAt,
+            videoUrl: safeBookingRecordingUrl,
+          },
+          message: 'Serving recording from booking fallback URL',
+        });
+      }
+
+      return res.status(404).json({
+        success: false,
+        message: 'No recording available for this session',
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // 3. Handle processing states
+    // ──────────────────────────────────────────────────────────────────
+    if (recording.processingStatus !== 'completed') {
+      if (
+        recording.processingStatus === 'failed' &&
+        isSimulatedZoomTestUrl(recording.zoomDownloadUrl || '')
+      ) {
+        return res.status(404).json({
+          success: false,
+          message: 'No recording available for this session',
+        });
+      }
+
+      // If pipeline isn't completed but we still have a booking-level recording URL,
+      // return it so users can watch instead of seeing a hard failure.
+      if (safeBookingRecordingUrl) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            _id: recording._id,
+            sessionId: recording.sessionId,
+            meetingId: recording.meetingId,
+            duration: recording.duration,
+            recordingType: recording.recordingType || 'zoom_playback',
+            processingStatus: 'completed',
+            fileSize: recording.fileSize || 0,
+            createdAt: recording.createdAt,
+            videoUrl: safeBookingRecordingUrl,
+          },
+          message: 'Serving booking recording URL fallback while processing metadata',
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          _id: recording._id,
+          sessionId: recording.sessionId,
+          meetingId: recording.meetingId,
+          duration: recording.duration,
+          recordingType: recording.recordingType,
+          processingStatus: recording.processingStatus,
+          createdAt: recording.createdAt,
+          videoUrl: null, // Not ready yet
+        },
+        message:
+          recording.processingStatus === 'failed'
+            ? 'Recording processing failed. Please contact support.'
+            : 'Recording is still being processed. Please check back shortly.',
+      });
+    }
+
+    // ──────────────────────────────────────────────────────────────────
+    // 4. Generate a signed URL for secure playback (2-hour expiry)
+    // ──────────────────────────────────────────────────────────────────
+    // For videos uploaded with 'upload' type, we use the direct secure_url
+    // and append a signature. Cloudinary signed URLs for upload-type resources
+    // use the URL signing approach.
+    let signedVideoUrl = recording.videoUrl;
+
+    if (recording.cloudinaryPublicId) {
+      try {
+        const cloudinaryVersion = extractCloudinaryVersionFromUrl(recording.videoUrl);
+        // Generate a fresh signed URL that expires in 2 hours
+        signedVideoUrl = generateSignedDeliveryUrl(recording.cloudinaryPublicId, {
+          expiresInSeconds: 7200,
+          version: cloudinaryVersion,
+        });
+      } catch (signErr) {
+        console.warn(
+          `[Recording Controller] Failed to sign Cloudinary URL for ${recording.cloudinaryPublicId}:`,
+          signErr.message
+        );
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        _id: recording._id,
+        sessionId: recording.sessionId,
+        meetingId: recording.meetingId,
+        duration: recording.duration,
+        recordingType: recording.recordingType,
+        processingStatus: recording.processingStatus,
+        fileSize: recording.fileSize,
+        createdAt: recording.createdAt,
+        videoUrl: signedVideoUrl,
+      },
+    });
+  } catch (error) {
+    console.error('[Recording Controller] Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve recording',
+    });
+  }
+};
+
+// ─── Get All Recordings for a Student ──────────────────────────────────────
+/**
+ * GET /api/v1/recordings
+ *
+ * Returns all recordings for the authenticated user (student or mentor).
+ */
+exports.getMyRecordings = async (req, res) => {
+  try {
+    const userId = String(req.user._id);
+    const userRole = req.user.role;
+
+    const query =
+      userRole === 'mentor' ? { mentorId: userId } : { studentId: userId };
+
+    const recordings = await Recording.find(query)
+      .sort({ createdAt: -1 })
+      .populate('sessionId', 'date startTime endTime sessionDuration')
+      .populate('mentorId', 'name email profileImage')
+      .populate('studentId', 'name email profileImage')
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: { recordings },
+      count: recordings.length,
+    });
+  } catch (error) {
+    console.error('[Recording Controller] Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve recordings',
+    });
+  }
+};
+
+// ─── Prepare Direct Upload Signature ───────────────────────────────────────
+/**
+ * POST /api/v1/recordings/:sessionId/upload-signature
+ *
+ * Returns a short-lived signed Cloudinary upload payload so the browser can
+ * upload directly to Cloudinary instead of proxying the video through backend.
+ */
+exports.createRecordingUploadSignature = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+
+    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
+    const existingRecording = await Recording.findOne({ sessionId }).select('meetingId').lean();
+    const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
+      booking,
+      existingRecording,
+      sessionId
+    );
+
+    const uploadParams = createSignedVideoUploadParams({
+      folder,
+      publicId,
+      overwrite: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        ...uploadParams,
+        meetingId,
+      },
+    });
+  } catch (error) {
+    const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
+    console.error('[Recording Upload Signature] Error:', error.message);
+    return res.status(statusCode).json({
+      success: false,
+      message:
+        statusCode === 500
+          ? 'Failed to prepare recording upload'
+          : error.message,
+    });
+  }
+};
+
+// ─── Finalize Direct Upload ────────────────────────────────────────────────
+/**
+ * POST /api/v1/recordings/:sessionId/complete-upload
+ *
+ * Persists Cloudinary upload metadata after a successful direct browser upload.
+ */
+exports.finalizeRecordingUpload = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+    const {
+      secureUrl,
+      publicId: uploadedPublicId,
+      duration,
+      bytes,
+    } = req.body || {};
+
+    if (!secureUrl || !uploadedPublicId) {
+      return res.status(400).json({
+        success: false,
+        message: 'secureUrl and publicId are required',
+      });
+    }
+
+    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
+    let recording = await Recording.findOne({ sessionId });
+    const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
+      booking,
+      recording,
+      sessionId
+    );
+    const expectedPrefix = `${folder}/${publicId}`;
+
+    if (String(uploadedPublicId) !== expectedPrefix) {
+      return res.status(400).json({
+        success: false,
+        message: 'Uploaded asset does not match this recording session',
+      });
+    }
+
+    if (!recording) {
+      recording = new Recording({
+        sessionId: booking._id,
+        meetingId,
+        mentorId: booking.mentor?._id || booking.mentor,
+        studentId: booking.student?._id || booking.student,
+      });
+    }
+
+    recording.videoUrl = String(secureUrl);
+    recording.cloudinaryPublicId = String(uploadedPublicId);
+    recording.duration = Number(duration) || recording.duration || 0;
+    recording.fileSize = Number(bytes) || recording.fileSize || 0;
+    recording.recordingType = 'manual_upload';
+    recording.processingStatus = 'completed';
+    recording.zoomDownloadUrl = '';
+    recording.errorMessage = '';
+    await recording.save();
+
+    await Booking.findByIdAndUpdate(booking._id, {
+      recordingUrl: String(secureUrl),
+    });
+
+    emitRecordingReadyEvent(booking, recording, String(secureUrl));
+
+    return res.status(200).json({
+      success: true,
+      message: 'Recording uploaded successfully',
+      data: {
+        _id: recording._id,
+        sessionId: recording.sessionId,
+        meetingId: recording.meetingId,
+        duration: recording.duration,
+        fileSize: recording.fileSize,
+        recordingType: recording.recordingType,
+        processingStatus: recording.processingStatus,
+        videoUrl: recording.videoUrl,
+        cloudinaryPublicId: recording.cloudinaryPublicId,
+      },
+    });
+  } catch (error) {
+    const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
+    console.error('[Recording Finalize Upload] Error:', error.message);
+    return res.status(statusCode).json({
+      success: false,
+      message:
+        statusCode === 500
+          ? 'Failed to finalize recording upload'
+          : error.message,
+    });
+  }
+};
+
+// ─── Manual Upload for a Session ───────────────────────────────────────────
+/**
+ * POST /api/v1/recordings/:sessionId/upload
+ *
+ * Allows mentor/admin to upload a session video manually and store it in Cloudinary.
+ */
+exports.uploadRecordingForSession = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please attach a video file in field "video"',
+      });
+    }
+
+    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
+    let recording = await Recording.findOne({ sessionId });
+    const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
+      booking,
+      recording,
+      sessionId
+    );
+
+    const cloudinaryResult = await uploadVideoBuffer(req.file.buffer, {
+      folder,
+      publicId,
+    });
+
+    if (!recording) {
+      recording = new Recording({
+        sessionId: booking._id,
+        meetingId,
+        mentorId: booking.mentor?._id || booking.mentor,
+        studentId: booking.student?._id || booking.student,
+      });
+    }
+
+    recording.videoUrl = cloudinaryResult.secure_url;
+    recording.cloudinaryPublicId = cloudinaryResult.public_id;
+    recording.duration = cloudinaryResult.duration || recording.duration || 0;
+    recording.fileSize = cloudinaryResult.bytes || req.file.size || 0;
+    recording.recordingType = 'manual_upload';
+    recording.processingStatus = 'completed';
+    recording.zoomDownloadUrl = '';
+    recording.errorMessage = '';
+    await recording.save();
+
+    await Booking.findByIdAndUpdate(booking._id, {
+      recordingUrl: cloudinaryResult.secure_url,
+    });
+
+    emitRecordingReadyEvent(booking, recording, cloudinaryResult.secure_url);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Recording uploaded to Cloudinary successfully',
+      data: {
+        _id: recording._id,
+        sessionId: recording.sessionId,
+        meetingId: recording.meetingId,
+        duration: recording.duration,
+        fileSize: recording.fileSize,
+        recordingType: recording.recordingType,
+        processingStatus: recording.processingStatus,
+        videoUrl: recording.videoUrl,
+        cloudinaryPublicId: recording.cloudinaryPublicId,
+      },
+    });
+  } catch (error) {
+    console.error('[Recording Upload] Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to upload recording video',
+    });
+  }
+};
+
+// ─── Delete Recording ──────────────────────────────────────────────────────
+/**
+ * DELETE /api/v1/recordings/:recordingId
+ *
+ * Deletes a recording from Cloudinary and MongoDB.
+ * Only the mentor who owns the session or an admin can delete.
+ */
+exports.deleteRecording = async (req, res) => {
+  try {
+    const { recordingId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+
+    const recording = await Recording.findById(recordingId);
+
+    if (!recording) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recording not found',
+      });
+    }
+
+    // Authorization check: only the mentor or admin
+    if (role !== 'admin' && String(recording.mentorId) !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the assigned mentor or an admin can delete this recording',
+      });
+    }
+
+    // Delete from Cloudinary if we have a public ID
+    if (recording.cloudinaryPublicId) {
+      try {
+        await deleteVideo(recording.cloudinaryPublicId);
+      } catch (cloudErr) {
+        console.warn('[Recording Delete] Cloudinary deletion failed:', cloudErr.message);
+        // Continue with DB cleanup even if Cloudinary fails
+      }
+    }
+
+    // Clear recording URL from the booking
+    await Booking.findByIdAndUpdate(recording.sessionId, {
+      $unset: { recordingUrl: 1 },
+    });
+
+    // Remove from database
+    await Recording.findByIdAndDelete(recordingId);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Recording deleted successfully',
+    });
+  } catch (error) {
+    console.error('[Recording Delete] Error:', error.message);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to delete recording',
+    });
+  }
+};
