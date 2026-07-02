@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import BlogForm from '@/modules/blog/components/admin/BlogForm';
 import { createBlogForAdmin, BlogInput } from '@/services/blog.service';

@@ -30,6 +30,10 @@ const nextConfig: NextConfig = {
         hostname: "edmarg.onrender.com",
       },
       {
+        protocol: "https",
+        hostname: "backend.edmarg.com",
+      },
+      {
         protocol: "http",
         hostname: "localhost",
         port: "5000",

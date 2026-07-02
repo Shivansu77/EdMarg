@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLeft, LogOut } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';

@@ -242,7 +242,14 @@ const DashboardHeader = ({
                   ) : (
                     <div className="divide-y divide-gray-50">
                       {notifications.map((notification) => (
-                        <div key={notification.id} className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer ${notification.unread ? 'bg-emerald-50/40' : ''}`}>
+                        <div 
+                          key={notification.id} 
+                          onClick={() => {
+                            setIsNotificationsOpen(false);
+                            router.push('/student/schedule');
+                          }}
+                          className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer ${notification.unread ? 'bg-emerald-50/40' : ''}`}
+                        >
                           <div className={`mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full ${
                             notification.type === 'meeting' ? 'bg-emerald-100 text-emerald-600' :
                             'bg-amber-100 text-amber-700'

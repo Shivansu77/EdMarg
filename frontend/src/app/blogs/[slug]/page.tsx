@@ -25,7 +25,7 @@ export async function generateStaticParams() {
       .filter((blog) => Boolean(blog.slug))
       .map((blog) => ({ slug: blog.slug }));
   } catch (error) {
-    console.error('Failed to generate blog static params:', error);
+    console.error('Failed to generate blog static params:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }
@@ -76,7 +76,7 @@ export async function generateMetadata({
       },
     };
   } catch (error) {
-    console.error('Failed to generate blog metadata:', error);
+    console.error('Failed to generate blog metadata:', error instanceof Error ? error.message : String(error));
     return {
       title: 'Blog | EdMarg',
       description: fallbackDescription,
@@ -105,7 +105,7 @@ export default async function BlogDetailPage({
     const allBlogs = await getAllBlogsFromAPI();
     relatedBlogs = allBlogs.filter((post) => post.slug !== slug).slice(0, 3);
   } catch (error) {
-    console.warn('Failed to fetch related blogs:', error);
+    console.warn('Failed to fetch related blogs:', error instanceof Error ? error.message : String(error));
   }
 
   const articleJsonLd = {

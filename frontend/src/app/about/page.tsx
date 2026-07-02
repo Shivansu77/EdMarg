@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { SITE_URL } from '@/utils/site-url';
 import {
   ArrowRight,
@@ -111,7 +111,7 @@ export default function AboutPage() {
               <p className="mb-3 inline-flex rounded-full border border-emerald-200 bg-white/95 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">
                 About Us
               </p>
-              <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
+              <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 lg:text-4xl">
                 We help learners turn career confusion into confident action
               </h1>
               <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-base">
@@ -155,14 +155,14 @@ export default function AboutPage() {
               key={item.label}
               className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md hover:shadow-emerald-500/10"
             >
-              <p className="text-2xl font-extrabold text-slate-900">{item.value}</p>
+              <p className="text-2xl font-bold text-slate-900">{item.value}</p>
               <p className="mt-1 text-sm font-medium text-slate-600">{item.label}</p>
             </article>
           ))}
         </section>
 
           <section className="mt-10 rounded-3xl border border-emerald-200 bg-white p-6 shadow-sm sm:p-8">
-          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">How EdMarg Works</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">How EdMarg Works</h2>
           <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
             We are not an advice-only platform. We run an end-to-end progression loop that helps learners discover
             the right path, create a practical plan, and execute it with expert support.
@@ -204,7 +204,7 @@ export default function AboutPage() {
 
         <section className="mt-10 rounded-3xl border border-emerald-200 bg-white p-6 shadow-sm sm:p-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Our Story</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-900">Our Story</h2>
             <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-600 sm:text-base">
               EdMarg was built to close the gap between ambition and execution. Here is how our journey evolved.
             </p>
@@ -222,7 +222,7 @@ export default function AboutPage() {
         </section>
 
         <section className="mt-10 rounded-3xl border border-emerald-700 bg-linear-to-br from-emerald-700 via-emerald-600 to-green-600 p-6 text-white shadow-sm sm:p-8">
-          <h2 className="text-2xl font-extrabold tracking-tight">Our Mission</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Our Mission</h2>
           <p className="mt-3 max-w-4xl text-sm leading-relaxed text-slate-200 sm:text-base">
             Every learner deserves career direction that is practical, personalized, and actionable. We are building
             a platform where clarity leads to consistent action, and action leads to real outcomes.

@@ -216,6 +216,10 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                       {notifications.map((notification) => (
                         <div
                           key={notification.id}
+                          onClick={() => {
+                            setIsNotificationsOpen(false);
+                            router.push('/mentor/sessions');
+                          }}
                           className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer ${
                             notification.unread ? 'bg-gray-50/40' : ''
                           }`}

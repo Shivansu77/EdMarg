@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
-import HeroSection from '@/components/HeroSection';
-import LifeWhySplitSection from '@/components/LifeWhySplitSection';
-import ResultsSection from '@/components/ResultsSection';
-import TransformSection from '@/components/TransformSection';
-import TopMentorsSection from '@/components/TopMentorsSection';
-import TestimonialsSection from '@/components/TestimonialsSection';
-import FAQSection from '@/components/FAQSection';
-import JoinSection from '@/components/JoinSection';
-import Footer from '@/components/Footer';
-import Navbar from '@/components/Navbar';
-import FloatingCTA from '@/components/FloatingCTA';
+import HeroSection from '@/components/marketing/HeroSection';
+import LifeWhySplitSection from '@/components/marketing/LifeWhySplitSection';
+import ResultsSection from '@/components/marketing/ResultsSection';
+import TransformSection from '@/components/marketing/TransformSection';
+import TopMentorsSection from '@/components/marketing/TopMentorsSection';
+import TestimonialsSection from '@/components/marketing/TestimonialsSection';
+import FAQSection from '@/components/marketing/FAQSection';
+import JoinSection from '@/components/marketing/JoinSection';
+import Footer from '@/components/layout/Footer';
+import Navbar from '@/components/layout/Navbar';
+import FloatingCTA from '@/components/layout/FloatingCTA';
 import { SITE_URL } from '@/utils/site-url';
 
 export const metadata: Metadata = {

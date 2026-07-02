@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import Logo from '@/components/Logo';
+import Logo from '@/components/common/Logo';
 import { ArrowLeft, Clock, Film, AlertCircle, RefreshCcw, Video, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 
 // ─── Types ─────────────────────────────────────────────────────────────────

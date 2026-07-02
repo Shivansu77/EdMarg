@@ -24,7 +24,7 @@ import {
   ExternalLink,
   AlertTriangle,
 } from 'lucide-react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Image from 'next/image';
 import { resolveApiBaseUrl } from '@/utils/api-base';

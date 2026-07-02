@@ -13,6 +13,7 @@ import {
   Star,
   Users,
   Heart,
+  Award,
 } from 'lucide-react';
 
 import { getImageUrl } from '@/utils/imageUrl';
@@ -63,183 +64,177 @@ export default function MentorMarketplaceCard({
     ? `/student/booking?id=${mentor.id}`
     : `/login?redirect=${encodeURIComponent(`/student/booking?id=${mentor.id}`)}`;
 
-  const imageUrl = getImageUrl(mentor.profileImage, mentor.name, 400);
+  const imageUrl = getImageUrl(mentor.profileImage, mentor.name, 200);
   const { toggleWishlist, isWishlisted } = useWishlist();
   const wishlisted = isWishlisted(mentor.id);
+
+  // Compute display title
+  const displayTitle =
+    mentor.currentTitle && mentor.currentCompany
+      ? `${mentor.currentTitle} @ ${mentor.currentCompany}`
+      : mentor.currentTitle || mentor.currentCompany
+        ? `${mentor.currentTitle || mentor.currentCompany}`
+        : mentor.roleTitle;
 
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      whileHover={{ y: -5 }}
-      transition={{ duration: 0.28, ease: 'easeOut' }}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[22px] border border-white/60 bg-white/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(15,23,42,0.08)] transition-all duration-300 hover:bg-white/50 hover:border-emerald-300/50 hover:shadow-[0_12px_40px_rgba(16,185,129,0.15)]"
+      viewport={{ once: true, amount: 0.1 }}
+      whileHover={{ y: -6 }}
+      transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+      className="group relative flex flex-col h-full w-full rounded-[20px] bg-white border border-slate-200 overflow-hidden shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-300 hover:shadow-[0_20px_40px_rgba(16,185,129,0.08)] hover:border-emerald-200"
     >
-      {/* ── Hero Image ── */}
-      <div className="relative h-52 w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
-        <AppImage
-          src={imageUrl}
-          alt={mentor.name}
-          fill
-          priority={priority}
-          fallbackName={mentor.name}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-          className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
-        />
+      {/* ── Top Accent Bar ── */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-emerald-400 to-teal-400 opacity-80" />
 
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+      {/* ── Wishlist Button ── */}
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleWishlist(mentor.id);
+        }}
+        className="absolute top-4 right-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 border border-slate-100 text-slate-400 shadow-sm transition-all hover:scale-110 active:scale-95 hover:bg-red-50 hover:border-red-100 hover:text-red-500"
+      >
+        <Heart className={`h-4 w-4 ${wishlisted ? 'fill-red-500 text-red-500' : ''}`} />
+      </button>
 
-        {/* Badge row */}
-        <div className="absolute left-3 top-3 flex items-center gap-2">
-          {mentor.isVerified && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm backdrop-blur-sm">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Verified
-            </span>
-          )}
+      {/* ── Card Header (Avatar + Name) ── */}
+      <div className="flex items-start gap-4 p-5 pt-6">
+        {/* Avatar Area */}
+        <div className="relative shrink-0">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-emerald-100 to-teal-50 p-0.5">
+            <div className="relative h-full w-full overflow-hidden rounded-full border-2 border-white bg-slate-100 shadow-sm">
+              <AppImage
+                src={imageUrl}
+                alt={mentor.name}
+                fill
+                priority={priority}
+                fallbackName={mentor.name}
+                sizes="64px"
+                className="object-cover object-top"
+              />
+            </div>
+          </div>
+          {/* Online/Active Indicator */}
+          <span className="absolute bottom-1 right-0 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500 shadow-sm" />
         </div>
 
-        {/* Rating pill on image */}
-        <div className="absolute right-3 top-3 flex items-center gap-2">
+        {/* Name & Title */}
+        <div className="flex min-w-0 flex-1 flex-col pt-1">
+          <div className="flex flex-wrap items-center gap-1.5 pr-6">
+            <h3 className="truncate text-lg font-bold text-slate-900 leading-tight">
+              {mentor.name}
+            </h3>
+            {mentor.isVerified && (
+              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+            )}
+          </div>
+          <p className="mt-1 line-clamp-1 text-[13px] font-medium text-slate-500">
+            {displayTitle}
+          </p>
+          
+          {/* Rating */}
           {showRating && (
-            <div className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2.5 py-1.5 text-xs font-bold text-slate-800 shadow-sm backdrop-blur-sm">
+            <div className="mt-1.5 flex items-center gap-1">
               <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
-              {mentor.rating.toFixed(1)}
+              <span className="text-[13px] font-bold text-slate-700">{mentor.rating.toFixed(1)}</span>
+              <span className="text-[12px] text-slate-400">({mentor.sessionCount} sessions)</span>
             </div>
           )}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              toggleWishlist(mentor.id);
-            }}
-            className={`inline-flex items-center justify-center rounded-full bg-white/90 p-2 shadow-sm backdrop-blur-sm transition-all hover:scale-110 active:scale-95 ${
-              wishlisted ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
-            }`}
-          >
-            <Heart className={`h-4 w-4 ${wishlisted ? 'fill-current' : ''}`} />
-          </button>
-        </div>
-
-        {/* Name + role overlay on image */}
-        <div className="absolute bottom-0 left-0 right-0 px-4 pb-3.5">
-          <h3 className="truncate text-lg font-bold tracking-tight text-white drop-shadow-md">
-            {mentor.name}
-          </h3>
-          <p className="truncate text-sm font-medium text-white/85 drop-shadow-sm">
-            {mentor.currentTitle && mentor.currentCompany
-              ? `${mentor.currentTitle} @ ${mentor.currentCompany}`
-              : mentor.currentTitle || mentor.currentCompany
-                ? `${mentor.currentTitle || mentor.currentCompany}`
-                : mentor.roleTitle}
-          </p>
         </div>
       </div>
 
-      {/* ── Card Body ── */}
-      <div className="flex flex-1 flex-col gap-3 px-4 pb-4 pt-3.5">
-        {/* Stats strip */}
-        <div className="grid grid-cols-3 gap-2">
+      {/* ── Main Content ── */}
+      <div className="flex flex-1 flex-col px-5 pb-5">
+        {/* Compact Stats Row */}
+        <div className="mb-4 flex flex-wrap gap-2">
           {mentor.experienceYears > 0 && (
-            <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-2 text-center">
-              <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                <Briefcase className="h-3 w-3" />
-                Exp
-              </div>
-              <p className="mt-0.5 text-sm font-bold text-slate-900">{mentor.experienceYears} yrs</p>
+            <div className="flex items-center gap-1.5 rounded-md bg-slate-50 px-2 py-1 border border-slate-100">
+              <Award className="h-3.5 w-3.5 text-slate-400" />
+              <span className="text-[11px] font-semibold text-slate-600">{mentor.experienceYears} Yrs Exp</span>
             </div>
           )}
-          <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-2 text-center">
-            <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              <Users className="h-3 w-3" />
-              Sessions
-            </div>
-            <p className="mt-0.5 text-sm font-bold text-slate-900">{mentor.sessionCount}</p>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 py-2 text-center">
-            <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              <Clock3 className="h-3 w-3" />
-              Duration
-            </div>
-            <p className="mt-0.5 text-sm font-bold text-slate-900">{mentor.sessionDuration}m</p>
+          <div className="flex items-center gap-1.5 rounded-md bg-slate-50 px-2 py-1 border border-slate-100">
+            <Clock3 className="h-3.5 w-3.5 text-slate-400" />
+            <span className="text-[11px] font-semibold text-slate-600">{mentor.sessionDuration}m Duration</span>
           </div>
         </div>
 
         {/* Bio */}
         {mentor.bio && (
-          <p className="line-clamp-2 text-[13px] leading-[1.6] text-slate-600">
+          <p className="mb-4 line-clamp-2 text-[13px] leading-relaxed text-slate-600">
             {mentor.bio}
           </p>
         )}
 
         {/* Skills */}
         {visibleSkills.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="mb-4 flex flex-wrap gap-1.5">
             {visibleSkills.map((skill) => (
               <span
                 key={`${mentor.id}-${skill}`}
-                className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 transition-colors hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                className="inline-flex items-center rounded bg-emerald-50/80 px-2 py-1 text-[11px] font-semibold text-emerald-700 transition-colors hover:bg-emerald-100"
               >
                 {skill}
               </span>
             ))}
             {remainingSkillCount > 0 && (
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-500">
+              <span className="inline-flex items-center rounded bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-500">
                 +{remainingSkillCount}
               </span>
             )}
           </div>
         )}
 
-        {/* Languages & Location */}
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+        {/* Language & Location */}
+        <div className="mt-auto mb-4 flex flex-wrap items-center gap-3 text-[12px] text-slate-500">
           {mentor.languages && mentor.languages.length > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-sky-100 bg-sky-50/80 px-2 py-0.5 font-semibold text-sky-700">
-              <Globe className="h-3 w-3" />
-              {mentor.languages.slice(0, 2).join(', ')}
-              {mentor.languages.length > 2 && ` +${mentor.languages.length - 2}`}
-            </span>
+            <div className="flex items-center gap-1">
+              <Globe className="h-3.5 w-3.5 text-slate-400" />
+              <span>{mentor.languages.slice(0, 2).join(', ')}{mentor.languages.length > 2 && ` +${mentor.languages.length - 2}`}</span>
+            </div>
           )}
           {mentor.location && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-slate-100 bg-slate-50 px-2 py-0.5 font-medium text-slate-500">
-              <MapPin className="h-3 w-3" />
-              {mentor.location}
-            </span>
+            <div className="flex items-center gap-1">
+              <MapPin className="h-3.5 w-3.5 text-slate-400" />
+              <span className="truncate max-w-[120px]">{mentor.location}</span>
+            </div>
           )}
         </div>
 
-        {/* Price + Actions — pushed to bottom */}
-        <div className="mt-auto border-t border-slate-100 pt-3">
+        {/* ── Footer: Price & Actions ── */}
+        <div className="mt-auto border-t border-slate-100 pt-4">
           <div className="mb-3 flex items-end justify-between">
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-extrabold tracking-tight text-slate-950">
-                {formatPrice(mentor.price)}
-              </span>
-              {mentor.price > 0 && (
-                <span className="text-xs font-medium text-slate-400">/session</span>
-              )}
+            <div>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-slate-400 mb-0.5">Session Price</p>
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xl font-extrabold text-slate-900 tracking-tight">
+                  {formatPrice(mentor.price)}
+                </span>
+                {mentor.oldPrice && mentor.oldPrice > mentor.price && mentor.price > 0 && (
+                  <span className="text-sm font-medium text-slate-400 line-through">
+                    ₹{mentor.oldPrice}
+                  </span>
+                )}
+              </div>
             </div>
-            {mentor.oldPrice && mentor.oldPrice > mentor.price && mentor.price > 0 && (
-              <span className="text-xs font-medium text-slate-400 line-through">
-                ₹{mentor.oldPrice}
-              </span>
-            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-[1fr_1.2fr] gap-2">
             <Link
               href={`/student/mentors/${mentor.id}`}
-              className="inline-flex min-h-[42px] items-center justify-center rounded-xl border border-slate-200 px-3 text-[13px] font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-50"
+              className="flex h-[42px] items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-bold text-slate-700 transition-colors hover:bg-slate-50 hover:border-slate-300"
             >
               View Profile
             </Link>
             <Link
               href={connectHref}
-              className="inline-flex min-h-[42px] items-center justify-center gap-1 rounded-xl bg-[#00C091] px-3 text-[13px] font-bold text-white border border-white/20 shadow-[0_4px_14px_rgba(0,192,145,0.4)] backdrop-blur-md transition-all hover:bg-[#00a87d] hover:shadow-[0_6px_20px_rgba(0,192,145,0.5)] hover:-translate-y-0.5"
+              className="group/btn flex h-[42px] items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-3 text-[13px] font-bold text-white shadow-[0_4px_12px_rgba(16,185,129,0.25)] transition-all hover:shadow-[0_6px_16px_rgba(16,185,129,0.35)] hover:-translate-y-0.5"
             >
-              Connect
-              <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              Book Session
+              <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
             </Link>
           </div>
         </div>

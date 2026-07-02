@@ -111,3 +111,5 @@ Thumbs.db
 *.swp
 *.swo
 .vercel
+
+.env.staging

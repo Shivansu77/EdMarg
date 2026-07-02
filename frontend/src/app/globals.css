@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @theme {
   --color-background: #f7f9fb;
@@ -26,22 +27,34 @@
   --color-on-tertiary: #ffffff;
   --color-input: #d8dee3;
   --color-ring: #4e45e2;
-  --font-inter: "Inter", "Avenir Next", "Segoe UI", sans-serif;
-  --font-manrope: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
-  --font-plus-jakarta: "Manrope", "Avenir Next", "Segoe UI", sans-serif;
+  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-manrope: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-plus-jakarta: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --shadow-ambient: 0 8px 24px rgba(45, 51, 55, 0.04);
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
 
 body {
   background-color: var(--color-surface);
   color: var(--color-on-surface);
-  font-family: var(--font-manrope);
-  line-height: 1.5;
+  font-family: var(--font-inter);
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: -0.011em;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-plus-jakarta); }
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-inter);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
 
 /* ===== SECTION BACKGROUNDS ===== */
 .section-dark {

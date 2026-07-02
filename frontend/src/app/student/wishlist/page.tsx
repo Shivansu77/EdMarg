@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Heart, Search, Loader2, User } from 'lucide-react';
 import Link from 'next/link';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import MentorMarketplaceCard from '@/components/mentors/MentorMarketplaceCard';
 import { apiClient } from '@/utils/api-client';
 import { useAuth } from '@/context/AuthContext';
@@ -54,7 +54,7 @@ export default function WishlistPage() {
                   </div>
                 </div>
                 <p className="max-w-2xl text-slate-600">
-                  Keep track of the mentors you're interested in. You can easily connect with them later when you're ready for a session.
+                  Keep track of the mentors you&apos;re interested in. You can easily connect with them later when you&apos;re ready for a session.
                 </p>
               </div>
             </section>

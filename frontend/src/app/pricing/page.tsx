@@ -13,8 +13,8 @@ import {
   Sparkles,
   WalletCards,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
 const plans = [
   {
@@ -130,7 +130,7 @@ export default function PricingPage() {
                 Pricing
               </div>
 
-              <h1 className="mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl lg:leading-[1.02]">
+              <h1 className="mt-6 max-w-3xl text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl lg:leading-[1.1]">
                 Simple pricing built around clarity, not commitment traps.
               </h1>
 
@@ -157,17 +157,17 @@ export default function PricingPage() {
               <div className="mt-10 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-2xl border border-white/70 bg-white/75 p-5 backdrop-blur-xl">
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Start free</p>
-                  <p className="mt-3 text-2xl font-extrabold text-slate-950">No subscription</p>
+                  <p className="mt-3 text-xl font-bold text-slate-950">No subscription</p>
                   <p className="mt-1 text-sm text-slate-500">Explore the platform without an upfront payment wall.</p>
                 </div>
                 <div className="rounded-2xl border border-white/70 bg-white/75 p-5 backdrop-blur-xl">
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Book when ready</p>
-                  <p className="mt-3 text-2xl font-extrabold text-slate-950">Pay per need</p>
+                  <p className="mt-3 text-xl font-bold text-slate-950">Pay per need</p>
                   <p className="mt-1 text-sm text-slate-500">Choose the right mentor only when you need deeper help.</p>
                 </div>
                 <div className="rounded-2xl border border-white/70 bg-white/75 p-5 backdrop-blur-xl">
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Built for trust</p>
-                  <p className="mt-3 text-2xl font-extrabold text-slate-950">Clear pricing logic</p>
+                  <p className="mt-3 text-xl font-bold text-slate-950">Clear pricing logic</p>
                   <p className="mt-1 text-sm text-slate-500">Rates reflect mentor depth, format, and practical value.</p>
                 </div>
               </div>
@@ -187,7 +187,7 @@ export default function PricingPage() {
                 <p className="inline-flex rounded-full border border-white/12 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-100">
                   What you are paying for
                 </p>
-                <h2 className="mt-6 text-3xl font-extrabold tracking-tight">Targeted guidance with real-world depth.</h2>
+                <h2 className="mt-6 text-2xl font-bold tracking-tight">Targeted guidance with real-world depth.</h2>
                 <p className="mt-4 text-sm leading-7 text-emerald-50/85 sm:text-base">
                   EdMarg keeps access wide and paid help specific. That means you can discover for free, then invest in
                   expert time only when the conversation truly matters.
@@ -250,9 +250,9 @@ export default function PricingPage() {
                   {plan.eyebrow}
                 </div>
 
-                <h2 className="mt-6 text-3xl font-extrabold tracking-tight">{plan.name}</h2>
+                <h2 className="mt-6 text-2xl font-bold tracking-tight">{plan.name}</h2>
                 <div className="mt-4 flex items-end gap-2">
-                  <span className="text-5xl font-extrabold tracking-tight">{plan.price}</span>
+                  <span className="text-4xl font-bold tracking-tight">{plan.price}</span>
                   {plan.suffix ? <span className="pb-1 text-sm font-semibold opacity-75">{plan.suffix}</span> : null}
                 </div>
 
@@ -286,7 +286,7 @@ export default function PricingPage() {
           <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
             <div className="rounded-[2rem] border border-white/75 bg-white/62 p-8 shadow-[0_18px_55px_rgba(15,23,42,0.06)] ring-1 ring-black/[0.03] backdrop-blur-2xl sm:p-10">
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-700">Included at every level</p>
-              <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">You are never paying just to unlock the platform.</h2>
+              <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-950">You are never paying just to unlock the platform.</h2>
               <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
                 The free layer exists so learners can orient themselves first. Paid sessions only enter the picture when
                 you want sharper, more personal guidance.
@@ -306,11 +306,11 @@ export default function PricingPage() {
 
             <div className="rounded-[2rem] border border-emerald-200/80 bg-linear-to-br from-emerald-50/85 via-white to-green-50/80 p-8 shadow-[0_20px_60px_rgba(16,185,129,0.1)] sm:p-10">
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-700">Why learners trust this model</p>
-              <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-950">Clear economics, better decisions.</h2>
+              <h2 className="mt-4 text-2xl font-bold tracking-tight text-slate-950">Clear economics, better decisions.</h2>
               <div className="mt-8 grid gap-4">
                 {trustPoints.map((item) => (
                   <article key={item.title} className="rounded-[1.5rem] border border-white/80 bg-white/85 p-5 shadow-sm backdrop-blur-xl">
-                    <p className="text-lg font-extrabold text-slate-950">{item.title}</p>
+                    <p className="text-base font-bold text-slate-950">{item.title}</p>
                     <p className="mt-2 text-sm leading-7 text-slate-600">{item.description}</p>
                   </article>
                 ))}
@@ -321,7 +321,7 @@ export default function PricingPage() {
           <section className="rounded-[2rem] border border-emerald-300/50 bg-linear-to-br from-emerald-700 via-emerald-600 to-green-600 p-8 text-white shadow-[0_24px_80px_rgba(16,185,129,0.24)] sm:p-10 lg:flex lg:items-center lg:justify-between lg:gap-10">
             <div className="max-w-3xl">
               <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-100">For mentors</p>
-              <h2 className="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <h2 className="mt-4 text-2xl font-bold tracking-tight sm:text-3xl">
                 Want to share your expertise without platform overhead?
               </h2>
               <p className="mt-4 text-sm leading-7 text-emerald-50/85 sm:text-base">
@@ -332,7 +332,7 @@ export default function PricingPage() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:mt-0">
               <Link
-                href="/signup?role=mentor"
+                href="/student/careers"
                 className="inline-flex h-14 items-center justify-center rounded-2xl bg-white px-6 text-sm font-bold text-emerald-900 transition-all hover:-translate-y-0.5 hover:bg-emerald-50"
               >
                 Apply as mentor

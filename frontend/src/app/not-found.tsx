@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 import { Search } from 'lucide-react';
 
 export default function NotFound() {
@@ -26,7 +26,7 @@ export default function NotFound() {
             Page not found
           </h1>
           <p className="text-lg text-slate-600 mb-10 max-w-md mx-auto">
-            Sorry, we couldn't find the page you're looking for. It might have been moved or doesn't exist.
+            Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have been moved or doesn&apos;t exist.
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

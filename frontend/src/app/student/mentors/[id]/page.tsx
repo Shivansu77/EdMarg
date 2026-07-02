@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { ArrowLeft, Loader2, RefreshCw, UserX } from 'lucide-react';
 
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import MentorDetailClient, { type Mentor } from './MentorDetailClient';
 import { resolveApiBaseUrl } from '@/utils/api-base';
@@ -22,7 +22,8 @@ function StudentMentorShell({
   return (
     <ProtectedRoute requiredRole="student">
       <DashboardLayout userName={title}>
-        <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(236,253,245,0.92),_rgba(248,250,252,0.9)_34%,_#ffffff_72%)] pb-16">
+        {/* Updated from radial gradient to a clean solid background to match the new professional UI */}
+        <div className="min-h-screen bg-slate-50/50 pb-16">
           {children}
         </div>
       </DashboardLayout>
@@ -85,15 +86,16 @@ export default function MentorDetailPage() {
   if (loading) {
     return (
       <StudentMentorShell>
-        <div className="rounded-[32px] border border-white/75 bg-white/72 p-10 text-center shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-emerald-700">
-            <Loader2 className="h-7 w-7 animate-spin" />
+        <div className="mx-auto max-w-[1200px] w-full pt-10 px-4 lg:px-8">
+          <div className="rounded-[24px] border border-slate-200 bg-white p-10 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-slate-100 bg-slate-50 text-slate-400">
+              <Loader2 className="h-7 w-7 animate-spin" />
+            </div>
+            <h1 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Loading profile</h1>
+            <p className="mx-auto mt-2 max-w-xl text-sm text-slate-500">
+              Pulling together the mentor&apos;s background, reviews, and booking details...
+            </p>
           </div>
-          <h1 className="mt-6 text-2xl font-extrabold tracking-tight text-slate-950">Loading mentor profile</h1>
-          <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-500 sm:text-base">
-            We&apos;re pulling together the mentor&apos;s background, reviews, and booking details so the page feels complete
-            when it opens.
-          </p>
         </div>
       </StudentMentorShell>
     );
@@ -102,37 +104,38 @@ export default function MentorDetailPage() {
   if (errorMessage || !mentor) {
     return (
       <StudentMentorShell>
-        <div className="rounded-[32px] border border-red-200 bg-white/78 p-10 shadow-[0_20px_60px_rgba(15,23,42,0.07)] backdrop-blur-2xl">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex items-start gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 ring-1 ring-red-100">
-                <UserX className="h-6 w-6" />
+        <div className="mx-auto max-w-[1200px] w-full pt-10 px-4 lg:px-8">
+          <div className="rounded-[24px] border border-red-100 bg-white p-10 shadow-sm">
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-start gap-4">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+                  <UserX className="h-6 w-6" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight text-slate-900">Mentor not found</h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+                    {errorMessage || 'The mentor profile you requested may have been removed or is temporarily unavailable.'}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-red-500">Profile unavailable</p>
-                <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950">Mentor not found</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-                  {errorMessage || 'The mentor profile you requested may have been removed or is temporarily unavailable.'}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/student/mentors"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-bold text-white transition-colors hover:bg-slate-800"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Back to mentors
-              </Link>
-              <button
-                type="button"
-                onClick={() => window.location.reload()}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Retry
-              </button>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  href="/student/mentors"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back to mentors
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => window.location.reload()}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                  Retry
+                </button>
+              </div>
             </div>
           </div>
         </div>

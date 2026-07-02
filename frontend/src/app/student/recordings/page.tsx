@@ -8,7 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 
 interface UserInfo {
   _id: string;

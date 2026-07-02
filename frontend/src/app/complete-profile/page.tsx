@@ -11,32 +11,14 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import Logo from '@/components/Logo';
+import Logo from '@/components/common/Logo';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import { getDefaultAuthenticatedPath, isProfileComplete, type AuthProfileUser } from '@/utils/auth-profile';
 
 type Role = 'student' | 'mentor';
 
-const roleCards: Array<{
-  role: Role;
-  title: string;
-  subtitle: string;
-  icon: typeof GraduationCap;
-}> = [
-  {
-    role: 'student',
-    title: 'Student',
-    subtitle: 'Get matched faster with the right mentors and a cleaner dashboard setup.',
-    icon: GraduationCap,
-  },
-  {
-    role: 'mentor',
-    title: 'Mentor',
-    subtitle: 'Create a trusted public profile students and admins can confidently rely on.',
-    icon: Briefcase,
-  },
-];
+
 
 interface ProfileResponse extends AuthProfileUser {
   _id: string;
@@ -330,39 +312,7 @@ export default function CompleteProfilePage() {
               <p className="mt-3 text-base leading-relaxed text-slate-600 font-medium">{helperText}</p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 mb-12">
-              {roleCards.map(({ role: roleValue, title: cardTitle, subtitle, icon: Icon }) => {
-                const active = role === roleValue;
 
-                return (
-                  <button
-                    key={roleValue}
-                    type="button"
-                    onClick={() => setRole(roleValue)}
-                    className={`group relative rounded-3xl border p-6 text-left transition-all duration-300 ${
-                      active
-                        ? 'border-emerald-500 bg-white shadow-xl shadow-emerald-500/10 ring-4 ring-emerald-500/5'
-                        : 'border-white/60 bg-white/30 hover:border-emerald-200 hover:bg-white/60'
-                    }`}
-                  >
-                    <div className="flex flex-col gap-4">
-                      <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 ${active ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-3' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-600'}`}>
-                        <Icon className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <p className={`text-lg font-bold ${active ? 'text-slate-950' : 'text-slate-700'}`}>{cardTitle}</p>
-                        <p className={`mt-1 text-sm leading-relaxed ${active ? 'text-slate-600' : 'text-slate-400'} font-medium`}>{subtitle}</p>
-                      </div>
-                    </div>
-                    {active && (
-                      <div className="absolute top-4 right-4 h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center text-white">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
 
             <form onSubmit={handleSubmit} className="space-y-10">
               <div className="grid gap-8 sm:grid-cols-2">

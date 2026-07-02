@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
 import {

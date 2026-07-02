@@ -4,10 +4,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
-import { ClipboardCheck, Clock, CheckCircle, ArrowRight, Calendar, Sparkles } from 'lucide-react';
+import { ClipboardCheck, Clock, CheckCircle, ArrowRight, Calendar, Sparkles, Activity, FileText } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 type Question = {
   id: string;
@@ -177,7 +178,11 @@ const formatDate = (rawDate?: string) => {
     return null;
   }
 
-  return parsedDate.toLocaleDateString();
+  return parsedDate.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
 };
 
 function StudentAssessmentContent() {
@@ -295,204 +300,225 @@ function StudentAssessmentContent() {
   };
 
   return (
-    <DashboardLayout userName="Student">
-      <div className="space-y-6 pb-10">
-        <section className="overflow-hidden rounded-3xl border border-slate-200 bg-linear-to-br from-white via-slate-50 to-cyan-50/40 p-6 shadow-sm sm:p-8">
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <p className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-cyan-700">
-                <Sparkles size={12} />
-                My Assessments
-              </p>
-              <h1 className="mt-3 text-3xl font-manrope font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-                Complete Your Assessments
+    <DashboardLayout userName="Assessments">
+      <div className="mx-auto max-w-[1200px] w-full pt-4 pb-16 space-y-8">
+        
+        {/* ── Premium Hero Section ── */}
+        <section className="relative overflow-hidden rounded-[32px] bg-white border border-slate-200 shadow-sm p-8 sm:p-10 lg:p-12">
+          {/* Decorative Background Elements */}
+          <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-emerald-100/40 blur-[80px]" />
+          <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-cyan-100/40 blur-[80px]" />
+          
+          <div className="relative z-10 flex flex-col xl:flex-row gap-10 xl:items-end justify-between">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-emerald-700 mb-5">
+                <Sparkles size={14} className="text-emerald-500" />
+                Your Skill Journey
+              </div>
+              <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl mb-4 leading-tight">
+                Assessments
               </h1>
-              <p className="mt-2 max-w-3xl font-inter text-slate-600">
-                Take assessments assigned to you. You can save your progress and complete them anytime.
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">
+                Measure your baseline, track your progress, and unlock personalized mentorship recommendations through targeted evaluations.
               </p>
               {statusLoading && (
-                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Syncing progress status...
+                <p className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-500">
+                  <Activity size={14} className="animate-pulse" />
+                  Syncing progress...
                 </p>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Total</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{totalCount}</p>
+            {/* Quick Stats Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
+              <div className="rounded-[20px] bg-slate-50 border border-slate-100 p-5 text-center">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Total</p>
+                <p className="text-3xl font-extrabold text-slate-900">{totalCount}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Done</p>
-                <p className="mt-1 text-2xl font-extrabold text-emerald-700">{completedCount}</p>
+              <div className="rounded-[20px] bg-emerald-50 border border-emerald-100 p-5 text-center">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600/70 mb-1">Done</p>
+                <p className="text-3xl font-extrabold text-emerald-700">{completedCount}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">In Progress</p>
-                <p className="mt-1 text-2xl font-extrabold text-amber-700">{inProgressCount}</p>
+              <div className="rounded-[20px] bg-amber-50 border border-amber-100 p-5 text-center">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600/70 mb-1">In Progress</p>
+                <p className="text-3xl font-extrabold text-amber-700">{inProgressCount}</p>
               </div>
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Not Started</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{notStartedCount}</p>
+              <div className="rounded-[20px] bg-slate-50 border border-slate-100 p-5 text-center">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">To Do</p>
+                <p className="text-3xl font-extrabold text-slate-900">{notStartedCount}</p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-emerald-200/60 bg-linear-to-br from-emerald-50/50 to-white p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 group">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex-1">
-              <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 transition-transform group-hover:scale-105">
-                  <Sparkles size={24} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-slate-900">Career Assessment</h2>
-                  <p className="text-sm text-slate-600">
-                    Discover your best-fit career paths with personalized recommendations.
-                  </p>
-                </div>
+        {/* ── Spotlight: Career Assessment ── */}
+        <section className="group relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition-all hover:border-emerald-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.06)]">
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          
+          <div className="relative p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-start sm:items-center gap-5 flex-1">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-emerald-100 text-emerald-600 border border-emerald-200/50 shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+                <Sparkles size={28} />
               </div>
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">Career Baseline Assessment</h2>
+                <p className="text-sm text-slate-600 mb-3 max-w-lg">
+                  A foundational questionnaire that helps our matching engine pair you with the right mentors and career paths.
+                </p>
 
-              {careerAssessmentLoading ? (
-                <p className="text-sm font-medium text-slate-600">Checking your career assessment status...</p>
-              ) : hasCompletedCareerAssessment ? (
-                <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
-                  <CheckCircle size={16} />
-                  <span>{careerAssessmentDate ? `Completed on ${careerAssessmentDate}` : 'Completed'}</span>
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600">
-                  <ClipboardCheck size={16} />
-                  <span>Not started yet</span>
-                </div>
-              )}
+                {careerAssessmentLoading ? (
+                  <div className="animate-pulse h-6 w-48 bg-slate-100 rounded-md" />
+                ) : hasCompletedCareerAssessment ? (
+                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50/80 px-2.5 py-1 text-xs font-bold text-emerald-700 border border-emerald-100">
+                    <CheckCircle size={14} />
+                    <span>Completed {careerAssessmentDate ? `on ${careerAssessmentDate}` : ''}</span>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 rounded-lg bg-slate-50 px-2.5 py-1 text-xs font-bold text-slate-600 border border-slate-200">
+                    <ClipboardCheck size={14} />
+                    <span>Action required</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="flex shrink-0">
-              <button
-                onClick={handleOpenCareerAssessment}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 px-6 py-3.5 text-sm font-bold text-white transition-all shadow-md hover:shadow-emerald-500/25 hover:-translate-y-0.5 active:scale-95"
-              >
-                {hasCompletedCareerAssessment ? 'Review Career Assessment' : 'Start Career Assessment'}
-                <ArrowRight size={18} />
-              </button>
-            </div>
+            <button
+              onClick={handleOpenCareerAssessment}
+              className="w-full md:w-auto shrink-0 inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all shadow-[0_4px_14px_rgba(15,23,42,0.15)] hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95"
+            >
+              {hasCompletedCareerAssessment ? 'Review Results' : 'Start Assessment'}
+              <ArrowRight size={16} />
+            </button>
           </div>
         </section>
 
-        {loading ? (
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-slate-600">Loading assessments...</p>
-          </section>
-        ) : assignments.length === 0 ? (
-          <section className="rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-16 text-center shadow-sm flex flex-col items-center justify-center min-h-[300px]">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-5">
-               <ClipboardCheck size={32} />
-            </div>
-            <h2 className="mb-2 text-xl font-bold text-slate-900">No Assigned Assessments</h2>
-            <p className="text-sm font-medium text-slate-500 max-w-sm mx-auto">
-              You don't have any specific assessments assigned to you right now. When you do, they will appear here.
-            </p>
-          </section>
-        ) : (
-          <div className="grid gap-6">
-            {assignments.map((assignment) => {
-              const status = getAssignmentStatus(assignment._id);
-              const response = responses[assignment._id];
-              const assignedDate = formatDate(assignment.createdAt);
-              const dueDate = formatDate(assignment.dueDate);
-              const completedDate = formatDate(response?.submittedAt);
+        {/* ── Main List ── */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h3 className="text-xl font-bold text-slate-900">Assigned Tasks</h3>
+            <span className="text-sm font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">{assignments.length} assignments</span>
+          </div>
 
-              return (
-                <section
-                  key={assignment._id}
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-900/5"
-                >
-                  <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                    <div className="flex-1">
-                      <div className="mb-3 flex items-center gap-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+          {loading ? (
+            <div className="grid gap-4">
+              {[1, 2].map((i) => (
+                <div key={i} className="rounded-[24px] border border-slate-100 bg-white p-6 sm:p-8 shadow-sm animate-pulse flex flex-col md:flex-row gap-6 justify-between">
+                   <div className="flex gap-4 w-full md:w-2/3">
+                     <div className="h-14 w-14 rounded-2xl bg-slate-100 shrink-0" />
+                     <div className="flex-1 space-y-3 pt-2">
+                       <div className="h-5 w-1/3 bg-slate-100 rounded" />
+                       <div className="h-4 w-2/3 bg-slate-50 rounded" />
+                     </div>
+                   </div>
+                   <div className="h-12 w-32 bg-slate-100 rounded-xl" />
+                </div>
+              ))}
+            </div>
+          ) : assignments.length === 0 ? (
+            <div className="rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50/50 p-16 text-center">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] bg-white text-slate-300 shadow-sm mb-6 border border-slate-100">
+                 <FileText size={32} />
+              </div>
+              <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900">You're all caught up!</h2>
+              <p className="text-base text-slate-500 max-w-md mx-auto">
+                No specific assignments have been routed to you right now. Mentors will drop assignments here before or after sessions.
+              </p>
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {assignments.map((assignment) => {
+                const status = getAssignmentStatus(assignment._id);
+                const response = responses[assignment._id];
+                const assignedDate = formatDate(assignment.createdAt);
+                const dueDate = formatDate(assignment.dueDate);
+                const completedDate = formatDate(response?.submittedAt);
+
+                return (
+                  <motion.article
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    key={assignment._id}
+                    className="group rounded-[28px] border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                      
+                      <div className="flex flex-col sm:flex-row gap-5 items-start flex-1">
+                        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] shadow-sm border ${
+                          status === 'completed' ? 'bg-emerald-50 border-emerald-100 text-emerald-600' :
+                          status === 'in-progress' ? 'bg-amber-50 border-amber-100 text-amber-600' :
+                          'bg-slate-50 border-slate-200 text-slate-600'
+                        }`}>
                           <ClipboardCheck size={24} />
                         </div>
-                        <div>
-                          <h2 className="text-xl font-bold text-slate-900">
+
+                        <div className="flex-1">
+                          <h2 className="text-xl font-bold tracking-tight text-slate-900 mb-1.5 group-hover:text-black transition-colors">
                             {assignment.template.title}
                           </h2>
-                          <p className="text-sm text-slate-600">
-                            {assignment.template.questions.length} questions
+                          <p className="mb-4 text-sm leading-relaxed text-slate-600 max-w-2xl">
+                            {assignment.template.description}
                           </p>
+
+                          <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-500 mb-4">
+                            <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
+                              <FileText size={14} className="text-slate-400" />
+                              {assignment.template.questions.length} Questions
+                            </div>
+                            {assignedDate && (
+                              <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
+                                <Calendar size={14} className="text-slate-400" />
+                                Assigned {assignedDate}
+                              </div>
+                            )}
+                            {dueDate && (
+                              <div className="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100">
+                                <Clock size={14} className="text-slate-400" />
+                                Due {dueDate}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Status Badge */}
+                          {status === 'completed' && completedDate && (
+                            <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50/80 px-2.5 py-1.5 text-xs font-bold text-emerald-700 border border-emerald-100">
+                              <CheckCircle size={14} />
+                              Completed on {completedDate}
+                            </div>
+                          )}
+                          {status === 'in-progress' && (
+                            <div className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-700 border border-amber-100">
+                              <Clock size={14} />
+                              In Progress — Draft saved
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      <p className="mb-4 text-slate-700">
-                        {assignment.template.description}
-                      </p>
-
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
-                        <div className="flex items-center gap-2">
-                          <Calendar size={16} />
-                          <span>
-                            {assignedDate ? `Assigned ${assignedDate}` : 'Assigned recently'}
-                          </span>
-                        </div>
-                        {dueDate && (
-                          <div className="flex items-center gap-2">
-                            <Clock size={16} />
-                            <span>
-                              Due {dueDate}
-                            </span>
-                          </div>
+                      <div className="flex shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                        {status === 'completed' ? (
+                          <button
+                            onClick={() => handleStartAssessment(assignment._id)}
+                            className="w-full md:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 text-sm font-bold text-slate-700 transition-colors hover:bg-slate-50 hover:border-slate-300 shadow-sm"
+                          >
+                            View Responses
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleStartAssessment(assignment._id)}
+                            className="w-full md:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-bold text-white transition-all shadow-[0_4px_12px_rgba(15,23,42,0.12)] hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95"
+                          >
+                            {status === 'in-progress' ? 'Continue' : 'Start Now'}
+                            <ArrowRight size={16} />
+                          </button>
                         )}
                       </div>
-
-                      {status === 'completed' && completedDate && (
-                        <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
-                          <CheckCircle size={16} />
-                          <span>
-                            Completed on {completedDate}
-                          </span>
-                        </div>
-                      )}
-
-                      {status === 'in-progress' && (
-                        <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-700">
-                          <Clock size={16} />
-                          <span>In Progress - Continue where you left off</span>
-                        </div>
-                      )}
-
-                      {status === 'not-started' && (
-                        <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-600">
-                          <ClipboardCheck size={16} />
-                          <span>Ready to start</span>
-                        </div>
-                      )}
                     </div>
-
-                    <div className="flex shrink-0 flex-col gap-2">
-                      {status === 'completed' ? (
-                        <button
-                          onClick={() => handleStartAssessment(assignment._id)}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-6 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
-                        >
-                          View Responses
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleStartAssessment(assignment._id)}
-                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-slate-800"
-                        >
-                          {status === 'in-progress' ? 'Continue' : 'Start Assessment'}
-                          <ArrowRight size={18} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        )}
+                  </motion.article>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );

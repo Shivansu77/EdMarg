@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Mail, Lock, Phone, User, GraduationCap, Users, Eye, EyeOff, Link2 } from "lucide-react";
+import { Mail, Lock, Phone, User, GraduationCap, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/context/AuthContext";
 import { getPostAuthFallbackPath, getSafePostAuthPath } from "@/utils/auth-redirect";
 import { resolveApiBaseUrl, resolveBackendBaseUrl } from "@/utils/api-base";
 import { validators } from "@/utils/validators";
-import Logo from "@/components/Logo";
+import Logo from "@/components/common/Logo";
 
 interface SignupResponse {
   success?: boolean;
@@ -51,13 +51,12 @@ function SignupContent() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [step, setStep] = useState<"signup" | "otp">("signup");
+  const [otp, setOtp] = useState("");
 
-  const [role, setRole] = useState<"student" | "mentor">("student");
   const [classLevel, setClassLevel] = useState("");
   const [interests, setInterests] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [bio, setBio] = useState("");
-  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const role = "student";
 
   const API_BASE_URL = resolveApiBaseUrl();
   const backendBaseUrl = resolveBackendBaseUrl();
@@ -94,23 +93,7 @@ function SignupContent() {
     window.location.assign(`${backendBaseUrl}/api/v1/users/auth/google?state=${state}`);
   };
 
-  const handleRoleChange = (nextRole: "student" | "mentor") => {
-    if (nextRole === role) {
-      return;
-    }
 
-    setRole(nextRole);
-    setError("");
-
-    if (nextRole === "student") {
-      setExpertise("");
-      setBio("");
-      setLinkedinUrl("");
-    } else {
-      setClassLevel("");
-      setInterests("");
-    }
-  };
 
   const readSignupResponse = async (response: Response) => {
     const rawBody = await response.text();
@@ -176,9 +159,6 @@ function SignupContent() {
     setConfirmPassword("");
     setClassLevel("");
     setInterests("");
-    setExpertise("");
-    setBio("");
-    setLinkedinUrl("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -225,12 +205,6 @@ function SignupContent() {
           classLevel,
           interests: interests.split(",").map((value) => value.trim()).filter((value) => value !== ""),
         };
-      } else {
-        payload.mentorProfile = {
-          expertise: expertise.split(",").map((value) => value.trim()).filter((value) => value !== ""),
-          bio,
-          linkedinUrl: linkedinUrl.trim(),
-        };
       }
 
       const response = await fetch(`${API_BASE_URL}/api/v1/users`, {
@@ -241,7 +215,8 @@ function SignupContent() {
       });
 
       const result = await readSignupResponse(response);
-      applySuccessfulSignup(result);
+      toast.success(result.message || "Account created. Please check your email for the OTP.");
+      setStep("otp");
     } catch (err) {
       const rawErrorMessage = err instanceof Error ? err.message : "Unable to create account";
       const errorMessage = rawErrorMessage.toLowerCase().includes("failed to fetch")
@@ -295,7 +270,7 @@ function SignupContent() {
                   className="object-contain transition-transform group-hover:scale-110"
                 />
               </div>
-              <span>Continue with Google as {role}</span>
+              <span>Continue with Google</span>
             </button>
 
             <div className="relative mb-8">
@@ -307,33 +282,67 @@ function SignupContent() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="mb-7 flex gap-2 rounded-2xl bg-slate-100/50 p-1.5 ring-1 ring-black/[0.03] backdrop-blur-sm">
+            {step === "otp" ? (
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                setError("");
+            
+                try {
+                  const response = await fetch(`${API_BASE_URL}/api/v1/users/email/verify-otp`, {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, otp }),
+                  });
+            
+                  const result = await readSignupResponse(response);
+                  applySuccessfulSignup(result);
+                } catch (err) {
+                  const rawErrorMessage = err instanceof Error ? err.message : "Invalid OTP";
+                  setError(rawErrorMessage);
+                  toast.error(rawErrorMessage);
+                } finally {
+                  setLoading(false);
+                }
+              }} className="space-y-6">
+                <div className="space-y-2">
+                  <label htmlFor="otp" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                    Verification Code (OTP)
+                  </label>
+                  <input
+                    id="otp"
+                    type="text"
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="Enter 6-digit code"
+                    className="h-12 w-full rounded-2xl border border-white bg-white/60 px-4 text-center text-xl tracking-widest text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
+                    required
+                  />
+                </div>
+                {error && (
+                  <div className="p-4 bg-red-50/50 backdrop-blur-sm border border-red-100 rounded-2xl animate-shake">
+                    <p className="text-sm font-semibold text-red-600">{error}</p>
+                  </div>
+                )}
                 <button
-                  type="button"
-                  onClick={() => handleRoleChange("student")}
-                  className={`flex-1 flex items-center justify-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-300 ${
-                    role === "student"
-                      ? "bg-white text-emerald-600 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-100"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
+                  type="submit"
+                  disabled={loading || otp.length !== 6}
+                  className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 text-sm font-semibold text-white shadow-xl shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-500 active:scale-95 disabled:opacity-50"
                 >
-                  <GraduationCap size={18} />
-                  I am a Student
+                  {loading ? (
+                    <>
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify Email"
+                  )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => handleRoleChange("mentor")}
-                  className={`flex-1 flex items-center justify-center gap-2.5 rounded-xl px-3.5 py-3 text-sm font-semibold transition-all duration-300 ${
-                    role === "mentor"
-                      ? "bg-white text-emerald-600 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-100"
-                      : "text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  <Users size={18} />
-                  I am a Mentor
-                </button>
-              </div>
+              </form>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-6">
+
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="space-y-2">
@@ -392,7 +401,6 @@ function SignupContent() {
                   </div>
                 </div>
 
-                {role === "student" ? (
                   <div className="space-y-2">
                     <label htmlFor="classLevel" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                       Class / Level
@@ -407,25 +415,8 @@ function SignupContent() {
                       required
                     />
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    <label htmlFor="expertise" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                      Expertise
-                    </label>
-                    <input
-                      id="expertise"
-                      type="text"
-                      value={expertise}
-                      onChange={(e) => setExpertise(e.target.value)}
-                      placeholder="e.g. Engineering"
-                      className="h-12 w-full rounded-2xl border border-white bg-white/60 px-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
-                      required
-                    />
-                  </div>
-                )}
               </div>
 
-              {role === "student" ? (
                 <div className="space-y-2">
                   <label htmlFor="interests" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                     Interests (comma separated)
@@ -439,40 +430,6 @@ function SignupContent() {
                     className="h-12 w-full rounded-2xl border border-white bg-white/60 px-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
                   />
                 </div>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <label htmlFor="bio" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                      Short Bio
-                    </label>
-                    <textarea
-                      id="bio"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Tell us about yourself..."
-                      className="w-full resize-none rounded-2xl border border-white bg-white/60 p-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
-                      rows={3}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="linkedinUrl" className="ml-1 block text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                      LinkedIn Profile Link
-                    </label>
-                    <div className="relative">
-                      <Link2 size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" />
-                      <input
-                        id="linkedinUrl"
-                        type="url"
-                        value={linkedinUrl}
-                        onChange={(e) => setLinkedinUrl(e.target.value)}
-                        placeholder="https://www.linkedin.com/in/..."
-                        className="h-12 w-full rounded-2xl border border-white bg-white/60 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-300 shadow-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-500/5"
-                        required={role === "mentor"}
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
 
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="space-y-2">
@@ -537,7 +494,7 @@ function SignupContent() {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-slate-950 text-sm font-semibold text-white shadow-xl shadow-slate-950/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95 disabled:opacity-50"
+                className="mt-2 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 text-sm font-semibold text-white shadow-xl shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-500 active:scale-95 disabled:opacity-50"
               >
                 {loading ? (
                   <>
@@ -549,6 +506,7 @@ function SignupContent() {
                 )}
               </button>
             </form>
+            )}
 
             <div className="mt-8 border-t border-slate-200/60 pt-6 text-center">
               <p className="text-sm text-slate-600">

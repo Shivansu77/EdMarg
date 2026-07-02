@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import SessionFeedbackDialog from '@/components/student/SessionFeedbackDialog';
 import { ChatModal } from '@/components/chat/ChatModal';
 
@@ -197,7 +197,7 @@ function HistoryContent() {
                     <div className="mb-6 rounded-2xl bg-emerald-50/50 border border-emerald-100 p-5">
                       <div className="flex items-center gap-2 mb-3">
                         <FileText className="w-4 h-4 text-emerald-600" />
-                        <h4 className="text-sm font-bold text-slate-900">Mentor's Session Notes</h4>
+                        <h4 className="text-sm font-bold text-slate-900">Mentor&apos;s Session Notes</h4>
                       </div>
                       
                       {booking.sessionSummary && (

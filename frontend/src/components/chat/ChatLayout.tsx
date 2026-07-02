@@ -204,7 +204,7 @@ export const ChatLayout = () => {
             </div>
           ) : contacts.length === 0 ? (
             <div className="p-4 text-center text-sm text-gray-500">
-              No recent contacts. When you book a session, you'll be able to chat here.
+              No recent contacts. When you book a session, you&apos;ll be able to chat here.
             </div>
           ) : (
             contacts.map((contact) => (

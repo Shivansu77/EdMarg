@@ -36,7 +36,7 @@ export default async function BlogsPage() {
   try {
     blogs = await getAllBlogsFromAPI();
   } catch (fetchError) {
-    console.error('Failed to load blogs:', fetchError);
+    console.error('Failed to load blogs:', fetchError instanceof Error ? fetchError.message : String(fetchError));
     error = 'Failed to load blogs. Please try again later.';
   }
 

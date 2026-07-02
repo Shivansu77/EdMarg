@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { apiClient } from '@/utils/api-client';
-import Logo from '@/components/Logo';
+import Logo from '@/components/common/Logo';
 import {
   LayoutGrid,
   MessageSquare,

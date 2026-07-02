@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
-import ProfileImageUpload from '@/components/ProfileImageUpload';
+import ProfileImageUpload from '@/components/common/ProfileImageUpload';
 import { 
   UserCircle, 
   Mail, 

@@ -12,8 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "fix-urls.js",
-    "fix_images.js",
+    "*.js",
+    "scripts/**",
     "server.js",
   ]),
   {

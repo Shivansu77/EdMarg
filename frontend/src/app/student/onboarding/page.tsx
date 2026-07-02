@@ -1,6 +1,6 @@
 'use client';
 
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 
 export default function StudentOnboarding() {
   return (

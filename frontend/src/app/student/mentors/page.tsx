@@ -1,8 +1,8 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertCircle,
   ChevronDown,
@@ -15,9 +15,14 @@ import {
   Star,
   TrendingUp,
   X,
+  Users,
+  Filter,
+  LayoutGrid,
+  List,
+  Zap,
 } from 'lucide-react';
 
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import MentorMarketplaceCard, {
   type MentorMarketplaceCardData,
@@ -75,12 +80,12 @@ const PRICE_OPTS: { label: string; value: PriceFilter }[] = [
   { label: 'Premium ₹1000+', value: 'premium' },
 ];
 
-const SORT_OPTS: { label: string; value: SortOption }[] = [
-  { label: 'Recommended', value: 'recommended' },
-  { label: 'Top rated', value: 'rating' },
-  { label: 'Most sessions', value: 'sessions' },
-  { label: 'Price: low to high', value: 'price-low' },
-  { label: 'Newest', value: 'newest' },
+const SORT_OPTS: { label: string; value: SortOption; icon: typeof Star }[] = [
+  { label: 'Recommended', value: 'recommended', icon: Sparkles },
+  { label: 'Top rated', value: 'rating', icon: Star },
+  { label: 'Most sessions', value: 'sessions', icon: Users },
+  { label: 'Price: low to high', value: 'price-low', icon: TrendingUp },
+  { label: 'Newest', value: 'newest', icon: Zap },
 ];
 
 const inferDomain = (skills: string[], bio: string) => {
@@ -118,6 +123,21 @@ const sortList = (list: MentorVM[], by: SortOption) => {
   return c;
 };
 
+// Domain color mapping for category pills
+const DOMAIN_COLORS: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  'Frontend': { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
+  'Backend': { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200', dot: 'bg-purple-500' },
+  'Full Stack': { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-200', dot: 'bg-indigo-500' },
+  'Data & AI': { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
+  'Design': { bg: 'bg-pink-50', text: 'text-pink-700', border: 'border-pink-200', dot: 'bg-pink-500' },
+  'Cloud & DevOps': { bg: 'bg-cyan-50', text: 'text-cyan-700', border: 'border-cyan-200', dot: 'bg-cyan-500' },
+  'Mobile': { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
+  'Career': { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', dot: 'bg-emerald-500' },
+  'Product': { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200', dot: 'bg-rose-500' },
+  'Web3': { bg: 'bg-violet-50', text: 'text-violet-700', border: 'border-violet-200', dot: 'bg-violet-500' },
+  'General': { bg: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200', dot: 'bg-slate-400' },
+};
+
 function MentorsContent() {
   const sp = useSearchParams();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -134,6 +154,8 @@ function MentorsContent() {
   const [price, setPrice] = useState<PriceFilter>('all');
   const [sortBy, setSortBy] = useState<SortOption>('recommended');
   const [showFilters, setShowFilters] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { const q = sp.get('search'); if (q !== null) setSearch(q); }, [sp]);
   useEffect(() => { setIsLoggedIn(Boolean(localStorage.getItem('token'))); }, []);
@@ -163,6 +185,7 @@ function MentorsContent() {
       catch (e) { setError(e instanceof Error ? e.message : 'Unable to fetch mentors.'); setMentors([]); }
       finally { setLoading(false); }
     })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Build view models from real API data only
@@ -219,6 +242,15 @@ function MentorsContent() {
     return Number((rated.reduce((s, c) => s + c.ratingVal, 0) / rated.length).toFixed(1));
   }, [cards]);
 
+  // Domain counts for filter pills
+  const domainCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    cards.forEach(c => {
+      counts[c.domain] = (counts[c.domain] || 0) + 1;
+    });
+    return counts;
+  }, [cards]);
+
   const activeCount = (search.trim() ? 1 : 0) + (domain !== ALL ? 1 : 0) + (price !== 'all' ? 1 : 0) + (sortBy !== 'recommended' ? 1 : 0);
 
   const clearFilters = () => { setSearch(''); setDomain(ALL); setPrice('all'); setSortBy('recommended'); };
@@ -239,181 +271,335 @@ function MentorsContent() {
 
   return (
     <DashboardLayout userName="Mentors">
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(236,253,245,0.9),_rgba(248,250,252,0.86)_32%,_#ffffff_70%)] pb-16">
-        <div className="space-y-6">
-          {/* Hero */}
-          <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white/90 shadow-[0_20px_50px_rgba(15,23,42,0.06)] backdrop-blur">
-            <div className="grid gap-8 px-6 py-7 lg:grid-cols-[1.2fr_0.9fr] lg:px-8">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-600">Mentor Marketplace</p>
-                <h1 className="mt-3 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Mentors</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base">
-                  Connect with experts who can guide your career, sharpen your skills, and help you move faster with focused 1:1 sessions.
+      <style>{mentorPageStyles}</style>
+      <div className="mmp-page">
+        <div className="mmp-content">
+
+          {/* ── Hero Section ─────────────────────────────────── */}
+          <section className="mmp-hero">
+            <div className="mmp-hero-bg" />
+            <div className="mmp-hero-content">
+              <div className="mmp-hero-left">
+                <div className="mmp-hero-badge">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Mentor Marketplace</span>
+                </div>
+                <h1 className="mmp-hero-title">
+                  Find Your Perfect<br />
+                  <span className="mmp-hero-title-accent">Mentor</span>
+                </h1>
+                <p className="mmp-hero-desc">
+                  Connect with verified industry experts for personalized 1:1 mentorship sessions. 
+                  Accelerate your career growth with focused guidance.
                 </p>
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm font-semibold text-emerald-800">
-                    <ShieldCheck className="h-4 w-4" /> {cards.length} verified mentors
+
+                {/* Stats Row */}
+                <div className="mmp-hero-stats">
+                  <div className="mmp-stat">
+                    <div className="mmp-stat-icon mmp-stat-icon-green">
+                      <ShieldCheck className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="mmp-stat-value">{cards.length}</p>
+                      <p className="mmp-stat-label">Verified Mentors</p>
+                    </div>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm font-semibold text-slate-700">
-                    <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                    {avgRating > 0 ? `${avgRating} avg rating` : 'New talent joining weekly'}
+                  <div className="mmp-stat-divider" />
+                  <div className="mmp-stat">
+                    <div className="mmp-stat-icon mmp-stat-icon-amber">
+                      <Star className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="mmp-stat-value">{avgRating > 0 ? avgRating : '—'}</p>
+                      <p className="mmp-stat-label">Avg Rating</p>
+                    </div>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3.5 py-2 text-sm font-semibold text-sky-800">
-                    <TrendingUp className="h-4 w-4" /> {totalCount || cards.length} total profiles
+                  <div className="mmp-stat-divider" />
+                  <div className="mmp-stat">
+                    <div className="mmp-stat-icon mmp-stat-icon-blue">
+                      <TrendingUp className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <p className="mmp-stat-value">{totalCount || cards.length}</p>
+                      <p className="mmp-stat-label">Total Profiles</p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="flex flex-col justify-between gap-5 rounded-[24px] border border-slate-200 bg-[linear-gradient(135deg,rgba(248,250,252,0.95),rgba(236,253,245,0.75))] p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-900">Find your next mentor</p>
-                    <p className="mt-1 text-sm text-slate-500">Search by skill, name, or domain.</p>
-                  </div>
-                  <button type="button" onClick={refresh} className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-colors hover:border-slate-300 hover:text-slate-900" aria-label="Refresh">
+
+              {/* Search Panel */}
+              <div className="mmp-search-panel">
+                <div className="mmp-search-panel-header">
+                  <Search className="h-5 w-5 text-slate-400" />
+                  <h3 className="mmp-search-panel-title">Quick Search</h3>
+                  <button type="button" onClick={refresh} className="mmp-refresh-btn" aria-label="Refresh">
                     {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                   </button>
                 </div>
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <input type="text" placeholder="Search by skill, name, or domain" value={search} onChange={e => setSearch(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-200 bg-white pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-300 focus:ring-4 focus:ring-emerald-100" />
+                <div className={`mmp-search-input-wrap ${searchFocused ? 'mmp-search-focused' : ''}`}>
+                  <Search className="mmp-search-icon" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search by skill, name, or domain..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    className="mmp-search-input"
+                  />
+                  {search && (
+                    <button onClick={() => setSearch('')} className="mmp-search-clear">
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
                 </div>
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="rounded-2xl border border-white/60 bg-white/70 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Showing</p>
-                    <p className="mt-2 text-xl font-bold text-slate-950">{filtered.length}</p>
-                    <p className="mt-1 text-xs text-slate-500">Matched</p>
+
+                {/* Quick Stats */}
+                <div className="mmp-quick-stats">
+                  <div className="mmp-quick-stat">
+                    <span className="mmp-quick-stat-num">{filtered.length}</span>
+                    <span className="mmp-quick-stat-label">Matched</span>
                   </div>
-                  <div className="rounded-2xl border border-white/60 bg-white/70 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Total</p>
-                    <p className="mt-2 text-xl font-bold text-slate-950">{Math.max(totalCount, cards.length)}</p>
-                    <p className="mt-1 text-xs text-slate-500">Profiles</p>
+                  <div className="mmp-quick-stat">
+                    <span className="mmp-quick-stat-num">{Math.max(totalCount, cards.length)}</span>
+                    <span className="mmp-quick-stat-label">Total</span>
                   </div>
-                  <div className="rounded-2xl border border-white/60 bg-white/70 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Filters</p>
-                    <p className="mt-2 text-xl font-bold text-slate-950">{activeCount}</p>
-                    <p className="mt-1 text-xs text-slate-500">Active</p>
+                  <div className="mmp-quick-stat">
+                    <span className="mmp-quick-stat-num">{activeCount}</span>
+                    <span className="mmp-quick-stat-label">Filters</span>
                   </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Filter bar */}
-          <section className="rounded-[28px] border border-slate-200 bg-white/95 px-4 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.05)] sm:px-5">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="relative min-w-[170px] flex-1 sm:flex-none">
-                <select value={domain} onChange={e => setDomain(e.target.value)} className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-10 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-emerald-300 focus:bg-white">
-                  {domainOpts.map(d => <option key={d} value={d}>{d}</option>)}
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          {/* ── Domain Categories ─────────────────────────────── */}
+          {!loading && cards.length > 0 && (
+            <section className="mmp-domains-section">
+              <div className="mmp-domains-scroll">
+                <button
+                  onClick={() => setDomain(ALL)}
+                  className={`mmp-domain-pill ${domain === ALL ? 'mmp-domain-active' : ''}`}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" />
+                  <span>All</span>
+                  <span className="mmp-domain-count">{cards.length}</span>
+                </button>
+                {domainOpts.filter(d => d !== ALL).map(d => {
+                  const colors = DOMAIN_COLORS[d] || DOMAIN_COLORS['General'];
+                  const count = domainCounts[d] || 0;
+                  return (
+                    <button
+                      key={d}
+                      onClick={() => setDomain(domain === d ? ALL : d)}
+                      className={`mmp-domain-pill ${domain === d ? 'mmp-domain-active' : ''}`}
+                    >
+                      <span className={`mmp-domain-dot ${colors.dot}`} />
+                      <span>{d}</span>
+                      <span className="mmp-domain-count">{count}</span>
+                    </button>
+                  );
+                })}
               </div>
-              <div className="relative min-w-[150px] flex-1 sm:flex-none">
-                <select value={price} onChange={e => setPrice(e.target.value as PriceFilter)} className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-10 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-emerald-300 focus:bg-white">
+            </section>
+          )}
+
+          {/* ── Filter & Sort Bar ─────────────────────────────── */}
+          <section className="mmp-toolbar">
+            <div className="mmp-toolbar-left">
+              <div className="mmp-select-wrap">
+                <select value={price} onChange={e => setPrice(e.target.value as PriceFilter)} className="mmp-select">
                   {PRICE_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <ChevronDown className="mmp-select-chevron" />
               </div>
-              <div className="relative min-w-[170px] flex-1 sm:flex-none">
-                <select value={sortBy} onChange={e => setSortBy(e.target.value as SortOption)} className="h-11 w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50 px-4 pr-10 text-sm font-medium text-slate-700 outline-none transition-colors focus:border-emerald-300 focus:bg-white">
+              <div className="mmp-select-wrap">
+                <select value={sortBy} onChange={e => setSortBy(e.target.value as SortOption)} className="mmp-select">
                   {SORT_OPTS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                 </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <ChevronDown className="mmp-select-chevron" />
               </div>
-              <button type="button" onClick={() => setShowFilters(v => !v)}
-                className={`inline-flex h-11 items-center gap-2 rounded-2xl border px-4 text-sm font-semibold transition-colors ${showFilters || activeCount > 0 ? 'border-slate-950 bg-slate-950 text-white' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}>
-                <SlidersHorizontal className="h-4 w-4" /> Filters
-                {activeCount > 0 && <span className="rounded-full bg-white/15 px-2 py-0.5 text-xs font-bold">{activeCount}</span>}
+              <button
+                type="button"
+                onClick={() => setShowFilters(v => !v)}
+                className={`mmp-filter-toggle ${showFilters || activeCount > 0 ? 'mmp-filter-active' : ''}`}
+              >
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">Filters</span>
+                {activeCount > 0 && <span className="mmp-filter-badge">{activeCount}</span>}
               </button>
             </div>
-            {showFilters && (
-              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <button type="button" onClick={() => setSortBy('rating')} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-amber-300 hover:bg-amber-50">Top mentors</button>
-                  <button type="button" onClick={() => setPrice('under-499')} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-emerald-300 hover:bg-emerald-50">Budget friendly</button>
-                  <button type="button" onClick={clearFilters} className="ml-auto inline-flex items-center gap-2 rounded-full border border-red-200 bg-white px-3 py-1.5 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50">
-                    <X className="h-4 w-4" /> Reset all
-                  </button>
-                </div>
+            <div className="mmp-toolbar-right">
+              {activeCount > 0 && (
+                <button type="button" onClick={clearFilters} className="mmp-clear-btn">
+                  <X className="h-3.5 w-3.5" />
+                  Clear all
+                </button>
+              )}
+              <div className="mmp-results-label">
+                <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
+                <span>{sorted.length} mentor{sorted.length !== 1 ? 's' : ''}</span>
               </div>
-            )}
+            </div>
           </section>
 
-          {/* Content */}
+          {/* Filter Expand */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.section
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeInOut' }}
+                className="overflow-hidden"
+              >
+                <div className="mmp-filter-expanded">
+                  <p className="mmp-filter-expanded-label">Quick Filters</p>
+                  <div className="mmp-filter-chips">
+                    <button type="button" onClick={() => setSortBy('rating')} className="mmp-filter-chip">
+                      <Star className="h-3.5 w-3.5 text-amber-500" /> Top rated mentors
+                    </button>
+                    <button type="button" onClick={() => setPrice('free')} className="mmp-filter-chip">
+                      <Zap className="h-3.5 w-3.5 text-emerald-500" /> Free sessions
+                    </button>
+                    <button type="button" onClick={() => setPrice('under-499')} className="mmp-filter-chip">
+                      <TrendingUp className="h-3.5 w-3.5 text-blue-500" /> Budget friendly
+                    </button>
+                    <button type="button" onClick={() => setSortBy('sessions')} className="mmp-filter-chip">
+                      <Users className="h-3.5 w-3.5 text-purple-500" /> Most experienced
+                    </button>
+                    <button type="button" onClick={() => setSortBy('newest')} className="mmp-filter-chip">
+                      <Sparkles className="h-3.5 w-3.5 text-pink-500" /> New mentors
+                    </button>
+                  </div>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
+
+          {/* ── Recommended Mentors ─────────────────────────── */}
           {!loading && !error && isLoggedIn && sorted.length > 0 && search.trim() === '' && domain === ALL && price === 'all' && (
             <RecommendedMentors variant="marketplace" />
           )}
 
+          {/* ── Content ──────────────────────────────────────── */}
           {loading ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="mmp-grid">
               {Array.from({ length: 8 }).map((_, i) => (
-                <div key={`sk-${i}`} className="animate-pulse rounded-[22px] border border-slate-200 bg-white overflow-hidden">
-                  <div className="h-52 bg-slate-200" />
-                  <div className="p-4 space-y-3">
-                    <div className="grid grid-cols-3 gap-2">{Array.from({length:3}).map((_,j)=><div key={j} className="h-14 rounded-xl bg-slate-100"/>)}</div>
-                    <div className="h-3 w-full rounded-full bg-slate-100" />
-                    <div className="h-3 w-4/5 rounded-full bg-slate-100" />
-                    <div className="flex gap-2"><div className="h-6 w-16 rounded-full bg-slate-100"/><div className="h-6 w-20 rounded-full bg-slate-100"/></div>
-                    <div className="border-t border-slate-100 pt-3 grid grid-cols-2 gap-2"><div className="h-10 rounded-xl bg-slate-100"/><div className="h-10 rounded-xl bg-slate-200"/></div>
+                <div key={`sk-${i}`} className="mmp-skeleton-card">
+                  <div className="mmp-skeleton-header">
+                    <div className="mmp-skeleton-avatar" />
+                    <div className="mmp-skeleton-lines">
+                      <div className="mmp-skeleton-line mmp-skeleton-line-md" />
+                      <div className="mmp-skeleton-line mmp-skeleton-line-sm" />
+                    </div>
+                  </div>
+                  <div className="mmp-skeleton-stats">
+                    <div className="mmp-skeleton-stat" />
+                    <div className="mmp-skeleton-stat" />
+                    <div className="mmp-skeleton-stat" />
+                  </div>
+                  <div className="mmp-skeleton-line mmp-skeleton-line-full" />
+                  <div className="mmp-skeleton-line mmp-skeleton-line-lg" />
+                  <div className="mmp-skeleton-tags">
+                    <div className="mmp-skeleton-tag" />
+                    <div className="mmp-skeleton-tag mmp-skeleton-tag-lg" />
+                  </div>
+                  <div className="mmp-skeleton-footer">
+                    <div className="mmp-skeleton-btn" />
+                    <div className="mmp-skeleton-btn mmp-skeleton-btn-primary" />
                   </div>
                 </div>
               ))}
             </div>
           ) : error ? (
-            <div className="rounded-[28px] border border-red-200 bg-red-50/80 p-6 shadow-sm">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <div className="rounded-2xl bg-white p-3 text-red-500 shadow-sm"><AlertCircle className="h-5 w-5" /></div>
-                  <div>
-                    <p className="text-base font-bold text-red-950">Could not load mentors</p>
-                    <p className="mt-1 text-sm leading-6 text-red-700">{error}</p>
-                  </div>
+            <div className="mmp-error">
+              <div className="mmp-error-inner">
+                <div className="mmp-error-icon-wrap">
+                  <AlertCircle className="h-6 w-6 text-red-500" />
                 </div>
-                <button type="button" onClick={refresh} className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-900">Retry</button>
+                <div className="mmp-error-content">
+                  <h3 className="mmp-error-title">Could not load mentors</h3>
+                  <p className="mmp-error-desc">{error}</p>
+                </div>
+                <button type="button" onClick={refresh} className="mmp-error-retry">
+                  <RefreshCw className="h-4 w-4" />
+                  Retry
+                </button>
               </div>
             </div>
           ) : sorted.length === 0 ? (
-            <div className="rounded-[28px] border border-dashed border-slate-300 bg-white/90 p-10 text-center shadow-sm">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-500"><Search className="h-7 w-7" /></div>
-              <h2 className="mt-5 text-2xl font-bold tracking-tight text-slate-950">No mentors match these filters</h2>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-slate-500">Try widening your search or switching back to recommended sorting.</p>
-              <button type="button" onClick={clearFilters} className="mt-6 inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50">Clear all filters</button>
+            <div className="mmp-empty">
+              <div className="mmp-empty-icon">
+                <Search className="h-8 w-8 text-slate-400" />
+              </div>
+              <h2 className="mmp-empty-title">No mentors match your criteria</h2>
+              <p className="mmp-empty-desc">
+                Try adjusting your filters or search terms to find the right mentor for you.
+              </p>
+              <button type="button" onClick={clearFilters} className="mmp-empty-clear">
+                <X className="h-4 w-4" />
+                Clear all filters
+              </button>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">Showing {sorted.length} mentors</p>
-                  <p className="mt-1 text-sm text-slate-500">All data is from real mentor profiles.</p>
-                </div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 shadow-sm">
-                  <Sparkles className="h-4 w-4 text-emerald-500" />
+            <>
+              {/* Results Header */}
+              <div className="mmp-results-header">
+                <p className="mmp-results-showing">
+                  Showing <strong>{sorted.length}</strong> of {Math.max(totalCount, cards.length)} mentors
+                </p>
+                <div className="mmp-sort-indicator">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-500" />
                   Sorted by {SORT_OPTS.find(o => o.value === sortBy)?.label}
                 </div>
               </div>
 
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {/* Cards Grid */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="mmp-grid"
+              >
                 {sorted.map((m, i) => (
                   <MentorMarketplaceCard key={m.id} mentor={m} isLoggedIn={isLoggedIn} priority={i < 4} />
                 ))}
               </motion.div>
 
+              {/* Load More */}
               {hasMore && (
-                <div className="rounded-[28px] border border-slate-200 bg-white px-6 py-5 shadow-sm">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="mmp-loadmore">
+                  <div className="mmp-loadmore-inner">
                     <div>
-                      <p className="text-base font-bold text-slate-950">Want more mentors?</p>
-                      <p className="mt-1 text-sm text-slate-500">Load more profiles to expand your options.</p>
+                      <p className="mmp-loadmore-title">Discover more mentors</p>
+                      <p className="mmp-loadmore-desc">
+                        Load the next batch of {PAGE_SIZE} profiles to expand your options.
+                      </p>
                     </div>
-                    <button type="button" onClick={loadMore} disabled={!hasMore || loadingMore}
-                      className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-slate-950 px-5 text-sm font-semibold text-white transition-colors hover:bg-slate-900 disabled:cursor-not-allowed disabled:opacity-50">
-                      {loadingMore ? 'Loading...' : `Load ${PAGE_SIZE} more`}
+                    <button
+                      type="button"
+                      onClick={loadMore}
+                      disabled={!hasMore || loadingMore}
+                      className="mmp-loadmore-btn"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          Load more
+                          <ChevronDown className="h-4 w-4" />
+                        </>
+                      )}
                     </button>
                   </div>
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>
@@ -430,3 +616,775 @@ export default function MentorsPage() {
     </ProtectedRoute>
   );
 }
+
+// ─── Scoped Styles ──────────────────────────────────────────────────────────
+const mentorPageStyles = `
+/* ─── Page Layout ────────────────────────────────────────── */
+.mmp-page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafb 0%, #ffffff 40%);
+  padding-bottom: 64px;
+}
+.mmp-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ─── Hero Section ───────────────────────────────────────── */
+.mmp-hero {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e8ebef;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.03);
+}
+.mmp-hero-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(16,185,129,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 100% 100%, rgba(59,130,246,0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+.mmp-hero-content {
+  position: relative;
+  display: grid;
+  gap: 32px;
+  padding: 32px 28px;
+}
+@media (min-width: 1024px) {
+  .mmp-hero-content {
+    grid-template-columns: 1.15fr 0.85fr;
+    padding: 40px 36px;
+  }
+}
+
+/* Hero Left */
+.mmp-hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.mmp-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 1px solid #a7f3d0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #059669;
+  width: fit-content;
+  letter-spacing: 0.02em;
+}
+.mmp-hero-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  margin-top: 12px;
+}
+@media (min-width: 640px) {
+  .mmp-hero-title { font-size: 40px; }
+}
+.mmp-hero-title-accent {
+  background: linear-gradient(135deg, #10b981, #0d9488);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.mmp-hero-desc {
+  margin-top: 12px;
+  max-width: 540px;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #64748b;
+}
+
+/* Hero Stats */
+.mmp-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.mmp-stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mmp-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.mmp-stat-icon-green {
+  background: #ecfdf5;
+  color: #10b981;
+}
+.mmp-stat-icon-amber {
+  background: #fffbeb;
+  color: #f59e0b;
+}
+.mmp-stat-icon-blue {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+.mmp-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+.mmp-stat-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.mmp-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #e2e8f0;
+}
+@media (max-width: 480px) {
+  .mmp-stat-divider { display: none; }
+  .mmp-hero-stats { gap: 14px; }
+}
+
+/* ─── Search Panel ───────────────────────────────────────── */
+.mmp-search-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fafbfc, #f5f7f9);
+  border: 1px solid #e8ebef;
+}
+.mmp-search-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mmp-search-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  flex: 1;
+}
+.mmp-refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.mmp-refresh-btn:hover {
+  border-color: #cbd5e1;
+  color: #1e293b;
+  background: #f8fafc;
+}
+
+/* Search Input */
+.mmp-search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  transition: all 0.25s ease;
+}
+.mmp-search-focused {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+}
+.mmp-search-icon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+.mmp-search-input {
+  width: 100%;
+  height: 48px;
+  padding: 0 44px 0 42px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1e293b;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+.mmp-search-input::placeholder {
+  color: #94a3b8;
+}
+.mmp-search-clear {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mmp-search-clear:hover {
+  background: #e2e8f0;
+}
+
+/* Quick Stats */
+.mmp-quick-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.mmp-quick-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px;
+  border-radius: 12px;
+  background: white;
+  border: 1px solid #f1f5f9;
+}
+.mmp-quick-stat-num {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1;
+}
+.mmp-quick-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Domain Categories ──────────────────────────────────── */
+.mmp-domains-section {
+  overflow: hidden;
+}
+.mmp-domains-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.mmp-domains-scroll::-webkit-scrollbar { display: none; }
+.mmp-domain-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid #e8ebef;
+  background: white;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.mmp-domain-pill:hover {
+  border-color: #10b981;
+  color: #059669;
+  background: #ecfdf5;
+}
+.mmp-domain-active {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+  color: white !important;
+}
+.mmp-domain-active .mmp-domain-count {
+  background: rgba(255,255,255,0.2) !important;
+  color: white !important;
+}
+.mmp-domain-active .mmp-domain-dot {
+  background: #34d399 !important;
+}
+.mmp-domain-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mmp-domain-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* ─── Toolbar ────────────────────────────────────────────── */
+.mmp-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid #e8ebef;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+.mmp-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.mmp-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mmp-select-wrap {
+  position: relative;
+  min-width: 150px;
+}
+@media (max-width: 640px) {
+  .mmp-select-wrap { min-width: 120px; flex: 1; }
+}
+.mmp-select {
+  width: 100%;
+  height: 40px;
+  appearance: none;
+  padding: 0 32px 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.mmp-select:focus {
+  border-color: #10b981;
+  background: white;
+}
+.mmp-select-chevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+.mmp-filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #475569;
+  transition: all 0.2s ease;
+}
+.mmp-filter-toggle:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+.mmp-filter-active {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+  color: white !important;
+}
+.mmp-filter-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.2);
+}
+.mmp-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ef4444;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mmp-clear-btn:hover {
+  background: #fee2e2;
+}
+.mmp-results-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* ─── Filter Expanded ────────────────────────────────────── */
+.mmp-filter-expanded {
+  padding: 16px 20px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #e8ebef;
+}
+.mmp-filter-expanded-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  margin-bottom: 10px;
+}
+.mmp-filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mmp-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  background: white;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.mmp-filter-chip:hover {
+  border-color: #10b981;
+  background: #ecfdf5;
+  color: #059669;
+}
+
+/* ─── Grid ───────────────────────────────────────────────── */
+.mmp-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 20px;
+}
+@media (min-width: 768px) {
+  .mmp-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1280px) {
+  .mmp-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1536px) {
+  .mmp-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ─── Results Header ─────────────────────────────────────── */
+.mmp-results-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mmp-results-showing {
+  font-size: 14px;
+  color: #64748b;
+}
+.mmp-results-showing strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+.mmp-sort-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+}
+
+/* ─── Load More ──────────────────────────────────────────── */
+.mmp-loadmore {
+  border-radius: 18px;
+  border: 1px solid #e8ebef;
+  background: white;
+  padding: 24px 28px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.mmp-loadmore-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.mmp-loadmore-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.mmp-loadmore-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 4px;
+}
+.mmp-loadmore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  background: #0f172a;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.mmp-loadmore-btn:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15,23,42,0.15);
+}
+.mmp-loadmore-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Empty / Error States ───────────────────────────────── */
+.mmp-error {
+  border-radius: 18px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  padding: 24px;
+}
+.mmp-error-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+.mmp-error-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  flex-shrink: 0;
+}
+.mmp-error-content {
+  flex: 1;
+  min-width: 200px;
+}
+.mmp-error-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #7f1d1d;
+}
+.mmp-error-desc {
+  font-size: 13px;
+  color: #b91c1c;
+  margin-top: 4px;
+}
+.mmp-error-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 700;
+  color: white;
+  background: #0f172a;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.mmp-error-retry:hover { background: #1e293b; }
+
+.mmp-empty {
+  border-radius: 18px;
+  border: 2px dashed #cbd5e1;
+  background: white;
+  padding: 56px 24px;
+  text-align: center;
+}
+.mmp-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  margin: 0 auto 20px;
+}
+.mmp-empty-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+.mmp-empty-desc {
+  font-size: 14px;
+  color: #64748b;
+  max-width: 400px;
+  margin: 12px auto 0;
+  line-height: 1.6;
+}
+.mmp-empty-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 20px;
+  height: 42px;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #475569;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mmp-empty-clear:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+/* ─── Skeleton ───────────────────────────────────────────── */
+.mmp-skeleton-card {
+  border-radius: 18px;
+  border: 1px solid #f1f5f9;
+  background: white;
+  padding: 24px;
+  animation: mmpPulse 2s ease-in-out infinite;
+}
+.mmp-skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.mmp-skeleton-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  flex-shrink: 0;
+}
+.mmp-skeleton-lines {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mmp-skeleton-line {
+  height: 10px;
+  border-radius: 6px;
+  background: #f1f5f9;
+}
+.mmp-skeleton-line-md { width: 65%; }
+.mmp-skeleton-line-sm { width: 40%; }
+.mmp-skeleton-line-full { width: 100%; margin-bottom: 8px; }
+.mmp-skeleton-line-lg { width: 85%; margin-bottom: 14px; }
+.mmp-skeleton-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.mmp-skeleton-stat {
+  height: 48px;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+.mmp-skeleton-tags {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.mmp-skeleton-tag {
+  height: 26px;
+  width: 64px;
+  border-radius: 8px;
+  background: #f1f5f9;
+}
+.mmp-skeleton-tag-lg { width: 80px; }
+.mmp-skeleton-footer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #f8fafc;
+}
+.mmp-skeleton-btn {
+  height: 42px;
+  border-radius: 10px;
+  background: #f1f5f9;
+}
+.mmp-skeleton-btn-primary {
+  background: #e8ebef;
+}
+
+@keyframes mmpPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+`;

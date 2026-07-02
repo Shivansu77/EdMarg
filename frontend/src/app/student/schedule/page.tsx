@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import SessionFeedbackDialog from '@/components/student/SessionFeedbackDialog';
 import { ChatModal } from '@/components/chat/ChatModal';
 
@@ -237,18 +237,18 @@ function ScheduleContent() {
                       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         <div className="flex items-start gap-4">
                           <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-100 border border-gray-200">
-                            {booking.mentor.profileImage ? (
-                              <Image src={getImageUrl(booking.mentor.profileImage, booking.mentor.name)} alt={booking.mentor.name} width={56} height={56} className="h-14 w-14 object-cover object-top" />
+                            {booking.mentor?.profileImage ? (
+                              <Image src={getImageUrl(booking.mentor.profileImage, booking.mentor.name || 'Mentor')} alt={booking.mentor?.name || 'Mentor'} width={56} height={56} className="h-14 w-14 object-cover object-top" />
                             ) : (
                               <UserIcon className="h-6 w-6 text-gray-400" />
                             )}
                           </div>
 
                           <div>
-                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors">{booking.mentor.name}</h3>
+                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-black transition-colors">{booking.mentor?.name || 'Unknown Mentor'}</h3>
                             <p className="mt-1 flex items-center gap-1 text-sm font-medium text-gray-500">
                               <MessageSquare className="h-3.5 w-3.5" />
-                              {booking.mentor.email}
+                              {booking.mentor?.email || 'No email provided'}
                             </p>
 
                             <div className="mt-3 flex flex-wrap items-center gap-2">

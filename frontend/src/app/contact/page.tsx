@@ -14,8 +14,8 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import Navbar from '@/components/layout/Navbar';
+import Footer from '@/components/layout/Footer';
 
 const inquiryTypes = [
   'Student support',
@@ -39,7 +39,7 @@ const contactChannels = [
     description: 'Experienced professionals can apply to guide learners through structured sessions.',
     icon: Users,
     actionLabel: 'Start mentor onboarding',
-    actionHref: '/signup?role=mentor',
+    actionHref: '/student/careers',
     accent: 'from-sky-100 to-cyan-100 text-sky-700',
     meta: 'Review-led onboarding flow',
   },
@@ -149,7 +149,7 @@ export default function ContactPage() {
                 Contact EdMarg
               </div>
 
-              <h1 className="mt-6 max-w-3xl text-4xl font-extrabold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl lg:leading-[1.02]">
+              <h1 className="mt-6 max-w-3xl text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl lg:text-5xl lg:leading-[1.1]">
                 Professional support for every step of the career journey.
               </h1>
 
@@ -178,17 +178,17 @@ export default function ContactPage() {
               <div className="mt-10 grid gap-4 sm:grid-cols-3">
                 <div className="rounded-2xl border border-white/70 bg-white/70 p-5 backdrop-blur-xl">
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Support SLA</p>
-                  <p className="mt-3 text-2xl font-extrabold text-slate-950">&lt;24 hrs</p>
+                  <p className="mt-3 text-xl font-bold text-slate-950">&lt;24 hrs</p>
                   <p className="mt-1 text-sm text-slate-500">Typical reply time for inbound requests.</p>
                 </div>
                 <div className="rounded-2xl border border-white/70 bg-white/70 p-5 backdrop-blur-xl">
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Coverage</p>
-                  <p className="mt-3 text-2xl font-extrabold text-slate-950">Students + Mentors</p>
+                  <p className="mt-3 text-xl font-bold text-slate-950">Students + Mentors</p>
                   <p className="mt-1 text-sm text-slate-500">From onboarding questions to session flow help.</p>
                 </div>
                 <div className="rounded-2xl border border-white/70 bg-white/70 p-5 backdrop-blur-xl">
                   <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-slate-400">Best For</p>
-                  <p className="mt-3 text-2xl font-extrabold text-slate-950">Real decisions</p>
+                  <p className="mt-3 text-xl font-bold text-slate-950">Real decisions</p>
                   <p className="mt-1 text-sm text-slate-500">Not generic forms. Real help for meaningful next steps.</p>
                 </div>
               </div>
@@ -208,7 +208,7 @@ export default function ContactPage() {
                 <p className="inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-100">
                   Support playbook
                 </p>
-                <h2 className="mt-6 text-3xl font-extrabold tracking-tight">A faster path from question to action.</h2>
+                <h2 className="mt-6 text-2xl font-bold tracking-tight">A faster path from question to action.</h2>
                 <p className="mt-4 text-sm leading-7 text-emerald-50/85 sm:text-base">
                   Every request should move you forward. We keep the process short, visible, and practical.
                 </p>
@@ -284,7 +284,7 @@ export default function ContactPage() {
 
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-xl font-extrabold text-slate-950">{channel.title}</h3>
+                          <h3 className="text-lg font-bold text-slate-950">{channel.title}</h3>
                           <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.22em] text-slate-500">
                             {channel.meta}
                           </span>
@@ -315,7 +315,7 @@ export default function ContactPage() {
 
               <div className="rounded-[1.75rem] border border-emerald-200/70 bg-emerald-50/70 p-6 shadow-[0_10px_30px_rgba(16,185,129,0.08)] backdrop-blur-xl">
                 <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-700">Office hours</p>
-                <p className="mt-3 text-2xl font-extrabold tracking-tight text-slate-950">Monday to Saturday, 10 AM to 7 PM IST</p>
+                <p className="mt-3 text-xl font-bold tracking-tight text-slate-950">Monday to Saturday, 10 AM to 7 PM IST</p>
                 <p className="mt-2 text-sm leading-7 text-slate-600">
                   For urgent platform or session coordination questions, adding precise context in your subject line
                   usually gets you the fastest resolution.
@@ -335,7 +335,7 @@ export default function ContactPage() {
                 <div className="flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-700">Send a message</p>
-                    <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950">Tell us what you need.</h2>
+                    <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">Tell us what you need.</h2>
                   </div>
                   <div className="rounded-full border border-white/70 bg-white/80 px-4 py-2 text-sm font-semibold text-slate-500">
                     Best for detailed questions
@@ -478,7 +478,7 @@ export default function ContactPage() {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div className="max-w-2xl">
                 <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-emerald-700">Self-serve first</p>
-                <h2 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-950">Need answers before you hit send?</h2>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-slate-950">Need answers before you hit send?</h2>
                 <p className="mt-3 text-sm leading-7 text-slate-600 sm:text-base">
                   If your question is really about choosing a mentor, understanding the product, or getting career
                   clarity, these paths are often faster than opening a support conversation.
@@ -501,7 +501,7 @@ export default function ContactPage() {
                   href={item.href}
                   className="group rounded-[1.5rem] border border-slate-200 bg-white/80 p-5 transition-all hover:-translate-y-1 hover:border-emerald-200 hover:shadow-[0_16px_40px_rgba(16,185,129,0.12)]"
                 >
-                  <p className="text-lg font-extrabold text-slate-950">{item.title}</p>
+                  <p className="text-base font-bold text-slate-950">{item.title}</p>
                   <p className="mt-3 text-sm leading-6 text-slate-600">{item.description}</p>
                   <div className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-emerald-700">
                     Explore

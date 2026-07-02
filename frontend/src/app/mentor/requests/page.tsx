@@ -7,7 +7,7 @@ import { apiClient } from '@/utils/api-client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import RecordingUploader from '@/components/RecordingUploader';
 import ScreenRecorder from '@/components/recording/ScreenRecorder';
 import { ChatModal } from '@/components/chat/ChatModal';

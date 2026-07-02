@@ -83,7 +83,7 @@ export async function getAllBlogsFromAPI(): Promise<BlogPost[]> {
 
     return blogsData.map(mapApiBlogToPost);
   } catch (error) {
-    console.error('Error fetching blogs:', error);
+    console.error('Error fetching blogs (using fallback):', error instanceof Error ? error.message : String(error));
     return getFallbackBlogs();
   }
 }
@@ -114,7 +114,7 @@ export async function getBlogBySlugFromAPI(slug: string): Promise<BlogPost | nul
 
     return mapApiBlogToPost(blogData as ApiBlog);
   } catch (error) {
-    console.error(`Error fetching blog with slug ${slug}:`, error);
+    console.error(`Error fetching blog with slug ${slug} (using fallback):`, error instanceof Error ? error.message : String(error));
     return getFallbackBlogBySlug(slug);
   }
 }

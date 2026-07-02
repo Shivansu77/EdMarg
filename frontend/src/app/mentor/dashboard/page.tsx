@@ -2,9 +2,9 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
-import CalendarSyncButton from '@/components/CalendarSyncButton';
+import CalendarSyncButton from '@/components/common/CalendarSyncButton';
 import Link from 'next/link';
 import { apiClient } from '@/utils/api-client';
 import {
@@ -242,7 +242,7 @@ function MentorDashboardContent() {
             Welcome back, <span className="text-emerald-600">{user?.name?.split(' ')[0] || 'Mentor'}</span>.
           </h1>
           <p className="mt-6 max-w-2xl text-xl text-slate-600 font-medium leading-relaxed">
-            Manage your mentoring sessions, respond to requests, and see the difference you're making — all in one beautifully connected space.
+            Manage your mentoring sessions, respond to requests, and see the difference you&apos;re making — all in one beautifully connected space.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link

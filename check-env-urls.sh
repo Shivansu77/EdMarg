@@ -48,24 +48,24 @@ check_file() {
 
 echo "📁 Backend Environment Files"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-check_file "backend/.env" "edmarg.onrender.com"
-check_file "backend/.env.production" "edmarg.onrender.com"
+check_file "backend/.env" "backend.edmarg.com"
+check_file "backend/.env.production" "backend.edmarg.com"
 check_file "backend/.env.staging" "staging.edmarg.com"
 
 echo "📁 Frontend Environment Files"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-check_file "frontend/.env.production" "edmarg.onrender.com"
+check_file "frontend/.env.production" "backend.edmarg.com"
 check_file "frontend/.env.staging" "staging.edmarg.com"
 
 echo "📁 Backend CORS Configuration"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-check_file "backend/lib/withCors.js" "edmarg.onrender.com"
-check_file "backend/server.js" "edmarg.onrender.com"
+check_file "backend/lib/withCors.ts" "backend.edmarg.com"
+check_file "backend/server.ts" "backend.edmarg.com"
 
 echo "📁 Deployment Templates"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-check_file "deployment/backend.env.production" "edmarg.onrender.com"
-check_file "deployment/frontend.env.production" "edmarg.onrender.com"
+check_file "deployment/backend.env.production" "backend.edmarg.com"
+check_file "deployment/frontend.env.production" "backend.edmarg.com"
 
 echo "=================================================="
 echo "📊 Summary"

@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import SessionRecordingPlayer from '@/components/SessionRecordingPlayer';
 import { apiClient } from '@/utils/api-client';

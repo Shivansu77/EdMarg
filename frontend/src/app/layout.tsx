@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Providers } from '@/context/Providers';
-import { NetworkStatusLoader } from '@/components/NetworkStatusLoader';
+import { NetworkStatusLoader } from '@/components/common/NetworkStatusLoader';
 import { SITE_URL } from '@/utils/site-url';
 import './globals.css';
 

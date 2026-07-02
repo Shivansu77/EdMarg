@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import {
   Save,
   CalendarDays,

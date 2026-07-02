@@ -3,7 +3,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
 import { FileText, Users, Send, Plus, Edit, Trash2, Eye, X } from 'lucide-react';

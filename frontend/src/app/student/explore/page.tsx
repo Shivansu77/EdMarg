@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, Suspense } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { Search, Loader2, Filter, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';

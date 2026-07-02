@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
 import { apiClient } from '@/utils/api-client';
 import {

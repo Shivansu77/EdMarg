@@ -11,7 +11,7 @@ import { resolveApiBaseUrl, resolveBackendBaseUrl } from '@/utils/api-base';
 import { validators } from '@/utils/validators';
 import toast from 'react-hot-toast';
 
-import Logo from '@/components/Logo';
+import Logo from '@/components/common/Logo';
 
 const navigateAfterAuth = (
   router: ReturnType<typeof useRouter>,
@@ -237,7 +237,7 @@ const LoginContent: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="mt-3 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-slate-950 text-sm font-semibold text-white shadow-xl shadow-slate-950/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-800 active:scale-95 disabled:opacity-50"
+                className="mt-3 flex h-12 w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 text-sm font-semibold text-white shadow-xl shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:bg-emerald-500 active:scale-95 disabled:opacity-50"
               >
                 {loading ? (
                   <>

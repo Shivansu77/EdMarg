@@ -17,7 +17,7 @@ import toast from 'react-hot-toast';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 import MentorDashboardLayout from '@/components/mentor/MentorDashboardLayout';
-import ProtectedRoute from '@/components/ProtectedRoute';
+import ProtectedRoute from '@/components/common/ProtectedRoute';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface UserInfo {
