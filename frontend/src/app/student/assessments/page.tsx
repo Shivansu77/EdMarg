@@ -315,7 +315,7 @@ function StudentAssessmentContent() {
                 <Sparkles size={14} className="text-emerald-500" />
                 Your Skill Journey
               </div>
-              <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl mb-4 leading-tight">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl mb-4 leading-tight">
                 Assessments
               </h1>
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-xl">

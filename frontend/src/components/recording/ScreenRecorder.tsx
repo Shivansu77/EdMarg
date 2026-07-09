@@ -90,6 +90,7 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
   const displayStreamRef = useRef<MediaStream | null>(null);
   const micStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const audioNodesRef = useRef<any[]>([]);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const blobRef = useRef<Blob | null>(null);
@@ -108,6 +109,8 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
 
     micStreamRef.current?.getTracks().forEach((track) => track.stop());
     micStreamRef.current = null;
+
+    audioNodesRef.current = [];
 
     if (audioContextRef.current) {
       void audioContextRef.current.close().catch(() => undefined);
@@ -234,12 +237,14 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
         try {
           audioContext = new AudioContext();
           const destination = audioContext.createMediaStreamDestination();
+          const nodes: any[] = [destination];
 
           if (displayAudioTracks.length > 0) {
             const displayAudioSource = audioContext.createMediaStreamSource(
               new MediaStream(displayAudioTracks)
             );
             displayAudioSource.connect(destination);
+            nodes.push(displayAudioSource);
           }
 
           if (micAudioTracks.length > 0) {
@@ -252,12 +257,14 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
             micGain.gain.value = displayAudioTracks.length > 0 ? 0.5 : 1.0;
             micAudioSource.connect(micGain);
             micGain.connect(destination);
+            nodes.push(micAudioSource, micGain);
           }
 
           if (audioContext.state === 'suspended') {
             await audioContext.resume();
           }
 
+          audioNodesRef.current = nodes;
           mixedAudioTrack = destination.stream.getAudioTracks()[0] || null;
         } catch (audioErr) {
           console.warn('[ScreenRecorder] Audio mixing failed, proceeding without audio:', audioErr);

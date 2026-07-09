@@ -180,7 +180,7 @@ function ResultsContent() {
                   <Award size={14} className="text-slate-400" />
                   Assessment Results
                 </span>
-                <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl mb-4 leading-tight">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl mb-4 leading-tight">
                   Your Career Fit
                 </h1>
                 <p className="text-base sm:text-lg leading-relaxed text-slate-600">

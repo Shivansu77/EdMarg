@@ -172,10 +172,10 @@ const DashboardHeader = ({
         </button>
 
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-500">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600 mb-0.5">
             Workspace
           </p>
-          <h1 className="truncate text-2xl font-extrabold tracking-tight text-slate-900 sm:text-[32px]">
+          <h1 className="truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
             {userName}
           </h1>
         </div>

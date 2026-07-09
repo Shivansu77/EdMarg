@@ -121,8 +121,10 @@ export default function ProtectedRoute({
       return;
     }
 
-    if (!user || user.role !== requiredRole) {
+    if (!user) {
       router.replace('/login');
+    } else if (user.role !== requiredRole) {
+      router.replace(getDefaultAuthenticatedPath(user));
     }
   }, [hasHydrated, requiredRole, router, user]);
 
@@ -156,9 +158,14 @@ export default function ProtectedRoute({
         const refreshedUser = normalizeAuthenticatedUser(result?.data || {});
         const previousMentorApprovalStatus = currentMentorApprovalStatus;
 
-        if (!response.ok || serverRole !== requiredRole) {
+        if (!response.ok) {
           clearStoredAuth();
           router.replace('/login');
+          return;
+        }
+
+        if (serverRole !== requiredRole) {
+          router.replace(destinationPath);
           return;
         }
 

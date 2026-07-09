@@ -238,9 +238,12 @@ const Sidebar = ({ isOpen, onClose, side, isCollapsed = false, onToggleCollapsed
                     <p className="text-[10px] font-bold text-slate-500">Unlimited sessions</p>
                   </div>
                 </div>
-                <button className="mt-4 w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95">
+                <Link 
+                  href="/pricing" 
+                  className="mt-4 flex w-full justify-center rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95"
+                >
                   Upgrade Now
-                </button>
+                </Link>
               </div>
             </div>
           )}

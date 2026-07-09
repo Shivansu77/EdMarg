@@ -3,6 +3,7 @@
 import React, { ReactNode } from 'react';
 import { AuthProvider } from './AuthContext';
 import { SocketProvider } from './SocketProvider';
+import { WishlistProvider } from './WishlistContext';
 import { Toaster } from 'react-hot-toast';
 
 interface ProvidersProps {
@@ -13,7 +14,9 @@ export const Providers: React.FC<ProvidersProps> = ({ children }) => {
   return (
     <AuthProvider>
       <SocketProvider>
-        {children}
+        <WishlistProvider>
+          {children}
+        </WishlistProvider>
       </SocketProvider>
       <Toaster 
         position="bottom-right"

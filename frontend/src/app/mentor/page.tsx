@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, notFound } from 'next/navigation';
 import { Star, MapPin, Clock, MessageCircle, Calendar, Share2, Heart, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -71,7 +71,11 @@ function PublicMentorPageContent() {
   ];
 
   useEffect(() => {
-    if (!mentorId) return;
+    if (!mentorId) {
+      setError('No mentor specified. Please select a mentor to view their profile.');
+      setLoading(false);
+      return;
+    }
 
     const fetchMentor = async () => {
       try {
@@ -113,16 +117,7 @@ function PublicMentorPageContent() {
   }
 
   if (error || !mentor) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 font-semibold mb-4">{error || 'Mentor not found'}</p>
-          <Link href="/browse-mentors" className="text-blue-600 hover:underline">
-            Back to mentors
-          </Link>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
   const rating = mentor.mentorProfile?.rating ?? 0;

@@ -31,6 +31,10 @@ export const resolveBackendBaseUrl = (requestUrl?: string) => {
     return getConfiguredBackendBase(DEFAULT_LOCAL_API_BASE);
   }
 
+  if (process.env.NODE_ENV === 'development') {
+    return getConfiguredBackendBase(DEFAULT_LOCAL_API_BASE);
+  }
+
   return getConfiguredBackendBase(DEFAULT_REMOTE_API_BASE);
 };
 
