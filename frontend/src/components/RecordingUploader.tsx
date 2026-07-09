@@ -219,9 +219,13 @@ export default function RecordingUploader({
               <p style={styles.uploadingHint}>
                 {uploadStage === 'preparing'
                   ? 'Preparing secure upload...'
-                  : uploadStage === 'finalizing'
-                    ? 'Saving recording details...'
-                    : 'Uploading directly to cloud storage... Please keep this window open.'}
+                  : uploadStage === 'compressing'
+                    ? '🎬 Sending video to server for compression... Please keep this window open.'
+                    : uploadStage === 'uploading'
+                      ? '⚡ Compressing & uploading to cloud storage... This may take a few minutes.'
+                      : uploadStage === 'finalizing'
+                        ? 'Saving recording details...'
+                        : 'Processing... Please keep this window open.'}
               </p>
             </div>
           )}

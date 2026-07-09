@@ -5,6 +5,10 @@
  * Handles secure access to session recordings.
  * Students and mentors can only access recordings for their own sessions.
  * Returns a short-lived signed Cloudinary URL for secure playback.
+ *
+ * Video uploads are now compressed via FFmpeg before being stored in
+ * Cloudinary — production-grade H.264/AAC compression similar to
+ * platforms like Udemy and YouTube.
  */
 
 const { Recording } = require('../models/Recording');
@@ -12,9 +16,11 @@ const { Booking } = require('../models/booking.model');
 const {
   generateSignedDeliveryUrl,
   uploadVideoBuffer,
+  uploadVideoFile,
   createSignedVideoUploadParams,
   deleteVideo,
 } = require('../services/cloudinary.service');
+const { cleanupFile } = require('../services/compression.service');
 const {
   sanitizeRecordingUrl,
   isSimulatedZoomTestUrl,
@@ -463,9 +469,14 @@ exports.finalizeRecordingUpload = async (req, res) => {
 /**
  * POST /api/v1/recordings/:sessionId/upload
  *
- * Allows mentor/admin to upload a session video manually and store it in Cloudinary.
+ * Allows mentor/admin to upload a session video manually.
+ * The video is compressed with FFmpeg (H.264/AAC) and then stored in Cloudinary.
+ *
+ * Uses disk storage (multer) so FFmpeg can process the file directly.
  */
 exports.uploadRecordingForSession = async (req, res) => {
+  let uploadedFilePath = null;
+
   try {
     const { sessionId } = req.params;
     const userId = String(req.user._id);
@@ -478,6 +489,10 @@ exports.uploadRecordingForSession = async (req, res) => {
       });
     }
 
+    // multer disk storage: file is at req.file.path
+    uploadedFilePath = req.file.path;
+    const originalSize = req.file.size;
+
     const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
     let recording = await Recording.findOne({ sessionId });
     const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
@@ -486,7 +501,13 @@ exports.uploadRecordingForSession = async (req, res) => {
       sessionId
     );
 
-    const cloudinaryResult = await uploadVideoBuffer(req.file.buffer, {
+    console.log(
+      `[Recording Upload] Starting compress + upload for session ${sessionId} ` +
+      `(${(originalSize / 1e6).toFixed(1)} MB)`
+    );
+
+    // Compress and upload via the new file-based function
+    const cloudinaryResult = await uploadVideoFile(uploadedFilePath, {
       folder,
       publicId,
     });
@@ -503,7 +524,7 @@ exports.uploadRecordingForSession = async (req, res) => {
     recording.videoUrl = cloudinaryResult.secure_url;
     recording.cloudinaryPublicId = cloudinaryResult.public_id;
     recording.duration = cloudinaryResult.duration || recording.duration || 0;
-    recording.fileSize = cloudinaryResult.bytes || req.file.size || 0;
+    recording.fileSize = cloudinaryResult.bytes || 0;
     recording.recordingType = 'manual_upload';
     recording.processingStatus = 'completed';
     recording.zoomDownloadUrl = '';
@@ -516,9 +537,19 @@ exports.uploadRecordingForSession = async (req, res) => {
 
     emitRecordingReadyEvent(booking, recording, cloudinaryResult.secure_url);
 
+    // Log compression stats
+    const stats = cloudinaryResult.compressionStats;
+    if (stats) {
+      console.log(
+        `[Recording Upload] ✅ Session ${sessionId}: ` +
+        `${(stats.originalSize / 1e6).toFixed(1)} MB → ${(stats.compressedSize / 1e6).toFixed(1)} MB ` +
+        `(${stats.reductionPercent}% reduction, compressed: ${stats.wasCompressed})`
+      );
+    }
+
     return res.status(200).json({
       success: true,
-      message: 'Recording uploaded to Cloudinary successfully',
+      message: 'Recording compressed and uploaded to Cloudinary successfully',
       data: {
         _id: recording._id,
         sessionId: recording.sessionId,
@@ -529,6 +560,7 @@ exports.uploadRecordingForSession = async (req, res) => {
         processingStatus: recording.processingStatus,
         videoUrl: recording.videoUrl,
         cloudinaryPublicId: recording.cloudinaryPublicId,
+        compression: stats || null,
       },
     });
   } catch (error) {
@@ -537,6 +569,129 @@ exports.uploadRecordingForSession = async (req, res) => {
       success: false,
       message: 'Failed to upload recording video',
     });
+  } finally {
+    // Always clean up the uploaded temp file
+    if (uploadedFilePath) {
+      cleanupFile(uploadedFilePath);
+    }
+  }
+};
+
+// ─── Compress and Upload (New — for frontend direct-to-backend flow) ───────
+/**
+ * POST /api/v1/recordings/:sessionId/compress-and-upload
+ *
+ * Accepts a video upload from the frontend, compresses it server-side
+ * using FFmpeg (production-grade H.264/AAC), and uploads the compressed
+ * version to Cloudinary. This replaces the direct browser-to-Cloudinary
+ * upload to ensure every video is optimally compressed.
+ *
+ * The frontend sends the raw video here and receives the finalized
+ * recording data back — one endpoint instead of the old 3-step flow
+ * (get signature → upload to Cloudinary → finalize).
+ */
+exports.compressAndUploadRecording = async (req, res) => {
+  let uploadedFilePath = null;
+
+  try {
+    const { sessionId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please attach a video file in field "video"',
+      });
+    }
+
+    uploadedFilePath = req.file.path;
+    const originalSize = req.file.size;
+
+    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
+    let recording = await Recording.findOne({ sessionId });
+    const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
+      booking,
+      recording,
+      sessionId
+    );
+
+    console.log(
+      `[Compress & Upload] Session ${sessionId}: ` +
+      `compressing ${(originalSize / 1e6).toFixed(1)} MB video...`
+    );
+
+    // Compress and upload
+    const cloudinaryResult = await uploadVideoFile(uploadedFilePath, {
+      folder,
+      publicId,
+    });
+
+    // Create or update the recording
+    if (!recording) {
+      recording = new Recording({
+        sessionId: booking._id,
+        meetingId,
+        mentorId: booking.mentor?._id || booking.mentor,
+        studentId: booking.student?._id || booking.student,
+      });
+    }
+
+    recording.videoUrl = cloudinaryResult.secure_url;
+    recording.cloudinaryPublicId = cloudinaryResult.public_id;
+    recording.duration = cloudinaryResult.duration || recording.duration || 0;
+    recording.fileSize = cloudinaryResult.bytes || 0;
+    recording.recordingType = 'manual_upload';
+    recording.processingStatus = 'completed';
+    recording.zoomDownloadUrl = '';
+    recording.errorMessage = '';
+    await recording.save();
+
+    await Booking.findByIdAndUpdate(booking._id, {
+      recordingUrl: cloudinaryResult.secure_url,
+    });
+
+    emitRecordingReadyEvent(booking, recording, cloudinaryResult.secure_url);
+
+    const stats = cloudinaryResult.compressionStats;
+    if (stats) {
+      console.log(
+        `[Compress & Upload] ✅ Session ${sessionId}: ` +
+        `${(stats.originalSize / 1e6).toFixed(1)} MB → ${(stats.compressedSize / 1e6).toFixed(1)} MB ` +
+        `(${stats.reductionPercent}% reduction)`
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Recording compressed and uploaded successfully',
+      data: {
+        _id: recording._id,
+        sessionId: recording.sessionId,
+        meetingId: recording.meetingId,
+        duration: recording.duration,
+        fileSize: recording.fileSize,
+        recordingType: recording.recordingType,
+        processingStatus: recording.processingStatus,
+        videoUrl: recording.videoUrl,
+        cloudinaryPublicId: recording.cloudinaryPublicId,
+        compression: stats || null,
+      },
+    });
+  } catch (error) {
+    const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
+    console.error('[Compress & Upload] Error:', error.message);
+    return res.status(statusCode).json({
+      success: false,
+      message:
+        statusCode === 500
+          ? 'Failed to compress and upload recording'
+          : error.message,
+    });
+  } finally {
+    if (uploadedFilePath) {
+      cleanupFile(uploadedFilePath);
+    }
   }
 };
 

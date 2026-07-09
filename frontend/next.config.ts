@@ -13,6 +13,31 @@ const nextConfig: NextConfig = {
         trailingSlash: true,
       }
     : {}),
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "SAMEORIGIN", // changed to SAMEORIGIN just in case they need to embed something of their own
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains; preload",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     unoptimized: true,
     formats: ["image/avif", "image/webp"],

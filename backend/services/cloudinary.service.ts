@@ -5,12 +5,22 @@
  * Reusable Cloudinary helper for video uploads, signed URL generation,
  * and cleanup. Uses the SAME credentials already configured for image uploads.
  *
+ * All video uploads are now compressed via FFmpeg before being sent to
+ * Cloudinary (H.264 / AAC / CRF 28 / 1080p cap / faststart).
+ *
  * Environment variables required:
  *   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
  */
 
 const cloudinary = require('cloudinary').v2;
 const { Readable } = require('stream');
+const fs = require('fs');
+const {
+  compressVideoBuffer,
+  compressVideoFile,
+  compressVideoStream,
+  cleanupFile,
+} = require('./compression.service');
 
 // ─── Singleton Configuration ────────────────────────────────────────────────
 // Configure once — every require() of this module gets the same instance.
@@ -35,17 +45,8 @@ function assertCloudinaryConfigured() {
   }
 }
 
-// ─── Upload Video from Readable Stream ──────────────────────────────────────
-/**
- * Streams a video directly to Cloudinary without buffering the whole file.
- *
- * @param {import('stream').Readable} readableStream  - Node Readable stream of the video data
- * @param {Object}  options
- * @param {string}  [options.folder]     - Cloudinary folder (default: 'session-recordings')
- * @param {string}  [options.publicId]   - Custom public_id (auto-generated if omitted)
- * @returns {Promise<{ secure_url: string, public_id: string, duration: number, bytes: number }>}
- */
-async function uploadVideoFromStream(readableStream, options = {}) {
+// ─── Internal: Upload a Readable Stream to Cloudinary ──────────────────────
+function _uploadStreamToCloudinary(readableStream, options = {}) {
   assertCloudinaryConfigured();
 
   const folder = options.folder || 'session-recordings';
@@ -56,9 +57,7 @@ async function uploadVideoFromStream(readableStream, options = {}) {
         resource_type: 'video',
         folder,
         ...(options.publicId ? { public_id: options.publicId } : {}),
-        // Cloudinary will detect codec/format automatically
         overwrite: true,
-        // Enable eager transformations for adaptive streaming (optional)
         eager_async: true,
       },
       (error, result) => {
@@ -83,10 +82,8 @@ async function uploadVideoFromStream(readableStream, options = {}) {
       }
     );
 
-    // Pipe the incoming stream into Cloudinary's upload stream
     readableStream.pipe(uploadStream);
 
-    // Forward stream errors
     readableStream.on('error', (err) => {
       console.error('[Cloudinary] Source stream error:', err.message);
       uploadStream.destroy(err);
@@ -95,22 +92,135 @@ async function uploadVideoFromStream(readableStream, options = {}) {
   });
 }
 
+// ─── Upload Video from Readable Stream (with compression) ──────────────────
 /**
- * Uploads a video from an in-memory buffer.
+ * Compresses and streams a video to Cloudinary.
+ *
+ * @param {import('stream').Readable} readableStream  - Node Readable stream of the video data
+ * @param {Object}  options
+ * @param {string}  [options.folder]     - Cloudinary folder (default: 'session-recordings')
+ * @param {string}  [options.publicId]   - Custom public_id (auto-generated if omitted)
+ * @returns {Promise<{ secure_url: string, public_id: string, duration: number, bytes: number, compressionStats?: object }>}
+ */
+async function uploadVideoFromStream(readableStream, options = {}) {
+  console.log('[Cloudinary] Starting stream upload with compression...');
+
+  // Compress the stream first
+  const compressed = await compressVideoStream(readableStream);
+
+  try {
+    const result = await _uploadStreamToCloudinary(compressed.stream, options);
+
+    if (compressed.wasCompressed) {
+      console.log(
+        `[Cloudinary] 📦 Compression saved: ${(compressed.originalSize / 1e6).toFixed(1)} MB → ` +
+        `${(compressed.compressedSize / 1e6).toFixed(1)} MB (${compressed.reductionPercent}% reduction)`
+      );
+    }
+
+    return {
+      ...result,
+      compressionStats: {
+        originalSize: compressed.originalSize,
+        compressedSize: compressed.compressedSize,
+        reductionPercent: compressed.reductionPercent,
+        wasCompressed: compressed.wasCompressed,
+      },
+    };
+  } finally {
+    // Clean up temp files from compression
+    compressed.cleanup();
+  }
+}
+
+/**
+ * Compresses and uploads a video from an in-memory buffer.
  *
  * @param {Buffer} buffer - Video buffer from multer memory storage
  * @param {Object} options
  * @param {string} [options.folder]
  * @param {string} [options.publicId]
- * @returns {Promise<{ secure_url: string, public_id: string, duration: number, bytes: number }>}
+ * @returns {Promise<{ secure_url: string, public_id: string, duration: number, bytes: number, compressionStats?: object }>}
  */
 async function uploadVideoBuffer(buffer, options = {}) {
   if (!Buffer.isBuffer(buffer) || buffer.length === 0) {
     throw new Error('Video buffer is empty or invalid');
   }
 
-  const readableStream = Readable.from(buffer);
-  return uploadVideoFromStream(readableStream, options);
+  console.log(`[Cloudinary] Starting buffer upload with compression (${(buffer.length / 1e6).toFixed(1)} MB)...`);
+
+  // Compress the buffer
+  const compressed = await compressVideoBuffer(buffer);
+
+  if (compressed.wasCompressed) {
+    console.log(
+      `[Cloudinary] 📦 Compression saved: ${(compressed.originalSize / 1e6).toFixed(1)} MB → ` +
+      `${(compressed.compressedSize / 1e6).toFixed(1)} MB (${compressed.reductionPercent}% reduction)`
+    );
+  }
+
+  const readableStream = Readable.from(compressed.buffer);
+  const result = await _uploadStreamToCloudinary(readableStream, options);
+
+  return {
+    ...result,
+    compressionStats: {
+      originalSize: compressed.originalSize,
+      compressedSize: compressed.compressedSize,
+      reductionPercent: compressed.reductionPercent,
+      wasCompressed: compressed.wasCompressed,
+    },
+  };
+}
+
+/**
+ * Compresses and uploads a video from a file path on disk.
+ *
+ * @param {string} filePath - Absolute path to the video file
+ * @param {Object} options
+ * @param {string} [options.folder]
+ * @param {string} [options.publicId]
+ * @returns {Promise<{ secure_url: string, public_id: string, duration: number, bytes: number, compressionStats?: object }>}
+ */
+async function uploadVideoFile(filePath, options = {}) {
+  if (!filePath || !fs.existsSync(filePath)) {
+    throw new Error('Video file does not exist: ' + filePath);
+  }
+
+  const originalStats = fs.statSync(filePath);
+  console.log(`[Cloudinary] Starting file upload with compression (${(originalStats.size / 1e6).toFixed(1)} MB)...`);
+
+  // Compress the file
+  const compressed = await compressVideoFile(filePath);
+
+  if (compressed.wasCompressed) {
+    console.log(
+      `[Cloudinary] 📦 Compression saved: ${(compressed.originalSize / 1e6).toFixed(1)} MB → ` +
+      `${(compressed.compressedSize / 1e6).toFixed(1)} MB (${compressed.reductionPercent}% reduction)`
+    );
+  }
+
+  // Stream the (possibly compressed) file to Cloudinary
+  const readableStream = fs.createReadStream(compressed.compressedPath);
+
+  try {
+    const result = await _uploadStreamToCloudinary(readableStream, options);
+
+    return {
+      ...result,
+      compressionStats: {
+        originalSize: compressed.originalSize,
+        compressedSize: compressed.compressedSize,
+        reductionPercent: compressed.reductionPercent,
+        wasCompressed: compressed.wasCompressed,
+      },
+    };
+  } finally {
+    // Clean up the compressed temp file (but NOT the original — the caller owns it)
+    if (compressed.wasCompressed && compressed.compressedPath !== filePath) {
+      cleanupFile(compressed.compressedPath);
+    }
+  }
 }
 
 /**
@@ -306,6 +416,7 @@ module.exports = {
   cloudinary, // Export the configured instance for edge cases
   uploadVideoFromStream,
   uploadVideoBuffer,
+  uploadVideoFile,
   uploadDocumentFromStream,
   uploadDocumentBuffer,
   createSignedVideoUploadParams,

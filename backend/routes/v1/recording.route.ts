@@ -15,6 +15,7 @@ const {
   createRecordingUploadSignature,
   finalizeRecordingUpload,
   uploadRecordingForSession,
+  compressAndUploadRecording,
   deleteRecording,
 } = require('../../controllers/recording.controller');
 
@@ -51,6 +52,7 @@ router.post(
 /**
  * POST /api/v1/recordings/:sessionId/upload
  * Manually upload a session recording video to Cloudinary.
+ * Video is compressed via FFmpeg before upload.
  * Allowed roles: mentor assigned to session, admin.
  */
 router.post(
@@ -59,6 +61,21 @@ router.post(
   authorize('mentor', 'admin'),
   uploadRecordingVideo,
   uploadRecordingForSession
+);
+
+/**
+ * POST /api/v1/recordings/:sessionId/compress-and-upload
+ * Upload a video, compress it server-side via FFmpeg (H.264/AAC),
+ * then store the compressed version in Cloudinary.
+ * This is the primary upload endpoint used by the frontend.
+ * Allowed roles: mentor assigned to session, admin.
+ */
+router.post(
+  '/:sessionId/compress-and-upload',
+  protect,
+  authorize('mentor', 'admin'),
+  uploadRecordingVideo,
+  compressAndUploadRecording
 );
 
 /**

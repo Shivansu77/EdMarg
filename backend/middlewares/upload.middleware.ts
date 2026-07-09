@@ -1,8 +1,10 @@
 // @ts-nocheck
 const multer = require('multer');
+const path = require('path');
+const crypto = require('crypto');
 
-// Store files in memory so they can be streamed to Cloudinary.
-const storage = multer.memoryStorage();
+// ─── Image: memory storage (small files, streamed to Cloudinary) ────────────
+const memoryStorage = multer.memoryStorage();
 
 const imageFileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
@@ -11,6 +13,25 @@ const imageFileFilter = (req, file, cb) => {
     cb(new Error('Only image files are allowed!'), false);
   }
 };
+
+const fs = require('fs');
+
+// ─── Video: disk storage (large files, needed for FFmpeg compression) ───────
+const VIDEO_TMP_DIR = path.join(__dirname, '..', 'uploads', 'tmp');
+if (!fs.existsSync(VIDEO_TMP_DIR)) {
+  fs.mkdirSync(VIDEO_TMP_DIR, { recursive: true });
+}
+
+const videoDiskStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, VIDEO_TMP_DIR);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = crypto.randomBytes(8).toString('hex') + '_' + Date.now();
+    const ext = path.extname(file.originalname) || '.mp4';
+    cb(null, `upload_${uniqueSuffix}${ext}`);
+  },
+});
 
 const ALLOWED_VIDEO_MIMES = new Set([
   'video/mp4',
@@ -29,13 +50,13 @@ const videoFileFilter = (req, file, cb) => {
 };
 
 const imageUpload = multer({
-  storage,
+  storage: memoryStorage,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
   fileFilter: imageFileFilter
 });
 
 const videoUpload = multer({
-  storage,
+  storage: videoDiskStorage,
   limits: { fileSize: 500 * 1024 * 1024 }, // 500 MB
   fileFilter: videoFileFilter
 });
