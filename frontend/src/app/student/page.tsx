@@ -15,7 +15,7 @@ export default function StudentRedirect() {
         return;
       }
 
-      router.replace('/login');
+      router.replace(user ? getDefaultAuthenticatedPath(user) : '/login');
     }
   }, [user, isLoading, router]);
   

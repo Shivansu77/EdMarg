@@ -9,6 +9,28 @@ const getStoredToken = () => {
   return window.localStorage.getItem('token');
 };
 
+declare global {
+  interface Window {
+    Clerk?: {
+      session?: {
+        getToken: () => Promise<string | null>;
+      } | null;
+    };
+  }
+}
+
+const getFreshClerkToken = async () => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    return (await window.Clerk?.session?.getToken()) || null;
+  } catch {
+    return null;
+  }
+};
+
 const clearAuthTokenCookie = () => {
   if (typeof window === 'undefined') {
     return;
@@ -79,7 +101,7 @@ class ApiClient {
 
     try {
       const headers = new Headers(fetchOptions.headers);
-      const token = getStoredToken();
+      const token = (await getFreshClerkToken()) || getStoredToken();
       const hasBody = fetchOptions.body !== undefined && fetchOptions.body !== null;
       const isFormDataBody =
         typeof FormData !== 'undefined' && fetchOptions.body instanceof FormData;
@@ -93,6 +115,10 @@ class ApiClient {
 
       if (token && !headers.has('Authorization')) {
         headers.set('Authorization', `Bearer ${token}`);
+        if (typeof window !== 'undefined') {
+          window.localStorage.setItem('token', token);
+          document.cookie = `auth-token=${token}; path=/; max-age=86400; SameSite=Lax`;
+        }
       }
 
       const response = await fetch(url, {
@@ -103,7 +129,7 @@ class ApiClient {
 
       const data = await readResponseBody(response);
 
-      if (response.status === 401) {
+      if (response.status === 401 && token) {
         if (typeof window !== 'undefined') {
           window.localStorage.removeItem('token');
           window.localStorage.removeItem('user');

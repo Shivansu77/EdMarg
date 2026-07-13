@@ -13,9 +13,11 @@ import {
   Calendar,
   Check,
   Settings,
+  Shield,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useClerk } from '@clerk/nextjs';
 import { useSocket } from '@/context/SocketProvider';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
@@ -56,6 +58,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
 
   const router = useRouter();
   const { user, logout } = useAuth();
+  const clerk = useClerk();
   const { socket } = useSocket();
 
   const displayName = user?.name?.trim() || 'Mentor';
@@ -302,7 +305,7 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
                 </div>
                 <button
                   onClick={() => {
-                    router.push('/mentor/profile');
+                    router.push('/mentor/settings#profile');
                     setIsProfileOpen(false);
                   }}
                   className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"

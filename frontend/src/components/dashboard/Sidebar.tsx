@@ -66,7 +66,6 @@ const studentNavGroups = [
   {
     group: 'Account',
     items: [
-      { name: 'Profile', href: '/student/profile', icon: UserCircle },
       { name: 'Settings', href: '/student/settings', icon: Settings },
     ]
   }
@@ -85,7 +84,6 @@ const mentorNavGroups = [
   {
     group: 'Account',
     items: [
-      { name: 'Profile', href: '/mentor/profile', icon: UserCircle },
       { name: 'Settings', href: '/mentor/settings', icon: Settings },
     ]
   }

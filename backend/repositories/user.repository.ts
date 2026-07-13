@@ -16,6 +16,10 @@ class UserRepository {
     });
   }
 
+  async findByClerkId(clerkId) {
+    return User.findOne({ clerkId: String(clerkId || '').trim() });
+  }
+
   async findById(id) {
     return User.findById(id);
   }
@@ -155,11 +159,14 @@ class UserRepository {
   async updateUserProfile(id, profileData) {
     const updateObj = {};
     if (profileData.name !== undefined) updateObj.name = profileData.name;
+    if (profileData.email !== undefined) updateObj.email = profileData.email;
+    if (profileData.clerkId !== undefined) updateObj.clerkId = profileData.clerkId;
     if (profileData.profileImage !== undefined) updateObj.profileImage = profileData.profileImage;
     if (profileData.phoneNumber !== undefined) updateObj.phoneNumber = profileData.phoneNumber;
     if (profileData.role !== undefined) updateObj.role = profileData.role;
     if (profileData.timezone !== undefined) updateObj.timezone = profileData.timezone;
     if (profileData.profileVisibility !== undefined) updateObj.profileVisibility = profileData.profileVisibility;
+    if (profileData.emailVerification !== undefined) updateObj.emailVerification = profileData.emailVerification;
     
     if (profileData.notificationPreferences) {
       if (profileData.notificationPreferences.email !== undefined) updateObj['notificationPreferences.email'] = profileData.notificationPreferences.email;

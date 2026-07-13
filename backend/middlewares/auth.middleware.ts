@@ -1,6 +1,6 @@
 // @ts-nocheck
-const jwt = require('jsonwebtoken');
-const { User, TokenBlacklist } = require('../models/user.model');
+const { User } = require('../models/user.model');
+const userService = require('../services/user.service');
 
 /* ================= TOKEN EXTRACTOR ================= */
 const getTokenFromRequest = (req) => {
@@ -57,53 +57,44 @@ exports.protect = async (req, res, next) => {
       });
     }
 
-    /* ---------- Verify JWT ---------- */
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = await userService.verifyClerkToken(token);
+    const clerkId = decoded?.sub;
 
-    /* ---------- Check blacklist ---------- */
-    const isBlacklisted = await withPoolCheckoutRetry(
-      () => TokenBlacklist.exists({ token }),
-      'TokenBlacklist.exists'
-    );
-
-    if (isBlacklisted) {
+    if (!clerkId) {
       return res.status(401).json({
         success: false,
-        message: 'Session expired. Please login again',
+        message: 'Invalid Clerk session',
       });
     }
 
-    /* ---------- Fetch user ---------- */
-    const user = await withPoolCheckoutRetry(
+    let user = await withPoolCheckoutRetry(
       () =>
-        User.findById(decoded.userId)
+        User.findOne({ clerkId })
           .select('-password')
           .lean(),
-      'User.findById'
+      'User.findOneByClerkId'
     );
 
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'User no longer exists',
-      });
+      const syncedUser = await withPoolCheckoutRetry(
+        () => userService.syncClerkUserFromToken(token),
+        'userService.syncClerkUserFromToken'
+      );
+      user = userService.sanitizeUser(syncedUser);
     }
 
     req.user = user;
 
     next();
   } catch (error) {
-    if (error.name === 'TokenExpiredError') {
+    if (
+      error.name === 'TokenExpiredError' ||
+      error.name === 'JsonWebTokenError' ||
+      error.statusCode === 401
+    ) {
       return res.status(401).json({
         success: false,
-        message: 'Token expired',
-      });
-    }
-
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token',
+        message: error.message || 'Invalid token',
       });
     }
 

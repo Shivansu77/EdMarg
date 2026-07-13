@@ -2,9 +2,10 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Menu, Search, LogOut, User, MessageSquare, Calendar, Check, Settings, Heart } from 'lucide-react';
+import { Bell, Menu, Search, LogOut, User, MessageSquare, Calendar, Check, Settings, Heart, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { useClerk } from '@clerk/nextjs';
 import Image from 'next/image';
 import { apiClient } from '@/utils/api-client';
 import Link from 'next/link';
@@ -74,6 +75,7 @@ const DashboardHeader = ({
 
   const router = useRouter();
   const { user, logout } = useAuth();
+  const clerk = useClerk();
 
   const resolvedDisplayName = user?.name?.trim() || userName;
   const avatarLetter = resolvedDisplayName.charAt(0).toUpperCase() || 'U';
@@ -309,11 +311,11 @@ const DashboardHeader = ({
               <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
                 <div className="px-4 py-3 border-b border-slate-100">
                   <p className="text-sm font-bold text-slate-900 truncate">{resolvedDisplayName}</p>
-                  <p className="text-xs text-gray-500 font-semibold">Student</p>
+                  <p className="text-xs text-gray-500 font-semibold capitalize">{user?.role || 'Student'}</p>
                 </div>
                 <button
                   onClick={() => {
-                    router.push('/student/profile');
+                    router.push(`/${user?.role || 'student'}/settings#profile`);
                     setIsProfileOpen(false);
                   }}
                   className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"
@@ -323,7 +325,7 @@ const DashboardHeader = ({
                 </button>
                 <button
                   onClick={() => {
-                    router.push('/student/settings');
+                    router.push(`/${user?.role || 'student'}/settings`);
                     setIsProfileOpen(false);
                   }}
                   className="w-full px-4 py-2.5 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-3 transition-colors"

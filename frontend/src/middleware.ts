@@ -1,14 +1,8 @@
+import { clerkMiddleware } from '@clerk/nextjs/server';
 import { NextResponse, type NextRequest } from 'next/server';
 
-/**
- * Next.js Proxy to handle route protection and public access.
- * This runs on the Edge/Server and uses Cookies for authentication verification.
- */
-export function proxy(request: NextRequest) {
+const handleRouteProtection = (request: NextRequest, isClerkSignedIn: boolean) => {
   const { pathname } = request.nextUrl;
-  const token =
-    request.cookies.get('auth-token')?.value ||
-    request.cookies.get('accessToken')?.value;
 
   const isPublicRoute =
     pathname === '/' ||
@@ -23,9 +17,7 @@ export function proxy(request: NextRequest) {
     pathname.startsWith('/browse-mentors') ||
     pathname.startsWith('/mentor-profile') ||
     pathname.startsWith('/assessment') ||
-    pathname.startsWith('/api/v1/health') ||
-    pathname.startsWith('/api/v1/users/login') ||
-    pathname.startsWith('/api/v1/users/signup');
+    pathname.startsWith('/api/v1/health');
 
   const isAsset =
     pathname.startsWith('/_next') ||
@@ -35,22 +27,25 @@ export function proxy(request: NextRequest) {
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml';
 
-  if (isAsset) {
+  if (isAsset || isPublicRoute || isClerkSignedIn) {
     return NextResponse.next();
   }
 
-  const isPrivateRoute = !isPublicRoute;
+  const loginUrl = new URL('/login', request.url);
+  const redirectPath = `${pathname}${request.nextUrl.search}`;
+  loginUrl.searchParams.set('redirect', redirectPath);
+  return NextResponse.redirect(loginUrl);
+};
 
-  if (isPrivateRoute && !token) {
-    const loginUrl = new URL('/login', request.url);
-    const redirectPath = `${pathname}${request.nextUrl.search}`;
-    loginUrl.searchParams.set('redirect', redirectPath);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  return NextResponse.next();
-}
+export default clerkMiddleware(async (auth, request) => {
+  const { userId } = await auth();
+  return handleRouteProtection(request, Boolean(userId));
+});
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/(api|trpc)(.*)',
+    '/__clerk/(.*)',
+  ],
 };

@@ -1,10 +1,5 @@
 // @ts-nocheck
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-
-const isBcryptHash = (value = '') =>
-  typeof value === 'string' &&
-  (value.startsWith('$2a$') || value.startsWith('$2b$') || value.startsWith('$2y$'));
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,6 +15,12 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format'],
     },
+    clerkId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
     phoneNumber: {
       type: String,
       trim: true,
@@ -34,7 +35,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
     },
     role: {
       type: String,
@@ -90,12 +91,6 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const tokenBlacklistSchema = new mongoose.Schema({
-  token: { type: String, required: true, unique: true },
-  expiresAt: { type: Date, required: true, index: { expireAfterSeconds: 0 } },
-});
-
 const User = mongoose.model('User', userSchema);
-const TokenBlacklist = mongoose.model('TokenBlacklist', tokenBlacklistSchema);
 
-module.exports = { User, TokenBlacklist };
+module.exports = { User };

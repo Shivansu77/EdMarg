@@ -2,6 +2,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getDefaultAuthenticatedPath } from '@/utils/auth-profile';
 
 export default function AdminRedirect() {
   const router = useRouter();
@@ -12,7 +13,7 @@ export default function AdminRedirect() {
       if (user?.role === 'admin') {
         router.replace('/admin/dashboard');
       } else if (user) {
-        router.replace('/');
+        router.replace(getDefaultAuthenticatedPath(user));
       } else {
         router.replace('/login');
       }

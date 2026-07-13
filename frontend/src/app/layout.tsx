@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ClerkProvider } from '@clerk/nextjs';
 import { Providers } from '@/context/Providers';
 import { NetworkStatusLoader } from '@/components/common/NetworkStatusLoader';
 import { SITE_URL } from '@/utils/site-url';
@@ -51,7 +52,9 @@ export default function RootLayout({
       className="h-full antialiased"
     >
       <body suppressHydrationWarning className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">
-        <Providers>{children}<NetworkStatusLoader /></Providers>
+        <ClerkProvider>
+          <Providers>{children}<NetworkStatusLoader /></Providers>
+        </ClerkProvider>
       </body>
     </html>
   );

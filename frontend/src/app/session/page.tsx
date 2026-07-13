@@ -30,7 +30,7 @@ export default function SessionRedirect() {
         return;
       }
 
-      router.replace('/login');
+      router.replace(user ? getDefaultAuthenticatedPath(user) : '/login');
     }
   }, [user, isLoading, router]);
   

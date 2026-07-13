@@ -1,6 +1,11 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
+import {
+  useAuth as useClerkAuth,
+  useClerk,
+  useUser as useClerkUser,
+} from '@clerk/nextjs';
 import { resolveApiBaseUrl } from '@/utils/api-base';
 
 interface User {
@@ -95,6 +100,25 @@ const persistAuthStorage = (user: User, token?: string) => {
   }
 };
 
+const normalizeUser = (data?: Partial<User> | null): User | null => {
+  if (!data?._id || !data.email || !data.name || !data.role) {
+    return null;
+  }
+
+  return {
+    _id: data._id,
+    name: data.name,
+    email: data.email,
+    emailVerification: data.emailVerification,
+    role: data.role,
+    profileImage: data.profileImage,
+    profileImageUpdatedAt: data.profileImageUpdatedAt,
+    phoneNumber: data.phoneNumber,
+    studentProfile: data.studentProfile,
+    mentorProfile: data.mentorProfile,
+  };
+};
+
 const readApiResponse = async (response: Response): Promise<AuthApiResponse> => {
   const rawBody = await response.text();
 
@@ -176,7 +200,14 @@ const getStoredUserSnapshot = (): User | null => {
 };
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const user = useSyncExternalStore(subscribeToAuthUser, getStoredUserSnapshot, () => null);
+  const storedUser = useSyncExternalStore(subscribeToAuthUser, getStoredUserSnapshot, () => null);
+  const {
+    isLoaded: isClerkLoaded,
+    isSignedIn: isClerkSignedIn,
+  } = useClerkUser();
+  const { getToken } = useClerkAuth();
+  const clerk = useClerk();
+  const user = storedUser;
   const [isLoading, setIsLoading] = useState(() => {
     if (typeof window === 'undefined') {
       return false;
@@ -255,6 +286,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncClerkSession = async () => {
+      if (!isClerkLoaded) {
+        return;
+      }
+
+      if (!isClerkSignedIn) {
+        clearAuthStorage();
+        emitAuthChange();
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      try {
+        const token = await getToken();
+        if (!token) {
+          throw new Error('Clerk session token is unavailable');
+        }
+
+        const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/me`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'x-bypass-cache': '1',
+            'Cache-Control': 'no-cache',
+          },
+        });
+
+        const result = await readApiResponse(response);
+        const authenticatedUser = normalizeUser(result.data);
+
+        if (!response.ok || !authenticatedUser) {
+          throw new Error(result.error || result.message || 'Unable to sync profile');
+        }
+
+        persistAuthStorage(authenticatedUser, token);
+        emitAuthChange();
+      } catch {
+        clearAuthStorage();
+        emitAuthChange();
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    void syncClerkSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [getToken, isClerkLoaded, isClerkSignedIn]);
+
   const updateUser = (patch: Partial<User>) => {
     if (typeof window === 'undefined') {
       return;
@@ -274,64 +364,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     emitAuthChange();
   };
 
-  const login = async (email: string, password: string) => {
-    const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/login`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email.trim(), password }),
-    });
-
-    const result = await readApiResponse(response);
-    if (!response.ok) {
-      throw new Error(result.error || result.message || 'Unable to login');
-    }
-
-    if (!result.data?._id || !result.data.email || !result.data.name || !result.data.role) {
-      clearAuthStorage();
-      emitAuthChange();
-      throw new Error('Login response was incomplete');
-    }
-
-    const authenticatedUser: User = {
-      _id: result.data._id,
-      name: result.data.name,
-      email: result.data.email,
-      emailVerification: result.data.emailVerification,
-      role: result.data.role,
-      profileImage: result.data.profileImage,
-      profileImageUpdatedAt: result.data.profileImageUpdatedAt,
-      phoneNumber: result.data.phoneNumber,
-      studentProfile: result.data.studentProfile,
-      mentorProfile: result.data.mentorProfile,
-    };
-
-    persistAuthStorage(authenticatedUser, result.data.token);
-    emitAuthChange();
-    return authenticatedUser;
+  const login = async () => {
+    throw new Error('Use Clerk sign-in to authenticate');
   };
 
   const logout = async () => {
     try {
-      const token = getStoredToken();
-      const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      });
-
-      if (!response.ok) {
-        const result = await readApiResponse(response);
-        throw new Error(result.error || result.message || 'Unable to logout');
-      }
+      await clerk.signOut();
     } finally {
       clearAuthStorage();
       emitAuthChange();
     }
   };
 
+  const isAuthLoading =
+    isLoading || !isClerkLoaded || Boolean(isClerkSignedIn && !storedUser);
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isLoading: isAuthLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useUser as useClerkUser } from '@clerk/nextjs';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import { getDefaultAuthenticatedPath } from '@/utils/auth-profile';
 
 const PROTECTED_ROUTES = [
   '/student/dashboard',
@@ -26,7 +28,8 @@ export default function StudentLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  const { isLoaded: isClerkLoaded } = useClerkUser();
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const isProtectedRoute = useMemo(
     () => PROTECTED_ROUTES.some((route) => pathname.startsWith(route)),
@@ -39,12 +42,16 @@ export default function StudentLayout({
       return;
     }
 
-    if (isProtectedRoute && user?.role !== 'student') {
-      router.replace('/login');
+    if (isProtectedRoute && (!isClerkLoaded || isLoading)) {
+      return;
     }
-  }, [hasHydrated, isProtectedRoute, router, user]);
 
-  if (!hasHydrated || !isAuthorized) {
+    if (isProtectedRoute && user?.role !== 'student') {
+      router.replace(user ? getDefaultAuthenticatedPath(user) : '/login');
+    }
+  }, [hasHydrated, isClerkLoaded, isLoading, isProtectedRoute, router, user]);
+
+  if (!hasHydrated || (isProtectedRoute && (!isClerkLoaded || isLoading)) || !isAuthorized) {
     return null;
   }
 

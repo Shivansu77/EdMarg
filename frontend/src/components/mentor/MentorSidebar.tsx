@@ -37,7 +37,6 @@ const navItems = [
   { name: 'Results', href: '/mentor/results', icon: BarChart3 },
   { name: 'History', href: '/mentor/history', icon: History },
   { name: 'Recordings', href: '/mentor/recordings', icon: Video },
-  { name: 'Profile', href: '/mentor/profile', icon: User },
   { name: 'Settings', href: '/mentor/settings', icon: Settings },
 ];
 
@@ -71,7 +70,7 @@ const MentorSidebar = ({
   }, []);
 
   const visibleNavItems = isRestrictedMentor
-    ? navItems.filter((item) => item.href === '/mentor/profile')
+    ? navItems.filter((item) => item.href === '/mentor/settings')
     : navItems;
 
   return (

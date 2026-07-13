@@ -6,8 +6,8 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+// express-mongo-sanitize removed — incompatible with Express v5 (req.query is read-only)
+const { clean: cleanXss } = require('xss-clean/lib/xss');
 const hpp = require('hpp');
 const mongoose = require('mongoose');
 const { ALLOWED_ORIGINS, setCorsHeaders } = require('./lib/withCors');
@@ -59,24 +59,21 @@ app.use(helmet({
 }));
 
 // Critical environment checks
-console.log('🔍 Environment check: JWT_SECRET =', process.env.JWT_SECRET ? 'SET (length: ' + process.env.JWT_SECRET.length + ')' : 'MISSING');
+console.log('🔍 Environment check: CLERK_SECRET_KEY =', process.env.CLERK_SECRET_KEY ? 'SET (length: ' + process.env.CLERK_SECRET_KEY.length + ')' : 'MISSING');
 console.log('🔍 Environment check: MONGODB_URI =', process.env.MONGODB_URI ? 'SET (starts with: ' + process.env.MONGODB_URI.substring(0, 15) + '...)' : 'MISSING');
 console.log('🔍 Environment check: SMTP =', (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) ? 'YES' : 'NO (Missing SMTP Credentials)');
 console.log('🔍 Environment check: ZOOM_ENABLED =', (process.env.ZOOM_ACCOUNT_ID && process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET) ? 'YES' : 'NO (Missing Zoom Credentials)');
 console.log('🔍 Environment check: NODE_ENV =', process.env.NODE_ENV || 'development');
 
-if (!process.env.JWT_SECRET) {
-  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+if (!process.env.CLERK_SECRET_KEY) {
+  console.error('FATAL ERROR: CLERK_SECRET_KEY is not defined in environment variables.');
 }
 if (!process.env.MONGODB_URI) {
   console.error('FATAL ERROR: MONGODB_URI is not defined in environment variables.');
 }
 
 const HEALTH_ROUTE_PATHS = new Set(['/health', '/api/v1/health', '/api/status', '/status']);
-const NO_DATABASE_ROUTE_PATHS = new Set([
-  '/api/v1/users/auth/google',
-  '/api/users/auth/google',
-]);
+const NO_DATABASE_ROUTE_PATHS = new Set([]);
 let dbConnectPromise = null;
 
 const getDatabaseStatus = () => {
@@ -158,11 +155,37 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser());
 app.use(invalidateCacheOnMutation);
 
-// Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+// Data sanitization against NoSQL query injection and XSS.
+// NOTE: express-mongo-sanitize and xss-clean middleware are incompatible with Express v5
+// because req.query is a read-only getter. Query values are left untouched; Express v5 parses
+// them from the URL as plain strings, while controllers still validate expected query params.
+app.use((req: any, _res: any, next: any) => {
+  const sanitize = (value: any): any => {
+    if (typeof value === 'string') {
+      return cleanXss(value);
+    }
 
-// Data sanitization against XSS
-app.use(xss());
+    if (Array.isArray(value)) {
+      return value.map(sanitize);
+    }
+
+    if (typeof value !== 'object' || value === null) {
+      return value;
+    }
+
+    for (const key of Object.keys(value)) {
+      if (typeof key === 'string' && key.startsWith('$')) {
+        delete value[key];
+      } else {
+        value[key] = sanitize(value[key]);
+      }
+    }
+    return value;
+  };
+  if (req.body) sanitize(req.body);
+  if (req.params) sanitize(req.params);
+  next();
+});
 
 // Prevent http param pollution
 app.use(hpp());
@@ -170,7 +193,7 @@ app.use(hpp());
 // Rate limiting
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: process.env.NODE_ENV === 'development' ? 10000 : 100,
   message: 'Too many attempts, please try again later',
   standardHeaders: true,
   legacyHeaders: false,

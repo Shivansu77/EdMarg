@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useUser as useClerkUser } from '@clerk/nextjs';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
@@ -103,13 +104,22 @@ const readStoredAuthUser = (): StoredAuthUser | null => {
   }
 };
 
+const hasStoredToken = () => {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  return Boolean(window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY));
+};
+
 export default function ProtectedRoute({
   children,
   requiredRole = 'student',
 }: ProtectedRouteProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+  const { isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const [isSessionChecking, setIsSessionChecking] = useState(true);
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const isAuthorized = Boolean(user && user.role === requiredRole);
@@ -121,15 +131,24 @@ export default function ProtectedRoute({
       return;
     }
 
+    if (!isClerkLoaded || isLoading) {
+      return;
+    }
+
     if (!user) {
       router.replace('/login');
     } else if (user.role !== requiredRole) {
       router.replace(getDefaultAuthenticatedPath(user));
     }
-  }, [hasHydrated, requiredRole, router, user]);
+  }, [hasHydrated, isClerkLoaded, isLoading, requiredRole, router, user]);
 
   useEffect(() => {
     if (!hasHydrated || !isAuthorized) {
+      return;
+    }
+
+    if (!hasStoredToken() && isClerkLoaded && isClerkSignedIn && requiredRole === 'student') {
+      setIsSessionChecking(false);
       return;
     }
 
@@ -212,9 +231,18 @@ export default function ProtectedRoute({
     return () => {
       controller.abort();
     };
-  }, [hasHydrated, isAuthorized, pathname, requiredRole, router, currentMentorApprovalStatus]);
+  }, [
+    hasHydrated,
+    isAuthorized,
+    isClerkLoaded,
+    isClerkSignedIn,
+    pathname,
+    requiredRole,
+    router,
+    currentMentorApprovalStatus,
+  ]);
 
-  if (!hasHydrated || !isAuthorized || isSessionChecking) {
+  if (!hasHydrated || !isClerkLoaded || isLoading || !isAuthorized || isSessionChecking) {
     const loadingMessage = !hasHydrated
       ? 'Preparing your session...'
       : isSessionChecking

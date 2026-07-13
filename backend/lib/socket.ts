@@ -2,7 +2,7 @@
 /**
  * Socket.io Server Setup
  * ======================
- * Attaches Socket.io to the HTTP server with JWT-based authentication.
+ * Attaches Socket.io to the HTTP server with Clerk authentication.
  * Each authenticated user auto-joins a room named `user:<userId>`.
  *
  * Usage from controllers:
@@ -11,8 +11,8 @@
  */
 
 const { Server } = require('socket.io');
-const jwt = require('jsonwebtoken');
 const { handleChatEvents } = require('./chat.socket');
+const userService = require('../services/user.service');
 
 let io = null;
 
@@ -48,7 +48,7 @@ function initSocket(httpServer) {
   });
 
   // ── Auth Middleware ──────────────────────────────────────────────────────
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     const token =
       socket.handshake.auth?.token ||
       socket.handshake.headers?.authorization?.replace('Bearer ', '');
@@ -58,9 +58,9 @@ function initSocket(httpServer) {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      socket.userId = decoded.userId;
-      socket.userRole = decoded.role;
+      const user = userService.sanitizeUser(await userService.syncClerkUserFromToken(token));
+      socket.userId = String(user._id);
+      socket.userRole = user.role;
       next();
     } catch (err) {
       console.warn('[Socket.io] Auth failed:', err.message);

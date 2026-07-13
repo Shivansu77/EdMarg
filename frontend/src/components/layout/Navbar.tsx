@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import AppImage from '@/components/AppImage';
 import { Menu, X, LogOut } from 'lucide-react';
+import { Show, SignInButton, SignUpButton, useUser as useClerkUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getImageUrl } from '@/utils/imageUrl';
@@ -14,9 +15,11 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { user, logout, isLoading } = useAuth();
+  const { isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const router = useRouter();
 
   const isLoggedIn = !isLoading && !!user;
+  const isClerkSession = isClerkLoaded && Boolean(isClerkSignedIn);
   const userName = user?.name || 'User';
   const userRole = user?.role || 'student';
   const userAvatar = getImageUrl(user?.profileImage, userName, 80, user?.profileImageUpdatedAt);
@@ -95,14 +98,26 @@ const Navbar = () => {
               </button>
             </div>
           ) : (
-            <>
-              <Link href="/login" className="text-[13px] font-semibold text-slate-600 hover:text-emerald-600 transition-colors">
-                Log in
-              </Link>
-              <Link href="/signup" className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold rounded-full transition-all shadow-sm shadow-emerald-500/20 hover:-translate-y-0.5 active:scale-95">
-                Get Started
-              </Link>
-            </>
+            <Show when="signed-out">
+              <SignInButton
+                mode="modal"
+                forceRedirectUrl="/student/dashboard"
+                fallbackRedirectUrl="/student/dashboard"
+              >
+                <button className="text-[13px] font-semibold text-slate-600 hover:text-emerald-600 transition-colors">
+                  Log in
+                </button>
+              </SignInButton>
+              <SignUpButton
+                mode="modal"
+                forceRedirectUrl="/student/dashboard"
+                fallbackRedirectUrl="/student/dashboard"
+              >
+                <button className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold rounded-full transition-all shadow-sm shadow-emerald-500/20 hover:-translate-y-0.5 active:scale-95">
+                  Get Started
+                </button>
+              </SignUpButton>
+            </Show>
           )}
         </div>
 
@@ -159,14 +174,32 @@ const Navbar = () => {
                   </button>
                 </>
               ) : (
-                <>
-                  <Link href="/login" onClick={() => setIsOpen(false)} className="w-full py-3 text-center text-slate-900 border border-slate-300 rounded-full font-semibold hover:bg-white transition-colors">
-                    Log in
-                  </Link>
-                  <Link href="/signup" onClick={() => setIsOpen(false)} className="w-full py-3 text-center bg-linear-to-r from-emerald-300 to-green-400 text-slate-900 rounded-full font-bold hover:from-emerald-400 hover:to-green-500 transition-colors">
-                    Sign up
-                  </Link>
-                </>
+                <Show when="signed-out">
+                  <SignInButton
+                    mode="modal"
+                    forceRedirectUrl="/student/dashboard"
+                    fallbackRedirectUrl="/student/dashboard"
+                  >
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="w-full py-3 text-center text-slate-900 border border-slate-300 rounded-full font-semibold hover:bg-white transition-colors"
+                    >
+                      Log in
+                    </button>
+                  </SignInButton>
+                  <SignUpButton
+                    mode="modal"
+                    forceRedirectUrl="/student/dashboard"
+                    fallbackRedirectUrl="/student/dashboard"
+                  >
+                    <button
+                      onClick={() => setIsOpen(false)}
+                      className="w-full py-3 text-center bg-linear-to-r from-emerald-300 to-green-400 text-slate-900 rounded-full font-bold hover:from-emerald-400 hover:to-green-500 transition-colors"
+                    >
+                      Sign up
+                    </button>
+                  </SignUpButton>
+                </Show>
               )}
             </div>
           </div>

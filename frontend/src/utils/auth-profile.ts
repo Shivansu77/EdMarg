@@ -46,7 +46,7 @@ export const isProfileComplete = (user?: AuthProfileUser | null) => {
 
 export const getDefaultAuthenticatedPath = (user?: AuthProfileUser | null) => {
   if (!user?.role) {
-    return '/login';
+    return '/complete-profile';
   }
 
   if (!isProfileComplete(user)) {
