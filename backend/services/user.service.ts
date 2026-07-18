@@ -10,17 +10,7 @@ const normalizePhoneNumber = (phoneNumber) => {
   if (phoneNumber === undefined || phoneNumber === null) {
     return undefined;
   }
-
-  const digits = String(phoneNumber).replace(/\D/g, '');
-  if (!digits) {
-    return '';
-  }
-
-  if (digits.length < 10 || digits.length > 15) {
-    throw new ValidationError('Phone number must be between 10 and 15 digits');
-  }
-
-  return digits;
+  return String(phoneNumber).trim();
 };
 
 const getClerkClient = () => {
@@ -79,24 +69,7 @@ class UserService {
     });
   }
 
-  async verifyClerkToken(token) {
-    if (!token) {
-      throw new UnauthorizedError('Authentication required');
-    }
-
-    if (!process.env.CLERK_SECRET_KEY) {
-      throw new ValidationError('Clerk is not configured on the server');
-    }
-
-    return verifyToken(token, {
-      secretKey: process.env.CLERK_SECRET_KEY,
-    });
-  }
-
-  async syncClerkUserFromToken(token) {
-    const verifiedToken = await this.verifyClerkToken(token);
-    const clerkUserId = verifiedToken.sub;
-
+  async syncClerkUserByClerkId(clerkUserId) {
     if (!clerkUserId) {
       throw new UnauthorizedError('Invalid Clerk session');
     }
@@ -107,47 +80,68 @@ class UserService {
     const phoneNumber = normalizePhoneNumber(getPrimaryPhoneNumber(clerkUser));
     const profileImage = clerkUser.imageUrl || '';
 
-    let user = await userRepository.findByClerkId(clerkUserId);
-
-    if (!user) {
-      user = await userRepository.findByEmail(email);
-    }
-
-    if (!user) {
-      user = await userRepository.create({
-        name,
-        email,
-        clerkId: clerkUserId,
-        phoneNumber,
-        role: 'student',
-        profileImage,
-        emailVerification: {
-          isVerified: true,
-          verifiedAt: new Date(),
-        },
-      });
-
-      return user;
-    }
-
     const updateData = {
       clerkId: clerkUserId,
       name,
+      email,
       profileImage,
-      emailVerification: {
-        ...(user.emailVerification?.toObject
-          ? user.emailVerification.toObject()
-          : user.emailVerification || {}),
-        isVerified: true,
-        verifiedAt: user.emailVerification?.verifiedAt || new Date(),
-      },
     };
 
     if (phoneNumber !== undefined) {
       updateData.phoneNumber = phoneNumber;
     }
 
-    return userRepository.updateUserProfile(user._id, updateData);
+    // Utilize upsert logic to ensure we don't hit duplicate key errors if webhook is delayed
+    return userRepository.upsertByClerkId(clerkUserId, updateData);
+  }
+
+  async processWebhookUserCreated(payload) {
+    const email = validateEmail(getPrimaryEmail(payload));
+    const name = buildNameFromClerk(payload, email);
+    const phoneNumber = normalizePhoneNumber(getPrimaryPhoneNumber(payload));
+    const profileImage = payload.image_url || '';
+
+    const userData = {
+      clerkId: payload.id,
+      name,
+      email,
+      phoneNumber,
+      profileImage,
+      role: 'student',
+    };
+
+    return userRepository.upsertByClerkId(payload.id, userData);
+  }
+
+  async processWebhookUserUpdated(payload) {
+    const email = validateEmail(getPrimaryEmail(payload));
+    const name = buildNameFromClerk(payload, email);
+    const phoneNumber = normalizePhoneNumber(getPrimaryPhoneNumber(payload));
+    const profileImage = payload.image_url || '';
+
+    const updateData = {
+      name,
+      email,
+      profileImage,
+    };
+
+    if (phoneNumber !== undefined) {
+      updateData.phoneNumber = phoneNumber;
+    }
+
+    return userRepository.upsertByClerkId(payload.id, updateData);
+  }
+
+  async processWebhookUserDeleted(payload) {
+    const clerkId = payload.id;
+    if (!clerkId) return null;
+
+    const user = await userRepository.findByClerkId(clerkId);
+    if (!user) return null;
+
+    // We can physically delete the user for now
+    const { User } = require('../models/user.model');
+    return User.findByIdAndDelete(user._id);
   }
 
   async getMentors(page = 1, limit = 20) {

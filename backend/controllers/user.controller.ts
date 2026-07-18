@@ -55,7 +55,7 @@ exports.updateUserProfile = async (req, res, next) => {
     const userId = req.user._id;
     const userRole = req.user.role;
     const { 
-      name, profileImage, phoneNumber, role, linkedinUrl,
+      phoneNumber, role, linkedinUrl,
       classLevel, interests,
       expertise, bio, experienceYears, pricePerSession, sessionDuration, autoConfirm, sessionNotes,
       languages, currentCompany, currentTitle, location, education,
@@ -64,8 +64,6 @@ exports.updateUserProfile = async (req, res, next) => {
     const normalizedRole = role === 'mentor' || role === 'student' ? role : userRole;
 
     const profileData = {
-      name,
-      profileImage,
       phoneNumber,
       role: normalizedRole,
       timezone,

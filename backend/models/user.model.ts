@@ -33,10 +33,6 @@ const userSchema = new mongoose.Schema(
         message: 'Phone number must be between 10 and 15 digits',
       },
     },
-    password: {
-      type: String,
-      required: false,
-    },
     role: {
       type: String,
       enum: ['student', 'mentor', 'admin'],
@@ -50,13 +46,7 @@ const userSchema = new mongoose.Schema(
       marketing: { type: Boolean, default: false },
     },
     profileVisibility: { type: String, enum: ['public', 'private'], default: 'public' },
-    emailVerification: {
-      isVerified: { type: Boolean, default: false },
-      otpHash: String,
-      otpExpiresAt: Date,
-      lastSentAt: Date,
-      verifiedAt: Date,
-    },
+
     studentProfile: {
       classLevel: String,
       interests: [String],
@@ -90,6 +80,9 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.index({ role: 1 });
+userSchema.index({ 'mentorProfile.approvalStatus': 1 });
 
 const User = mongoose.model('User', userSchema);
 

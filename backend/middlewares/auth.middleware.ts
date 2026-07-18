@@ -1,27 +1,7 @@
 // @ts-nocheck
 const { User } = require('../models/user.model');
 const userService = require('../services/user.service');
-
-/* ================= TOKEN EXTRACTOR ================= */
-const getTokenFromRequest = (req) => {
-  // Explicit Authorization headers should win over cookies so the active
-  // frontend session token is not shadowed by a stale cross-site cookie.
-  const authHeader = req.headers.authorization;
-
-  if (authHeader) {
-    const parts = authHeader.split(' ');
-
-    if (parts.length === 2 && parts[0] === 'Bearer') {
-      return parts[1];
-    }
-  }
-
-  if (req.cookies?.accessToken) {
-    return req.cookies.accessToken;
-  }
-
-  return null;
-};
+const { requireAuth, getAuth } = require('@clerk/express');
 
 const isMongoPoolTimeoutError = (error) =>
   error?.name === 'MongoWaitQueueTimeoutError' ||
@@ -46,19 +26,12 @@ const withPoolCheckoutRetry = async (operation, label) => {
 };
 
 /* ================= PROTECT MIDDLEWARE ================= */
-exports.protect = async (req, res, next) => {
+// requireAuth() enforces that the user is authenticated with Clerk.
+// Then our protect DB fetch runs.
+const fetchUserFromDb = async (req, res, next) => {
   try {
-    const token = getTokenFromRequest(req);
-
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        message: 'Authentication required',
-      });
-    }
-
-    const decoded = await userService.verifyClerkToken(token);
-    const clerkId = decoded?.sub;
+    const authState = getAuth ? getAuth(req) : req.auth;
+    const clerkId = authState?.userId;
 
     if (!clerkId) {
       return res.status(401).json({
@@ -76,31 +49,22 @@ exports.protect = async (req, res, next) => {
     );
 
     if (!user) {
+      // If user isn't in DB yet, attempt to sync them from Clerk via an upsert
       const syncedUser = await withPoolCheckoutRetry(
-        () => userService.syncClerkUserFromToken(token),
-        'userService.syncClerkUserFromToken'
+        () => userService.syncClerkUserByClerkId(clerkId),
+        'userService.syncClerkUserByClerkId'
       );
       user = userService.sanitizeUser(syncedUser);
     }
 
     req.user = user;
-
     next();
   } catch (error) {
-    if (
-      error.name === 'TokenExpiredError' ||
-      error.name === 'JsonWebTokenError' ||
-      error.statusCode === 401
-    ) {
-      return res.status(401).json({
-        success: false,
-        message: error.message || 'Invalid token',
-      });
-    }
-
     return next(error);
   }
 };
+
+exports.protect = [requireAuth(), fetchUserFromDb];
 
 /* ================= ROLE AUTHORIZATION ================= */
 exports.authorize = (...roles) => {

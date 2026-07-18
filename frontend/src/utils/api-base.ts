@@ -1,5 +1,5 @@
 const DEFAULT_REMOTE_API_BASE = 'https://backend.edmarg.com';
-const DEFAULT_LOCAL_API_BASE = 'http://localhost:5000';
+const DEFAULT_LOCAL_API_BASE = 'http://localhost:5001';
 
 const normalizeApiBase = (value: string) =>
   value.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');

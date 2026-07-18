@@ -28,8 +28,26 @@ class UserRepository {
     return User.create(userData);
   }
 
-  async updatePassword(id, password) {
-    return User.findByIdAndUpdate(id, { password }, { new: true });
+  async upsertByClerkId(clerkId, userData) {
+    const cleanClerkId = String(clerkId || '').trim();
+    
+    if (userData.email) {
+      const existingUser = await User.findOne({ email: userData.email });
+      if (existingUser && existingUser.clerkId !== cleanClerkId) {
+        // Link new clerkId to existing email account
+        return User.findOneAndUpdate(
+          { email: userData.email },
+          { $set: { ...userData, clerkId: cleanClerkId } },
+          { new: true }
+        ).select('-password');
+      }
+    }
+
+    return User.findOneAndUpdate(
+      { clerkId: cleanClerkId },
+      { $set: userData },
+      { new: true, upsert: true }
+    ).select('-password');
   }
 
   async findMentors(skip, limit) {

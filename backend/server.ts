@@ -10,6 +10,7 @@ const helmet = require('helmet');
 const { clean: cleanXss } = require('xss-clean/lib/xss');
 const hpp = require('hpp');
 const mongoose = require('mongoose');
+const { clerkMiddleware } = require('@clerk/express');
 const { ALLOWED_ORIGINS, setCorsHeaders } = require('./lib/withCors');
 const connectDB = require('./lib/db');
 const { invalidateCacheOnMutation } = require('./middlewares/cache.middleware');
@@ -148,11 +149,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Webhook route must be registered BEFORE body parsers since it needs the raw body
+const webhookRoute = require('./routes/webhook.route');
+app.use('/api/webhooks', webhookRoute);
+
 // Body parsing
 app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(cookieParser());
+app.use(clerkMiddleware());
 app.use(invalidateCacheOnMutation);
 
 // Data sanitization against NoSQL query injection and XSS.

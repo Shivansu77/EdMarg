@@ -8,6 +8,7 @@ const handleRouteProtection = (request: NextRequest, isClerkSignedIn: boolean) =
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
+    pathname.startsWith('/clear-session') ||
     pathname.startsWith('/about') ||
     pathname.startsWith('/contact') ||
     pathname.startsWith('/pricing') ||

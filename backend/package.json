@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@clerk/backend": "^3.11.4",
+    "@clerk/express": "^2.1.43",
     "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^1.41.3",
@@ -41,6 +42,7 @@
     "nodemailer": "^8.0.5",
     "sharp": "^0.34.5",
     "socket.io": "^4.8.3",
+    "svix": "^1.96.1",
     "uuid": "^13.0.0",
     "xss-clean": "^0.1.4"
   },

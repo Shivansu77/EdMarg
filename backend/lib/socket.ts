@@ -58,7 +58,22 @@ function initSocket(httpServer) {
     }
 
     try {
-      const user = userService.sanitizeUser(await userService.syncClerkUserFromToken(token));
+      const { verifyToken } = require('@clerk/backend');
+      const payload = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
+      const clerkId = payload.sub;
+
+      const { User } = require('../models/user.model');
+      let user = await User.findOne({ clerkId }).select('-password').lean();
+      
+      if (!user) {
+        const syncedUser = await userService.syncClerkUserByClerkId(clerkId);
+        user = userService.sanitizeUser(syncedUser);
+      } else {
+        user = userService.sanitizeUser(user);
+      }
+      
+      if (!user) throw new Error('User not found');
+
       socket.userId = String(user._id);
       socket.userRole = user.role;
       next();

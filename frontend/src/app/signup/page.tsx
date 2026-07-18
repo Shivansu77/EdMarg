@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { SignUp } from '@clerk/nextjs';
+import React, { useEffect, useState } from 'react';
+import { SignUp, useClerk } from '@clerk/nextjs';
 import { Loader } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Logo from '@/components/common/Logo';
@@ -11,15 +11,61 @@ import { getPostAuthFallbackPath, getSafePostAuthPath } from '@/utils/auth-redir
 const SignupContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const clerk = useClerk();
   const { user } = useAuth();
   const redirectParam = searchParams.get('redirect') ?? searchParams.get('callbackUrl');
   const clerkRedirectPath = getSafePostAuthPath(redirectParam, '/complete-profile');
+  const [clearing, setClearing] = useState(false);
 
+  // Detect stuck #/continue state and auto-clear it
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.includes('/continue') || hash.includes('/sso-callback')) {
+      setClearing(true);
+
+      const clearStuck = async () => {
+        try {
+          // Destroy the stuck sign-up session via Clerk client
+          if (clerk?.client?.destroy) {
+            await clerk.client.destroy();
+          }
+          if (clerk?.signOut) {
+            await clerk.signOut({ redirectUrl: undefined });
+          }
+        } catch {
+          // ignore
+        }
+
+        // Clear local storage
+        try { localStorage.clear(); } catch {}
+        try { sessionStorage.clear(); } catch {}
+
+        // Hard redirect to clean /signup URL (no hash)
+        window.location.replace('/signup');
+      };
+
+      // Wait for Clerk to initialize, then clear
+      setTimeout(clearStuck, 1500);
+    }
+  }, [clerk]);
+
+  // Redirect already-logged-in users
   useEffect(() => {
     if (!user) return;
     const fallbackPath = getPostAuthFallbackPath(user);
     router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
   }, [redirectParam, router, user]);
+
+  if (clearing) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="text-center">
+          <Loader className="mx-auto h-8 w-8 animate-spin text-emerald-600" />
+          <p className="mt-4 text-sm text-slate-600">Clearing stuck session, please wait...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,#f8fafc_0%,#eefdf7_48%,#f8fafc_100%)]">
