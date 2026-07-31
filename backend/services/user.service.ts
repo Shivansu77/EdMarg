@@ -179,8 +179,8 @@ class UserService {
       throw new Error('User not found');
     }
 
-    if (user.role !== 'student') {
-      throw new ValidationError('Only students can apply to become a mentor');
+    if (user.role !== 'student' && !(user.role === 'mentor' && user.mentorProfile?.approvalStatus === 'pending')) {
+      throw new ValidationError('Only students or pending mentor applicants can apply to become a mentor');
     }
 
     if (!data.linkedinUrl || !data.linkedinUrl.trim()) {
@@ -196,8 +196,8 @@ class UserService {
       throw new Error('User not found');
     }
 
-    if (user.role !== 'student') {
-      throw new Error('Only students can withdraw a mentor application');
+    if (user.role !== 'student' && !(user.role === 'mentor' && user.mentorProfile?.approvalStatus === 'pending')) {
+      throw new Error('Only students or pending applicants can withdraw a mentor application');
     }
 
     const approvalStatus = user.mentorProfile?.approvalStatus;
@@ -206,6 +206,7 @@ class UserService {
     }
 
     return userRepository.updateUserProfile(userId, {
+      role: 'student',
       mentorProfile: {
         ...user.mentorProfile,
         approvalStatus: null,

@@ -122,9 +122,15 @@ export default function ProtectedRoute({
   const { isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const [isSessionChecking, setIsSessionChecking] = useState(true);
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
-  const isAuthorized = Boolean(user && user.role === requiredRole);
   const currentMentorApprovalStatus =
     user?.mentorProfile?.approvalStatus ?? readStoredAuthUser()?.mentorProfile?.approvalStatus ?? null;
+  const isAuthorized = Boolean(
+    user &&
+      (user.role === requiredRole ||
+        (requiredRole === 'student' &&
+          user.role === 'mentor' &&
+          (user.mentorProfile?.approvalStatus === 'pending' || currentMentorApprovalStatus === 'pending')))
+  );
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -137,10 +143,10 @@ export default function ProtectedRoute({
 
     if (!user) {
       router.replace('/login');
-    } else if (user.role !== requiredRole) {
+    } else if (!isAuthorized) {
       router.replace(getDefaultAuthenticatedPath(user));
     }
-  }, [hasHydrated, isClerkLoaded, isLoading, requiredRole, router, user]);
+  }, [hasHydrated, isAuthorized, isClerkLoaded, isLoading, requiredRole, router, user]);
 
   useEffect(() => {
     if (!hasHydrated || !isAuthorized) {

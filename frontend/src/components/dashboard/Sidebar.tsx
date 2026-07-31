@@ -22,7 +22,7 @@ import {
   Heart,
   LogOut,
   Sparkles,
-  Target,
+
   Briefcase,
 } from 'lucide-react';
 
@@ -42,7 +42,7 @@ const studentNavGroups = [
     group: 'Learning',
     items: [
       { name: 'Dashboard', href: '/student/dashboard', icon: LayoutGrid },
-      { name: 'Goals', href: '/student/goals', icon: Target },
+
       { name: 'Assessments', href: '/student/assessments', icon: ClipboardCheck },
       { name: 'Results', href: '/student/results', icon: BadgeCheck },
     ]

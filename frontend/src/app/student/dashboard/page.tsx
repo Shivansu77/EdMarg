@@ -9,7 +9,7 @@ import CalendarSyncButton from '@/components/common/CalendarSyncButton';
 import Link from 'next/link';
 import { apiClient } from '@/utils/api-client';
 import RecommendedMentors from '@/components/RecommendedMentors';
-import GoalProgressWidget from '@/components/GoalProgressWidget';
+
 import {
   ArrowRight,
   CalendarDays,
@@ -299,7 +299,7 @@ function StudentDashboardContent() {
             <div className="space-y-10">
               
               {/* Goal Widget */}
-              <GoalProgressWidget />
+              
               
               {/* Upcoming Timeline */}
               <Card>

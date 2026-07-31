@@ -1,9 +1,12 @@
-import type { NextConfig } from "next";
 import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const isStaticExport = process.env.NEXT_STATIC_EXPORT === "true";
 
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
@@ -20,7 +23,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "X-Frame-Options",
-            value: "SAMEORIGIN", // changed to SAMEORIGIN just in case they need to embed something of their own
+            value: "SAMEORIGIN",
           },
           {
             key: "X-Content-Type-Options",
@@ -81,4 +84,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

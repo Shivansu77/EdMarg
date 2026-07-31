@@ -1,18 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { useAuth } from '@/context/AuthContext';
-import { resolveApiBaseUrl } from '@/utils/api-base';
+import { apiClient } from '@/utils/api-client';
 import toast from 'react-hot-toast';
 import {
-  Briefcase, Loader2, Link2, CheckCircle, AlertCircle, Clock,
+  Briefcase, Loader2, Link2, CheckCircle2, AlertCircle, Clock,
   XCircle, Building2, MapPin, GraduationCap, Award, Edit3,
+  Sparkles, ArrowRight, ShieldCheck, UserCheck
 } from 'lucide-react';
 
 interface MentorProfile {
-  approvalStatus?: string;
+  approvalStatus?: 'pending' | 'approved' | 'rejected' | string | null;
   expertise?: string[];
   bio?: string;
   experienceYears?: number;
@@ -31,7 +32,7 @@ function CareersContent() {
   const [fetching, setFetching] = useState(true);
   const [editing, setEditing] = useState(false);
 
-  // Application fields
+  // Form State
   const [expertise, setExpertise] = useState('');
   const [bio, setBio] = useState('');
   const [linkedinUrl, setLinkedinUrl] = useState('');
@@ -44,66 +45,64 @@ function CareersContent() {
   const [approvalStatus, setApprovalStatus] = useState<'none' | 'pending' | 'approved' | 'rejected'>('none');
   const [submittedProfile, setSubmittedProfile] = useState<MentorProfile | null>(null);
 
-  const populateForm = (profile: MentorProfile) => {
-    setLinkedinUrl(profile.linkedinUrl ?? '');
-    setCurrentTitle(profile.currentTitle ?? '');
-    setCurrentCompany(profile.currentCompany ?? '');
-    setExperienceYears(profile.experienceYears?.toString() ?? '');
-    setLocation(profile.location ?? '');
-    setEducation(profile.education ?? '');
-    setExpertise(profile.expertise?.join(', ') ?? '');
-    setBio(profile.bio ?? '');
-  };
+  const populateForm = useCallback((profile: MentorProfile) => {
+    setLinkedinUrl(profile.linkedinUrl || '');
+    setCurrentTitle(profile.currentTitle || '');
+    setCurrentCompany(profile.currentCompany || '');
+    setExperienceYears(profile.experienceYears != null ? String(profile.experienceYears) : '');
+    setLocation(profile.location || '');
+    setEducation(profile.education || '');
+    setExpertise(profile.expertise?.join(', ') || '');
+    setBio(profile.bio || '');
+  }, []);
+
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      setFetching(true);
+      const res = await apiClient.get<any>('/api/v1/users/me');
+
+      if (res.success && res.data) {
+        const profile: MentorProfile | undefined = res.data?.mentorProfile;
+        const status = profile?.approvalStatus;
+
+        if (status === 'pending' || status === 'approved' || status === 'rejected') {
+          setApprovalStatus(status as any);
+          setSubmittedProfile(profile || null);
+          if (profile) populateForm(profile);
+        } else {
+          setApprovalStatus('none');
+          setSubmittedProfile(null);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user profile:', err);
+    } finally {
+      setFetching(false);
+    }
+  }, [populateForm]);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        setFetching(true);
-        const API_BASE_URL = resolveApiBaseUrl();
-        const response = await fetch(`${API_BASE_URL}/api/v1/users/me`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          const profile: MentorProfile | undefined = result.data?.mentorProfile;
-          const status = profile?.approvalStatus;
-
-          if (status === 'pending' || status === 'approved' || status === 'rejected') {
-            setApprovalStatus(status);
-            setSubmittedProfile(profile ?? null);
-            if (profile) populateForm(profile);
-          } else {
-            setApprovalStatus('none');
-            setSubmittedProfile(null);
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch user profile:', err);
-      } finally {
-        setFetching(false);
-      }
-    };
-
-    if (user) fetchProfile();
-    else setFetching(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    if (user) {
+      fetchUserProfile();
+    } else {
+      setFetching(false);
+    }
+  }, [user, fetchUserProfile]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     if (!linkedinUrl.trim()) {
-      toast.error('LinkedIn profile link is required');
+      toast.error('LinkedIn profile URL is required');
       setLoading(false);
       return;
     }
 
     try {
       const payload = {
-        expertise: expertise.split(',').map((v) => v.trim()).filter((v) => v !== ''),
-        bio,
+        expertise: expertise.split(',').map((v) => v.trim()).filter(Boolean),
+        bio: bio.trim(),
         linkedinUrl: linkedinUrl.trim(),
         experienceYears: Number(experienceYears) || 0,
         currentCompany: currentCompany.trim(),
@@ -112,29 +111,24 @@ function CareersContent() {
         education: education.trim(),
       };
 
-      const API_BASE_URL = resolveApiBaseUrl();
-      const response = await fetch(`${API_BASE_URL}/api/v1/users/apply-mentor`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify(payload),
-      });
+      const res = await apiClient.put<any>('/api/v1/users/apply-mentor', payload);
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to submit application');
+      if (!res.success) {
+        throw new Error(res.message || res.error || 'Failed to submit application');
+      }
 
-      const newProfile = { ...payload, approvalStatus: 'pending' };
-      toast.success(editing ? 'Application updated successfully!' : 'Application submitted successfully!');
+      toast.success(editing ? 'Application updated successfully!' : 'Mentor application submitted successfully!');
       setApprovalStatus('pending');
-      setSubmittedProfile(newProfile);
+      setSubmittedProfile({ ...payload, approvalStatus: 'pending' });
       setEditing(false);
 
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      if (storedUser) {
-        storedUser.mentorProfile = { ...storedUser.mentorProfile, approvalStatus: 'pending' };
-        localStorage.setItem('user', JSON.stringify(storedUser));
+      if (typeof window !== 'undefined') {
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (storedUser && typeof storedUser === 'object') {
+          storedUser.mentorProfile = { ...storedUser.mentorProfile, ...payload, approvalStatus: 'pending' };
+          storedUser.role = 'mentor';
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
         window.dispatchEvent(new Event('edmarg-auth-user-change'));
       }
     } catch (err) {
@@ -149,24 +143,32 @@ function CareersContent() {
     setWithdrawing(true);
 
     try {
-      const API_BASE_URL = resolveApiBaseUrl();
-      const response = await fetch(`${API_BASE_URL}/api/v1/users/withdraw-mentor`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-      });
+      const res = await apiClient.delete<any>('/api/v1/users/withdraw-mentor');
 
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.message || 'Failed to withdraw application');
+      if (!res.success) {
+        throw new Error(res.message || res.error || 'Failed to withdraw application');
+      }
 
       toast.success('Application withdrawn successfully.');
       setApprovalStatus('none');
       setSubmittedProfile(null);
       setEditing(false);
+      setLinkedinUrl('');
+      setCurrentTitle('');
+      setCurrentCompany('');
+      setExperienceYears('');
+      setLocation('');
+      setEducation('');
+      setExpertise('');
+      setBio('');
 
-      const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      if (storedUser) {
-        storedUser.mentorProfile = { ...storedUser.mentorProfile, approvalStatus: null };
-        localStorage.setItem('user', JSON.stringify(storedUser));
+      if (typeof window !== 'undefined') {
+        const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+        if (storedUser && typeof storedUser === 'object') {
+          storedUser.mentorProfile = null;
+          storedUser.role = 'student';
+          localStorage.setItem('user', JSON.stringify(storedUser));
+        }
         window.dispatchEvent(new Event('edmarg-auth-user-change'));
       }
     } catch (err) {
@@ -179,382 +181,411 @@ function CareersContent() {
   if (fetching) {
     return (
       <DashboardLayout userName="Careers">
-        <div className="flex flex-col items-center justify-center min-h-[80vh]">
-          <Loader2 className="w-10 h-10 animate-spin text-slate-300 mb-4" />
-          <p className="text-sm font-semibold text-slate-500">Loading your profile...</p>
+        <div className="flex flex-col items-center justify-center min-h-[70vh]">
+          <Loader2 className="w-10 h-10 animate-spin text-emerald-600 mb-4" />
+          <p className="text-sm font-semibold text-slate-500">Loading your profile status...</p>
         </div>
       </DashboardLayout>
     );
   }
 
-  // ── Shared application form (used for new apply + edit while pending)
-  const ApplicationForm = ({ isUpdate = false }: { isUpdate?: boolean }) => (
-    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-8 sm:p-10 border-b border-slate-100 flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900">
-            {isUpdate ? 'Update Your Application' : 'Mentor Application'}
-          </h2>
-          <p className="text-sm text-slate-500 mt-1">
-            {isUpdate
-              ? 'Fill in any missing details before the admin reviews your application.'
-              : 'Tell us about your professional background and expertise.'}
-          </p>
-        </div>
-        {isUpdate && (
-          <button
-            onClick={() => setEditing(false)}
-            className="shrink-0 ml-4 text-sm font-semibold text-slate-500 hover:text-slate-800 underline"
-          >
-            Cancel
-          </button>
-        )}
-      </div>
-
-      <form onSubmit={handleSubmit} className="p-8 sm:p-10 space-y-8">
-        {/* LinkedIn */}
-        <div className="space-y-2">
-          <label htmlFor="linkedinUrl" className="block text-sm font-bold text-slate-900">
-            LinkedIn Profile URL <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <Link2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              id="linkedinUrl"
-              type="url"
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="https://www.linkedin.com/in/yourprofile"
-              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-              required
-            />
-          </div>
-          <p className="text-xs text-slate-500">We use your LinkedIn profile to verify your professional experience.</p>
-        </div>
-
-        {/* Title + Company */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="currentTitle" className="block text-sm font-bold text-slate-900">Current Job Title</label>
-            <div className="relative">
-              <Briefcase size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                id="currentTitle"
-                type="text"
-                value={currentTitle}
-                onChange={(e) => setCurrentTitle(e.target.value)}
-                placeholder="e.g. Senior Software Engineer"
-                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="currentCompany" className="block text-sm font-bold text-slate-900">Current Company</label>
-            <div className="relative">
-              <Building2 size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                id="currentCompany"
-                type="text"
-                value={currentCompany}
-                onChange={(e) => setCurrentCompany(e.target.value)}
-                placeholder="e.g. Google, Microsoft"
-                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Experience + Location */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label htmlFor="experienceYears" className="block text-sm font-bold text-slate-900">Years of Experience</label>
-            <div className="relative">
-              <Award size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                id="experienceYears"
-                type="number"
-                min="0"
-                value={experienceYears}
-                onChange={(e) => setExperienceYears(e.target.value)}
-                placeholder="e.g. 5"
-                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="location" className="block text-sm font-bold text-slate-900">Location</label>
-            <div className="relative">
-              <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                id="location"
-                type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. Bangalore, India"
-                className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Education */}
-        <div className="space-y-2">
-          <label htmlFor="education" className="block text-sm font-bold text-slate-900">Education</label>
-          <div className="relative">
-            <GraduationCap size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              id="education"
-              type="text"
-              value={education}
-              onChange={(e) => setEducation(e.target.value)}
-              placeholder="e.g. B.Tech Computer Science, IIT Delhi"
-              className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-            />
-          </div>
-        </div>
-
-        {/* Expertise */}
-        <div className="space-y-2">
-          <label htmlFor="expertise" className="block text-sm font-bold text-slate-900">Areas of Expertise</label>
-          <input
-            id="expertise"
-            type="text"
-            value={expertise}
-            onChange={(e) => setExpertise(e.target.value)}
-            placeholder="e.g. Product Management, React, System Design"
-            className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-          />
-          <p className="text-xs text-slate-500">Comma-separated list of your core skills.</p>
-        </div>
-
-        {/* Bio */}
-        <div className="space-y-2">
-          <label htmlFor="bio" className="block text-sm font-bold text-slate-900">Short Bio</label>
-          <textarea
-            id="bio"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell us a bit about your journey and how you can help students..."
-            className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-900 placeholder-slate-400 focus:border-emerald-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-emerald-500/10 transition-all"
-            rows={4}
-          />
-        </div>
-
-        <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-4">
-          {isUpdate && (
-            <button
-              type="button"
-              onClick={handleWithdraw}
-              disabled={withdrawing}
-              className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-5 py-2.5 text-sm font-bold text-red-600 transition-all hover:bg-red-100 disabled:opacity-60"
-            >
-              {withdrawing ? <><Loader2 className="h-4 w-4 animate-spin" /> Withdrawing...</> : <><XCircle className="h-4 w-4" /> Withdraw</>}
-            </button>
-          )}
-          <div className="ml-auto">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all hover:bg-slate-800 disabled:opacity-70 disabled:cursor-not-allowed shadow-sm active:scale-95"
-            >
-              {loading ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> {isUpdate ? 'Updating...' : 'Submitting...'}</>
-              ) : (
-                isUpdate ? 'Update Application' : 'Submit Application'
-              )}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
-  );
-
   return (
     <DashboardLayout userName="Careers">
-      <div className="min-h-screen bg-slate-50/50 pb-20">
-        {/* Header */}
-        <div className="relative overflow-hidden bg-white border-b border-slate-200 px-6 sm:px-12 py-16 lg:py-20">
-          <div className="pointer-events-none absolute -top-40 -right-40 h-96 w-96 rounded-full bg-emerald-100/40 blur-[100px]" />
-          <div className="relative z-10 w-full max-w-4xl mx-auto text-center">
-            <div className="mx-auto mb-5 inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600">
-              <Briefcase size={14} />
-              Career Opportunities
+      <div className="max-w-5xl mx-auto space-y-8 pb-16">
+        
+        {/* Banner Section */}
+        <div className="relative rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 p-8 sm:p-10 text-white overflow-hidden shadow-xl">
+          <div className="absolute top-0 right-0 -translate-y-12 translate-x-12 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative z-10 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider mb-4">
+              <Sparkles className="w-3.5 h-3.5" /> Mentor Program
             </div>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 leading-[1.1]">
-              Become an <span className="bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">EdMarg Mentor</span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              Share Knowledge, Lead Minds on EdMarg
             </h1>
-            <p className="mt-6 text-lg text-slate-600 font-medium leading-relaxed max-w-2xl mx-auto">
-              Share your expertise, build your personal brand, and guide the next generation of professionals.
+            <p className="mt-3 text-slate-300 text-sm sm:text-base leading-relaxed">
+              Join top industry experts mentoring students, building personal brands, and conducting 1-on-1 sessions.
             </p>
           </div>
         </div>
 
-        <div className="px-6 pt-10 sm:px-12 max-w-3xl mx-auto space-y-6">
-
-          {/* ── APPROVED ── */}
-          {approvalStatus === 'approved' && (
-            <div className="bg-white rounded-3xl border border-slate-200 p-10 text-center shadow-sm">
-              <div className="mx-auto w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mb-6 border-8 border-emerald-50/50">
-                <CheckCircle className="w-8 h-8 text-emerald-500" />
-              </div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">You&apos;re an Approved Mentor! 🎉</h2>
-              <p className="text-slate-600 leading-relaxed max-w-lg mx-auto mb-8">
-                Congratulations! Your mentor application has been approved. You can now access your mentor dashboard.
-              </p>
-              <a href="/mentor/dashboard" className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-8 py-3 text-sm font-bold text-white transition-all hover:bg-emerald-700 shadow-sm">
-                Go to Mentor Dashboard
-              </a>
+        {/* ── APPROVED STATE ── */}
+        {approvalStatus === 'approved' && (
+          <div className="bg-white rounded-3xl border border-emerald-100 p-8 sm:p-12 text-center shadow-sm relative overflow-hidden">
+            <div className="mx-auto w-20 h-20 bg-emerald-100 rounded-3xl flex items-center justify-center mb-6 border-4 border-emerald-50">
+              <CheckCircle2 className="w-10 h-10 text-emerald-600" />
             </div>
-          )}
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 mb-3">You&apos;re an Approved EdMarg Mentor! 🎉</h2>
+            <p className="text-slate-600 max-w-lg mx-auto mb-8 text-sm sm:text-base leading-relaxed">
+              Your mentor profile is live. Students can now discover your profile, book 1-on-1 sessions, and view your availability.
+            </p>
+            <a
+              href="/mentor/dashboard"
+              className="inline-flex items-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-8 py-3.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/20 transition-all hover:scale-[1.02] active:scale-95"
+            >
+              Go to Mentor Dashboard <ArrowRight className="w-4 h-4" />
+            </a>
+          </div>
+        )}
 
-          {/* ── PENDING ── */}
-          {approvalStatus === 'pending' && !editing && (
-            <>
-              <div className="bg-white rounded-3xl border border-amber-100 bg-amber-50/30 p-8 shadow-sm">
-                <div className="flex items-start gap-5">
-                  <div className="shrink-0 w-14 h-14 bg-amber-100 rounded-2xl flex items-center justify-center">
-                    <Clock className="w-7 h-7 text-amber-500" />
+        {/* ── PENDING STATE ── */}
+        {approvalStatus === 'pending' && !editing && (
+          <div className="space-y-6">
+            {/* Status Card */}
+            <div className="bg-amber-50/70 rounded-3xl border border-amber-200/80 p-6 sm:p-8 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                <div className="flex items-start gap-4">
+                  <div className="shrink-0 w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-amber-600" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h2 className="text-xl font-bold text-slate-900 mb-1">Application Under Review</h2>
-                    <p className="text-sm text-slate-600 leading-relaxed">
-                      Our team is reviewing your application. This usually takes 1–2 business days. We&apos;ll notify you by email once a decision is made.
+                  <div>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-200/60 text-amber-900 text-xs font-bold mb-1">
+                      Status: Under Review
+                    </span>
+                    <h2 className="text-xl font-bold text-slate-900">Application Received</h2>
+                    <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-xl">
+                      Our team is reviewing your application details. Approval usually takes 1-2 business days. You will be notified via email.
                     </p>
                   </div>
                 </div>
-                <div className="mt-6 flex items-center justify-end gap-3">
+                <div className="flex items-center gap-3 shrink-0 w-full sm:w-auto">
                   <button
                     onClick={() => setEditing(true)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 text-sm font-bold shadow-sm transition-all"
                   >
-                    <Edit3 className="h-4 w-4" /> Edit / Complete Details
+                    <Edit3 className="w-4 h-4 text-slate-500" /> Edit Details
                   </button>
                   <button
                     onClick={handleWithdraw}
                     disabled={withdrawing}
-                    className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-5 py-2.5 text-sm font-bold text-red-600 transition-all hover:bg-red-50 disabled:opacity-60"
+                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 bg-red-50 text-red-600 hover:bg-red-100 text-sm font-bold transition-all disabled:opacity-60"
                   >
-                    {withdrawing ? <><Loader2 className="h-4 w-4 animate-spin" /> Withdrawing...</> : <><XCircle className="h-4 w-4" /> Withdraw</>}
+                    {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />} Withdraw
                   </button>
                 </div>
               </div>
+            </div>
 
-              {/* Quick summary of what was submitted */}
-              {submittedProfile && (
-                <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-                  <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between">
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900">Your Submitted Details</h3>
-                      <p className="text-xs text-slate-500 mt-0.5">This is what the admin is reviewing</p>
-                    </div>
-                    <button
-                      onClick={() => setEditing(true)}
-                      className="shrink-0 inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700"
-                    >
-                      <Edit3 className="h-3.5 w-3.5" /> Edit
-                    </button>
-                  </div>
-                  <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Application Overview */}
+            {submittedProfile && (
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-emerald-600" /> Submitted Details
+                  </h3>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" /> Edit
+                  </button>
+                </div>
+
+                <div className="p-6 sm:p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">LinkedIn Profile</p>
                     {submittedProfile.linkedinUrl ? (
-                      <div className="sm:col-span-2">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">LinkedIn</p>
-                        <a href={submittedProfile.linkedinUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-cyan-700 hover:underline break-all">
-                          {submittedProfile.linkedinUrl}
-                        </a>
-                      </div>
+                      <a
+                        href={submittedProfile.linkedinUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm font-semibold text-emerald-600 hover:underline flex items-center gap-1.5 break-all"
+                      >
+                        <Link2 className="w-4 h-4 shrink-0 text-emerald-500" /> {submittedProfile.linkedinUrl}
+                      </a>
                     ) : (
-                      <div className="sm:col-span-2 rounded-xl bg-amber-50 border border-amber-100 px-4 py-3 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-amber-500 shrink-0" />
-                        <p className="text-sm text-amber-700 font-medium">LinkedIn URL is missing. <button onClick={() => setEditing(true)} className="underline font-bold">Add it now</button></p>
-                      </div>
-                    )}
-
-                    {[
-                      { label: 'Current Title', value: submittedProfile.currentTitle, icon: <Briefcase className="w-3.5 h-3.5 text-slate-400" /> },
-                      { label: 'Current Company', value: submittedProfile.currentCompany, icon: <Building2 className="w-3.5 h-3.5 text-slate-400" /> },
-                      { label: 'Experience', value: submittedProfile.experienceYears != null ? `${submittedProfile.experienceYears} years` : null, icon: <Award className="w-3.5 h-3.5 text-slate-400" /> },
-                      { label: 'Location', value: submittedProfile.location, icon: <MapPin className="w-3.5 h-3.5 text-slate-400" /> },
-                      { label: 'Education', value: submittedProfile.education, icon: <GraduationCap className="w-3.5 h-3.5 text-slate-400" /> },
-                    ].map(({ label, value, icon }) => (
-                      <div key={label}>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-                        {value ? (
-                          <p className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">{icon} {value}</p>
-                        ) : (
-                          <p className="text-xs text-slate-400 italic">Not provided</p>
-                        )}
-                      </div>
-                    ))}
-
-                    {submittedProfile.expertise && submittedProfile.expertise.length > 0 && (
-                      <div className="sm:col-span-2">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Expertise</p>
-                        <div className="flex flex-wrap gap-2">
-                          {submittedProfile.expertise.map(exp => (
-                            <span key={exp} className="rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">{exp}</span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {submittedProfile.bio && (
-                      <div className="sm:col-span-2">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Bio</p>
-                        <p className="text-sm text-slate-600 leading-relaxed">{submittedProfile.bio}</p>
-                      </div>
-                    )}
-
-                    {!submittedProfile.currentTitle && !submittedProfile.currentCompany && !submittedProfile.bio && (
-                      <div className="sm:col-span-2 rounded-xl bg-slate-50 border border-slate-100 px-4 py-3 flex items-center gap-2">
-                        <AlertCircle className="h-4 w-4 text-slate-400 shrink-0" />
-                        <p className="text-sm text-slate-600">Your application is incomplete. <button onClick={() => setEditing(true)} className="font-bold text-emerald-600 underline">Complete your profile</button> to improve your chances of approval.</p>
-                      </div>
+                      <p className="text-sm text-red-500 font-medium">Missing LinkedIn URL</p>
                     )}
                   </div>
-                </div>
-              )}
-            </>
-          )}
 
-          {/* ── PENDING + EDITING ── */}
-          {approvalStatus === 'pending' && editing && <ApplicationForm isUpdate />}
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Current Title</p>
+                    <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-slate-400" /> {submittedProfile.currentTitle || 'Not provided'}
+                    </p>
+                  </div>
 
-          {/* ── REJECTED ── */}
-          {approvalStatus === 'rejected' && (
-            <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
-              <div className="flex items-start gap-5">
-                <div className="shrink-0 w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center border-2 border-red-100">
-                  <AlertCircle className="w-7 h-7 text-red-500" />
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-xl font-bold text-slate-900 mb-1">Application Not Accepted</h2>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    Thank you for your interest. We encourage you to keep building your experience and try again.
-                  </p>
-                  {submittedProfile?.rejectionReason && (
-                    <div className="mt-3 rounded-xl bg-red-50 border border-red-100 px-4 py-3">
-                      <p className="text-xs font-bold uppercase tracking-widest text-red-400 mb-1">Admin Feedback</p>
-                      <p className="text-sm text-red-700">{submittedProfile.rejectionReason}</p>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Current Company</p>
+                    <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-slate-400" /> {submittedProfile.currentCompany || 'Not provided'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Experience</p>
+                    <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                      <Award className="w-4 h-4 text-slate-400" /> {submittedProfile.experienceYears ? `${submittedProfile.experienceYears} Years` : 'Not provided'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Location</p>
+                    <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-slate-400" /> {submittedProfile.location || 'Not provided'}
+                    </p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Education</p>
+                    <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
+                      <GraduationCap className="w-4 h-4 text-slate-400" /> {submittedProfile.education || 'Not provided'}
+                    </p>
+                  </div>
+
+                  {submittedProfile.expertise && submittedProfile.expertise.length > 0 && (
+                    <div className="md:col-span-2">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Areas of Expertise</p>
+                      <div className="flex flex-wrap gap-2">
+                        {submittedProfile.expertise.map((exp) => (
+                          <span key={exp} className="px-3 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-semibold">
+                            {exp}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {submittedProfile.bio && (
+                    <div className="md:col-span-2">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Bio</p>
+                      <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        {submittedProfile.bio}
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
-              <div className="mt-6 flex justify-end">
-                <button
-                  onClick={handleWithdraw}
-                  disabled={withdrawing}
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-6 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-60 transition-all"
-                >
-                  {withdrawing ? <><Loader2 className="h-4 w-4 animate-spin" /> Clearing...</> : 'Clear & Apply Again'}
-                </button>
+            )}
+          </div>
+        )}
+
+        {/* ── REJECTED STATE ── */}
+        {approvalStatus === 'rejected' && (
+          <div className="bg-white rounded-3xl border border-red-200 p-6 sm:p-8 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="shrink-0 w-12 h-12 bg-red-100 rounded-2xl flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-bold text-slate-900">Application Status: Rejected</h2>
+                <p className="text-sm text-slate-600 mt-1">
+                  Thank you for your interest. Unfortunately, your application was not approved at this time.
+                </p>
+                {submittedProfile?.rejectionReason && (
+                  <div className="mt-4 p-4 rounded-xl bg-red-50 border border-red-100">
+                    <p className="text-xs font-bold uppercase text-red-500 mb-1">Feedback from Admin</p>
+                    <p className="text-sm text-red-800 font-medium">{submittedProfile.rejectionReason}</p>
+                  </div>
+                )}
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={handleWithdraw}
+                    disabled={withdrawing}
+                    className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm transition-all"
+                  >
+                    {withdrawing ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Re-apply Now'}
+                  </button>
+                </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* ── FRESH APPLICATION FORM ── */}
-          {approvalStatus === 'none' && <ApplicationForm />}
+        {/* ── APPLICATION FORM (FOR NEW OR EDITING) ── */}
+        {(approvalStatus === 'none' || editing) && (
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="px-6 sm:px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+              <div>
+                <h2 className="text-xl font-extrabold text-slate-900">
+                  {editing ? 'Update Your Mentor Application' : 'Mentor Application Form'}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                  {editing ? 'Modify your submitted details below' : 'Fill in your details for verification and approval'}
+                </p>
+              </div>
+              {editing && (
+                <button
+                  type="button"
+                  onClick={() => setEditing(false)}
+                  className="text-xs font-bold text-slate-500 hover:text-slate-800 underline"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
 
-        </div>
+            <form onSubmit={handleSubmit} className="p-6 sm:p-8 space-y-6">
+              {/* LinkedIn */}
+              <div className="space-y-2">
+                <label htmlFor="linkedinUrl" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  LinkedIn Profile URL <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    id="linkedinUrl"
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={(e) => setLinkedinUrl(e.target.value)}
+                    placeholder="https://www.linkedin.com/in/yourprofile"
+                    className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Title & Company */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="currentTitle" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Current Job Title
+                  </label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      id="currentTitle"
+                      type="text"
+                      value={currentTitle}
+                      onChange={(e) => setCurrentTitle(e.target.value)}
+                      placeholder="e.g. Senior Software Engineer"
+                      className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="currentCompany" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Current Organization / Company
+                  </label>
+                  <div className="relative">
+                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      id="currentCompany"
+                      type="text"
+                      value={currentCompany}
+                      onChange={(e) => setCurrentCompany(e.target.value)}
+                      placeholder="e.g. Google, Microsoft, Startup"
+                      className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Experience & Location */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="experienceYears" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Years of Experience
+                  </label>
+                  <div className="relative">
+                    <Award className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      id="experienceYears"
+                      type="number"
+                      min="0"
+                      value={experienceYears}
+                      onChange={(e) => setExperienceYears(e.target.value)}
+                      placeholder="e.g. 5"
+                      className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="location" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Location
+                  </label>
+                  <div className="relative">
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      id="location"
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g. Bangalore, India"
+                      className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Education */}
+              <div className="space-y-2">
+                <label htmlFor="education" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Education Background
+                </label>
+                <div className="relative">
+                  <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input
+                    id="education"
+                    type="text"
+                    value={education}
+                    onChange={(e) => setEducation(e.target.value)}
+                    placeholder="e.g. B.Tech in CS, IIT Bombay"
+                    className="w-full h-12 pl-11 pr-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Expertise */}
+              <div className="space-y-2">
+                <label htmlFor="expertise" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Areas of Expertise
+                </label>
+                <input
+                  id="expertise"
+                  type="text"
+                  value={expertise}
+                  onChange={(e) => setExpertise(e.target.value)}
+                  placeholder="e.g. React, System Design, Product Management, Career Strategy"
+                  className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none"
+                />
+                <p className="text-xs text-slate-400">Separate multiple skills with commas</p>
+              </div>
+
+              {/* Bio */}
+              <div className="space-y-2">
+                <label htmlFor="bio" className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                  Short Bio / Mentorship Philosophy
+                </label>
+                <textarea
+                  id="bio"
+                  rows={4}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Tell students about your experience and how you can guide them..."
+                  className="w-full p-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all outline-none resize-none"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                {editing && (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(false)}
+                    className="px-6 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 transition-all disabled:opacity-60 active:scale-95"
+                >
+                  {loading ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                  ) : (
+                    <><UserCheck className="w-4 h-4" /> {editing ? 'Update Application' : 'Submit Mentor Application'}</>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
       </div>
     </DashboardLayout>
   );
