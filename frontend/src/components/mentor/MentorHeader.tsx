@@ -123,10 +123,10 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch {
-      // ignore
-    } finally {
       router.push('/login');
+    } catch {
+      // Keep the user on the current page if Clerk could not sign out. Sending
+      // an active Clerk session to /login would immediately bounce it back.
     }
   };
 

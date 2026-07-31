@@ -6,7 +6,7 @@
     "dev": "next dev --webpack",
     "dev:turbo": "next dev",
     "build": "next build --webpack",
-    "build:static": "NEXT_STATIC_EXPORT=true next build",
+    "build:static": "NEXT_STATIC_EXPORT=true next build --webpack",
     "start": "next start",
     "lint": "eslint"
   },

@@ -1,18 +1,20 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { SignUp, useClerk } from '@clerk/nextjs';
+import { SignUp, useClerk, useUser as useClerkUser } from '@clerk/nextjs';
 import { Loader } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Logo from '@/components/common/Logo';
 import { useAuth } from '@/context/AuthContext';
 import { getPostAuthFallbackPath, getSafePostAuthPath } from '@/utils/auth-redirect';
+import AuthRecovery from '@/components/common/AuthRecovery';
 
 const SignupContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const clerk = useClerk();
-  const { user } = useAuth();
+  const { user, isLoading, profileError, refreshUser } = useAuth();
+  const { isSignedIn: isClerkSignedIn } = useClerkUser();
   const redirectParam = searchParams.get('redirect') ?? searchParams.get('callbackUrl');
   const clerkRedirectPath = getSafePostAuthPath(redirectParam, '/complete-profile');
   const [clearing, setClearing] = useState(false);
@@ -55,6 +57,10 @@ const SignupContent = () => {
     const fallbackPath = getPostAuthFallbackPath(user);
     router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
   }, [redirectParam, router, user]);
+
+  if (!isLoading && isClerkSignedIn && !user && profileError) {
+    return <AuthRecovery message={profileError} onRetry={refreshUser} />;
+  }
 
   if (clearing) {
     return (

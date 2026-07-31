@@ -1,7 +1,7 @@
 // @ts-nocheck
 const { User } = require('../models/user.model');
 const userService = require('../services/user.service');
-const { requireAuth, getAuth } = require('@clerk/express');
+const { getAuth } = require('@clerk/express');
 
 const isMongoPoolTimeoutError = (error) =>
   error?.name === 'MongoWaitQueueTimeoutError' ||
@@ -26,11 +26,14 @@ const withPoolCheckoutRetry = async (operation, label) => {
 };
 
 /* ================= PROTECT MIDDLEWARE ================= */
-// requireAuth() enforces that the user is authenticated with Clerk.
-// Then our protect DB fetch runs.
+// `requireAuth()` is intentionally not used for API routes. Clerk's deprecated
+// helper redirects unauthenticated requests to a sign-in page, which turns an
+// API 401 into an HTML/navigation response when a proxy follows redirects.
+// APIs must return JSON so clients can distinguish an expired session from a
+// temporary backend problem and never enter a login/dashboard redirect loop.
 const fetchUserFromDb = async (req, res, next) => {
   try {
-    const authState = getAuth ? getAuth(req) : req.auth;
+    const authState = getAuth(req);
     const clerkId = authState?.userId;
 
     if (!clerkId) {
@@ -64,7 +67,7 @@ const fetchUserFromDb = async (req, res, next) => {
   }
 };
 
-exports.protect = [requireAuth(), fetchUserFromDb];
+exports.protect = [fetchUserFromDb];
 
 /* ================= ROLE AUTHORIZATION ================= */
 exports.authorize = (...roles) => {

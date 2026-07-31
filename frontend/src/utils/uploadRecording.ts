@@ -15,6 +15,7 @@
  */
 
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { getAuthToken } from '@/utils/auth-session';
 
 export interface RecordingUploadResult {
   _id: string;
@@ -45,9 +46,6 @@ export interface UploadProgressEvent {
 
 const API_BASE_URL = (resolveApiBaseUrl() || '').replace(/\/api\/v1\/?$/, '');
 
-const getStoredToken = () =>
-  typeof window !== 'undefined' ? window.localStorage.getItem('token') : null;
-
 /**
  * Upload a video recording for a session with real-time progress tracking.
  * The video is sent to the backend, compressed server-side via FFmpeg,
@@ -58,11 +56,13 @@ const getStoredToken = () =>
  * @param onProgress - Callback fired repeatedly with upload progress (0–100)
  * @returns Promise resolving to the recording data from the API
  */
-export function uploadRecording(
+export async function uploadRecording(
   sessionId: string,
   file: File,
   onProgress?: (event: UploadProgressEvent) => void
 ): Promise<RecordingUploadResult> {
+  const token = await getAuthToken();
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const uploadUrl = `${API_BASE_URL}/api/v1/recordings/${sessionId}/compress-and-upload`;
@@ -150,7 +150,6 @@ export function uploadRecording(
     xhr.open('POST', uploadUrl);
 
     // Set auth header
-    const token = getStoredToken();
     if (token) {
       xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     }

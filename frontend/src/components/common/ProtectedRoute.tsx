@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import { useUser as useClerkUser } from '@clerk/nextjs';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+import AuthRecovery from '@/components/common/AuthRecovery';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { resolveApiBaseUrl } from '@/utils/api-base';
 import { getDefaultAuthenticatedPath, isProfileComplete } from '@/utils/auth-profile';
@@ -37,21 +38,8 @@ interface StoredAuthUser {
 }
 
 const AUTH_USER_STORAGE_KEY = 'user';
-const AUTH_TOKEN_STORAGE_KEY = 'token';
 const AUTH_USER_EVENT = 'edmarg-auth-user-change';
 const emptySubscribe = () => () => undefined;
-
-const clearStoredAuth = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  window.localStorage.removeItem(AUTH_USER_STORAGE_KEY);
-  window.localStorage.removeItem(AUTH_TOKEN_STORAGE_KEY);
-  document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
-  document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
-  window.dispatchEvent(new Event(AUTH_USER_EVENT));
-};
 
 const normalizeAuthenticatedUser = (userData: Partial<StoredAuthUser>): StoredAuthUser | null => {
   if (!userData._id || !userData.email || !userData.name || !userData.role) {
@@ -104,23 +92,16 @@ const readStoredAuthUser = (): StoredAuthUser | null => {
   }
 };
 
-const hasStoredToken = () => {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  return Boolean(window.localStorage.getItem(AUTH_TOKEN_STORAGE_KEY));
-};
-
 export default function ProtectedRoute({
   children,
   requiredRole = 'student',
 }: ProtectedRouteProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, profileError, refreshUser } = useAuth();
   const { isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
   const [isSessionChecking, setIsSessionChecking] = useState(true);
+  const [sessionError, setSessionError] = useState<string | null>(null);
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const currentMentorApprovalStatus =
     user?.mentorProfile?.approvalStatus ?? readStoredAuthUser()?.mentorProfile?.approvalStatus ?? null;
@@ -142,18 +123,18 @@ export default function ProtectedRoute({
     }
 
     if (!user) {
-      router.replace('/login');
+      // A Clerk session may be valid while the profile API is warming up or
+      // recovering. Treat that as recoverable, not as a logout.
+      if (!isClerkSignedIn) {
+        router.replace('/login');
+      }
     } else if (!isAuthorized) {
       router.replace(getDefaultAuthenticatedPath(user));
     }
-  }, [hasHydrated, isAuthorized, isClerkLoaded, isLoading, requiredRole, router, user]);
+  }, [hasHydrated, isAuthorized, isClerkLoaded, isClerkSignedIn, isLoading, requiredRole, router, user]);
 
   useEffect(() => {
-    if (!hasHydrated || !isAuthorized) {
-      return;
-    }
-
-    if (!hasStoredToken() && isClerkLoaded && isClerkSignedIn && requiredRole === 'student') {
+    if (!hasHydrated || !isAuthorized || !isClerkLoaded || !isClerkSignedIn) {
       setIsSessionChecking(false);
       return;
     }
@@ -162,10 +143,11 @@ export default function ProtectedRoute({
 
     const verifySession = async () => {
       setIsSessionChecking(true);
+      setSessionError(null);
       try {
         const response = await fetch(
           `${resolveApiBaseUrl()}/api/v1/users/me`,
-          createAuthenticatedRequestInit({
+          await createAuthenticatedRequestInit({
             method: 'GET',
             cache: 'no-store',
             headers: {
@@ -176,7 +158,7 @@ export default function ProtectedRoute({
           })
         );
 
-        const result = response.ok ? await response.json().catch(() => null) : null;
+        const result = await response.json().catch(() => null);
         const serverRole = result?.data?.role;
         const mentorApprovalStatus = result?.data?.mentorProfile?.approvalStatus || 'pending';
         const destinationPath = getDefaultAuthenticatedPath(result?.data);
@@ -184,8 +166,9 @@ export default function ProtectedRoute({
         const previousMentorApprovalStatus = currentMentorApprovalStatus;
 
         if (!response.ok) {
-          clearStoredAuth();
-          router.replace('/login');
+          setSessionError(
+            result?.message || result?.error || 'We could not verify your account right now.'
+          );
           return;
         }
 
@@ -225,6 +208,7 @@ export default function ProtectedRoute({
         if (controller.signal.aborted) {
           return;
         }
+        setSessionError('We could not verify your account right now. Please retry.');
       } finally {
         if (!controller.signal.aborted) {
           setIsSessionChecking(false);
@@ -247,6 +231,24 @@ export default function ProtectedRoute({
     router,
     currentMentorApprovalStatus,
   ]);
+
+  if (profileError && isClerkSignedIn && !user) {
+    return (
+      <AuthRecovery
+        message={profileError}
+        onRetry={refreshUser}
+      />
+    );
+  }
+
+  if (sessionError && isClerkSignedIn && isAuthorized) {
+    return (
+      <AuthRecovery
+        message={sessionError}
+        onRetry={refreshUser}
+      />
+    );
+  }
 
   if (!hasHydrated || !isClerkLoaded || isLoading || !isAuthorized || isSessionChecking) {
     const loadingMessage = !hasHydrated

@@ -5,6 +5,7 @@ import { useUser as useClerkUser } from '@clerk/nextjs';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getDefaultAuthenticatedPath } from '@/utils/auth-profile';
+import AuthRecovery from '@/components/common/AuthRecovery';
 
 const PROTECTED_ROUTES = [
   '/student/dashboard',
@@ -28,7 +29,7 @@ export default function StudentLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isSignedIn, profileError, refreshUser } = useAuth();
   const { isLoaded: isClerkLoaded } = useClerkUser();
   const hasHydrated = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const isProtectedRoute = useMemo(
@@ -46,10 +47,14 @@ export default function StudentLayout({
       return;
     }
 
-    if (isProtectedRoute && user?.role !== 'student') {
+    if (isProtectedRoute && user?.role !== 'student' && !(isSignedIn && !user)) {
       router.replace(user ? getDefaultAuthenticatedPath(user) : '/login');
     }
-  }, [hasHydrated, isClerkLoaded, isLoading, isProtectedRoute, router, user]);
+  }, [hasHydrated, isClerkLoaded, isLoading, isProtectedRoute, isSignedIn, router, user]);
+
+  if (isProtectedRoute && !isLoading && isSignedIn && !user) {
+    return <AuthRecovery message={profileError} onRetry={refreshUser} />;
+  }
 
   if (!hasHydrated || (isProtectedRoute && (!isClerkLoaded || isLoading)) || !isAuthorized) {
     return null;

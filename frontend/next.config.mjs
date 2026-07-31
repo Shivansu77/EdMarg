@@ -16,6 +16,13 @@ const nextConfig = {
         trailingSlash: true,
       }
     : {}),
+  // This frontend is also deployed as a static export. Browser requests must
+  // therefore target the configured backend directly; a static host cannot
+  // serve a Next.js `/api/*` route handler.
+  env: {
+    NEXT_PUBLIC_API_TRANSPORT:
+      process.env.NEXT_PUBLIC_API_TRANSPORT || 'direct',
+  },
   async headers() {
     return [
       {

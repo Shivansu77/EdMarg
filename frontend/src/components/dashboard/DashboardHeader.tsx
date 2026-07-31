@@ -143,10 +143,9 @@ const DashboardHeader = ({
   const handleLogout = async () => {
     try {
       await logout();
+      router.push('/login');
     } catch (e) {
       console.error('Logout failed:', e);
-    } finally {
-      router.push('/login');
     }
   };
 

@@ -25,7 +25,6 @@ type Mentor = {
 };
 
 export default function BrowseMentorsPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [filteredMentors, setFilteredMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,11 +35,7 @@ export default function BrowseMentorsPage() {
   const { user } = useAuth();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const itemsPerPage = 12;
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-  }, []);
+  const isLoggedIn = Boolean(user);
 
   useEffect(() => {
     const fetchMentors = async () => {

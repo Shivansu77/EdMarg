@@ -14,6 +14,7 @@ import { io, Socket } from 'socket.io-client';
 import toast from 'react-hot-toast';
 import { useAuth } from '@/context/AuthContext';
 import { resolveBackendBaseUrl } from '@/utils/api-base';
+import { persistLegacyToken } from '@/utils/auth-session';
 
 interface SocketContextValue {
   socket: Socket | null;
@@ -46,10 +47,10 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     }
 
     const connectSocket = async () => {
-      const token = (await getToken()) || localStorage.getItem('token');
+      const token = await getToken();
       if (!token || isCancelled) return;
 
-      localStorage.setItem('token', token);
+      persistLegacyToken(token);
 
       // Resolve the base URL (strip /api/v1 if present)
       const baseUrl = (resolveBackendBaseUrl() || '').replace(/\/api\/v1\/?$/, '');

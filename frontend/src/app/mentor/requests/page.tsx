@@ -120,7 +120,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function MentorRequestsContent() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isSignedIn } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -137,12 +137,12 @@ function MentorRequestsContent() {
   const inFlightActionsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !isSignedIn) {
       router.push('/login');
     } else if (user && user.role !== 'mentor') {
       router.push('/student/dashboard');
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, isSignedIn, router]);
 
   const fetchBookings = useCallback(async () => {
     setLoading(true);

@@ -8,6 +8,7 @@ import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
 import { resolveApiBaseUrl } from '@/utils/api-base';
 import Link from 'next/link';
+import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 
 export default function ProfileImageUpload() {
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -63,13 +64,11 @@ export default function ProfileImageUpload() {
       setIsUploading(true);
       
       // Need standard fetch because apiClient specifically forces JSON usually
-      const token = localStorage.getItem('token');
       const response = await fetch(`${apiBaseUrl}/api/v1/profile/update-image`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
+        ...(await createAuthenticatedRequestInit({
+          method: 'PUT',
+          body: formData,
+        })),
       });
 
       const result = await response.json();

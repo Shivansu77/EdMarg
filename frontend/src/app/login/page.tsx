@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { SignIn } from '@clerk/nextjs';
+import { SignIn, useUser as useClerkUser } from '@clerk/nextjs';
 import { Loader } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Logo from '@/components/common/Logo';
 import { useAuth } from '@/context/AuthContext';
 import { getPostAuthFallbackPath, getSafePostAuthPath } from '@/utils/auth-redirect';
+import AuthRecovery from '@/components/common/AuthRecovery';
 
 const LoginContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, isLoading, profileError, refreshUser } = useAuth();
+  const { isSignedIn: isClerkSignedIn } = useClerkUser();
   const redirectParam = searchParams.get('redirect') ?? searchParams.get('callbackUrl');
   const clerkRedirectPath = getSafePostAuthPath(redirectParam, '/dashboard');
 
@@ -20,6 +22,10 @@ const LoginContent = () => {
     const fallbackPath = getPostAuthFallbackPath(user);
     router.replace(getSafePostAuthPath(redirectParam, fallbackPath));
   }, [redirectParam, router, user]);
+
+  if (!isLoading && isClerkSignedIn && !user && profileError) {
+    return <AuthRecovery message={profileError} onRetry={refreshUser} />;
+  }
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.12),transparent_30%),linear-gradient(135deg,#f8fafc_0%,#eefdf7_48%,#f8fafc_100%)]">

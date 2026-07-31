@@ -40,13 +40,20 @@ export const resolveBackendBaseUrl = (requestUrl?: string) => {
 
 
 /**
- * Browser requests always use the same-origin Next.js API proxy (`/api/v1/*`),
- * which forwards to the real backend and avoids CORS issues in local dev.
- * Server-side code can still talk to the backend directly.
+ * Browser requests normally talk directly to the configured backend. This is
+ * required for the static Vercel deployment, where no Next.js API route can
+ * proxy `/api/v1/*`. Set `NEXT_PUBLIC_API_TRANSPORT=proxy` only for a
+ * separately deployed server-backed frontend that provides such a proxy.
  */
 export const resolveApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
-    return window.location.origin;
+    // A static export has no Next route handler to receive `/api/v1/*` calls.
+    // Direct mode is the safe default for every deployed frontend.
+    if (process.env.NEXT_PUBLIC_API_TRANSPORT !== 'direct') {
+      return window.location.origin;
+    }
+
+    return resolveBackendBaseUrl();
   }
 
   return resolveBackendBaseUrl();

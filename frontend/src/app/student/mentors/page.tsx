@@ -30,6 +30,7 @@ import MentorMarketplaceCard, {
 import RecommendedMentors from '@/components/RecommendedMentors';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { useAuth } from '@/context/AuthContext';
 
 type Mentor = {
   _id: string;
@@ -140,7 +141,8 @@ const DOMAIN_COLORS: Record<string, { bg: string; text: string; border: string; 
 
 function MentorsContent() {
   const sp = useSearchParams();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user } = useAuth();
+  const isLoggedIn = Boolean(user);
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -158,12 +160,10 @@ function MentorsContent() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { const q = sp.get('search'); if (q !== null) setSearch(q); }, [sp]);
-  useEffect(() => { setIsLoggedIn(Boolean(localStorage.getItem('token'))); }, []);
-
   const fetchPage = async (page: number, append = false) => {
     const res = await fetch(
       `${API}/api/v1/users/browsementor?page=${page}&limit=${PAGE_SIZE}`,
-      createAuthenticatedRequestInit({ method: 'GET' })
+      await createAuthenticatedRequestInit({ method: 'GET' })
     );
     if (!res.ok) throw new Error(`Failed (${res.status})`);
     const r = await res.json();

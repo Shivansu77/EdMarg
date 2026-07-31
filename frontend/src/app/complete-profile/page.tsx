@@ -15,6 +15,7 @@ import Logo from '@/components/common/Logo';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import { getDefaultAuthenticatedPath, isProfileComplete, type AuthProfileUser } from '@/utils/auth-profile';
+import AuthRecovery from '@/components/common/AuthRecovery';
 
 type Role = 'student' | 'mentor';
 
@@ -113,7 +114,14 @@ const syncStoredUser = (user: ProfileResponse) => {
 
 export default function CompleteProfilePage() {
   const router = useRouter();
-  const { updateUser } = useAuth();
+  const {
+    user,
+    isLoading: authLoading,
+    isSignedIn,
+    profileError,
+    refreshUser,
+    updateUser,
+  } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
@@ -127,41 +135,41 @@ export default function CompleteProfilePage() {
   const [linkedinUrl, setLinkedinUrl] = useState('');
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const response = await apiClient.get<ProfileResponse>('/api/v1/users/me', {
-        headers: {
-          'x-bypass-cache': '1',
-          'Cache-Control': 'no-cache',
-        },
-      });
+    if (authLoading) {
+      return;
+    }
 
-      if (!response.success || !response.data) {
-        router.replace('/login');
-        return;
-      }
+    if (!isSignedIn) {
+      router.replace('/login');
+      return;
+    }
 
-      const profile = response.data;
-      syncStoredUser(profile);
+    // AuthProvider owns the profile fetch. If it has a recoverable backend
+    // failure, keep this signed-in user on a retry screen rather than sending
+    // them through Clerk's sign-in redirect again.
+    if (!user) {
+      return;
+    }
 
-      if (isProfileComplete(profile)) {
-        router.replace(getDefaultAuthenticatedPath(profile));
-        return;
-      }
+    const profile = user as ProfileResponse;
+    syncStoredUser(profile);
 
-      setName(profile.name || '');
-      setEmail(profile.email || '');
-      setPhoneNumber(profile.phoneNumber || '');
-      setRole(profile.role === 'mentor' ? 'mentor' : 'student');
-      setClassLevel(profile.studentProfile?.classLevel || '');
-      setInterests((profile.studentProfile?.interests || []).join(', '));
-      setExpertise((profile.mentorProfile?.expertise || []).join(', '));
-      setBio(profile.mentorProfile?.bio || '');
-      setLinkedinUrl(profile.mentorProfile?.linkedinUrl || '');
-      setLoading(false);
-    };
+    if (isProfileComplete(profile)) {
+      router.replace(getDefaultAuthenticatedPath(profile));
+      return;
+    }
 
-    void loadProfile();
-  }, [router]);
+    setName(profile.name || '');
+    setEmail(profile.email || '');
+    setPhoneNumber(profile.phoneNumber || '');
+    setRole(profile.role === 'mentor' ? 'mentor' : 'student');
+    setClassLevel(profile.studentProfile?.classLevel || '');
+    setInterests((profile.studentProfile?.interests || []).join(', '));
+    setExpertise((profile.mentorProfile?.expertise || []).join(', '));
+    setBio(profile.mentorProfile?.bio || '');
+    setLinkedinUrl(profile.mentorProfile?.linkedinUrl || '');
+    setLoading(false);
+  }, [authLoading, isSignedIn, router, user]);
 
   const title = useMemo(
     () => (role === 'mentor' ? 'Finish your mentor setup' : 'Finish your student setup'),
@@ -175,6 +183,10 @@ export default function CompleteProfilePage() {
         : 'Add a little context so we can personalize your dashboard and mentor recommendations.',
     [role]
   );
+
+  if (!authLoading && isSignedIn && !user) {
+    return <AuthRecovery message={profileError} onRetry={refreshUser} />;
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

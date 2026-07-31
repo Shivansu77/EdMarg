@@ -28,6 +28,7 @@ import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import Image from 'next/image';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { getAuthToken } from '@/utils/auth-session';
 
 /* ================================================================
    TYPES
@@ -87,11 +88,6 @@ const SESSION_TYPES = [
 /* ================================================================
    HELPERS
    ================================================================ */
-
-function getAuthToken() {
-  if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem('token');
-}
 
 function formatTime(time24: string): string {
   const [h, m] = time24.split(':').map(Number);
@@ -250,7 +246,7 @@ function BookingContent() {
       setSubmitting(true);
       setError(null);
 
-      const token = getAuthToken();
+      const token = await getAuthToken();
       const res = await fetch(`${API_BASE_URL}/api/v1/bookings`, {
         method: 'POST',
         credentials: 'include',

@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { useAuth } from '@/context/AuthContext';
 
 import { getImageUrl } from '@/utils/imageUrl';
 
@@ -40,6 +41,7 @@ const API_BASE_URL = resolveApiBaseUrl();
 function MentorProfileContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { logout } = useAuth();
   const mentorId = searchParams.get('id');
   
   const [mentor, setMentor] = useState<Mentor | null>(null);
@@ -75,10 +77,9 @@ function MentorProfileContent() {
     },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/login');
   };
 
   useEffect(() => {
@@ -91,7 +92,7 @@ function MentorProfileContent() {
 
         const response = await fetch(
           `${API_BASE_URL}/api/v1/users/browsementor`,
-          createAuthenticatedRequestInit({
+          await createAuthenticatedRequestInit({
             method: 'GET',
           })
         );

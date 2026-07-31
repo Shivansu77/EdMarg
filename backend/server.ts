@@ -1,6 +1,10 @@
 // @ts-nocheck
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+// Environment variables are injected by Render/Vercel in production. When the
+// compiled server runs, `__dirname` is `backend/dist`; local development runs
+// from `backend`. Resolve the same source `.env` correctly in both cases.
+const envDirectory = path.basename(__dirname) === 'dist' ? path.resolve(__dirname, '..') : __dirname;
+require('dotenv').config({ path: path.join(envDirectory, '.env') });
 const http = require('http');
 const express = require('express');
 const cookieParser = require('cookie-parser');

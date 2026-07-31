@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import AppImage from '@/components/AppImage';
 import {
@@ -100,15 +101,12 @@ export default function MentorDetailClient({
   mentor,
   variant = 'public',
 }: MentorDetailClientProps) {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user } = useAuth();
+  const isLoggedIn = Boolean(user);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewStats, setReviewStats] = useState<ReviewStats | null>(null);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [showAllReviews, setShowAllReviews] = useState(false);
-
-  useEffect(() => {
-    setIsLoggedIn(Boolean(window.localStorage.getItem('token')));
-  }, []);
 
   useEffect(() => {
     const fetchReviews = async () => {

@@ -7,6 +7,7 @@ import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { Search, Loader2, Filter, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import MentorHorizontalCard from '@/components/mentors/MentorHorizontalCard';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { useAuth } from '@/context/AuthContext';
 
 type Mentor = {
   _id: string;
@@ -29,16 +30,13 @@ function ExploreContent() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { user } = useAuth();
+  const isLoggedIn = Boolean(user);
   
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-
-  useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'));
-  }, []);
 
   const fetchMentors = useCallback(async (pageNum: number) => {
     try {
@@ -47,7 +45,7 @@ function ExploreContent() {
 
       const response = await fetch(
         `${API_BASE_URL}/api/v1/users/browsementor?page=${pageNum}&limit=10`,
-        createAuthenticatedRequestInit({ method: 'GET' })
+        await createAuthenticatedRequestInit({ method: 'GET' })
       );
 
       if (!response.ok) {

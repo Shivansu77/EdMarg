@@ -1,12 +1,17 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useSyncExternalStore } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
   useAuth as useClerkAuth,
   useClerk,
   useUser as useClerkUser,
 } from '@clerk/nextjs';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import {
+  clearLegacyAuthState,
+  persistLegacyToken,
+  registerClerkTokenGetter,
+} from '@/utils/auth-session';
 
 interface User {
   _id: string;
@@ -42,9 +47,12 @@ interface AuthApiResponse {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
+  isSignedIn: boolean;
+  profileError: string | null;
   login: (email: string, password: string) => Promise<User>;
   logout: () => Promise<void>;
   updateUser: (patch: Partial<User>) => void;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -65,7 +73,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const clerk = useClerk();
   
   const [user, setUser] = useState<User | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [profileRefreshVersion, setProfileRefreshVersion] = useState(0);
+
+  useEffect(() => registerClerkTokenGetter(getToken), [getToken]);
+
+  const refreshUser = useCallback(() => {
+    setProfileRefreshVersion((version) => version + 1);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -77,15 +93,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (isMounted) {
           setUser(null);
           setIsLoadingProfile(false);
+          setProfileError(null);
         }
+        clearLegacyAuthState();
         return;
       }
 
       setIsLoadingProfile(true);
+      setProfileError(null);
 
       try {
         const token = await getToken();
         if (!token) throw new Error('Clerk session token is unavailable');
+        persistLegacyToken(token);
 
         const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/me`, {
           method: 'GET',
@@ -107,7 +127,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
-        if (isMounted) setUser(null);
+        if (isMounted) {
+          setUser(null);
+          setProfileError(
+            err instanceof Error ? err.message : 'Unable to load your account right now.'
+          );
+        }
       } finally {
         if (isMounted) {
           setIsLoadingProfile(false);
@@ -120,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => {
       isMounted = false;
     };
-  }, [isClerkLoaded, isClerkSignedIn, getToken]);
+  }, [isClerkLoaded, isClerkSignedIn, getToken, profileRefreshVersion]);
 
   const updateUser = (patch: Partial<User>) => {
     setUser((prev) => (prev ? { ...prev, ...patch } : null));
@@ -131,14 +156,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
-    setUser(null);
+    // Do not clear React state before Clerk confirms the sign-out. Otherwise a
+    // failed sign-out leaves Clerk authenticated but makes the UI navigate to
+    // /login, which is exactly the state that can bounce back to /dashboard.
     await clerk.signOut();
+    setUser(null);
+    setProfileError(null);
+    clearLegacyAuthState();
   };
 
   const isAuthLoading = !isClerkLoaded || isLoadingProfile;
+  const isSignedIn = isClerkLoaded && Boolean(isClerkSignedIn);
 
   return (
-    <AuthContext.Provider value={{ user, isLoading: isAuthLoading, login, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading: isAuthLoading,
+        isSignedIn,
+        profileError,
+        login,
+        logout,
+        updateUser,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

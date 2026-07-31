@@ -9,6 +9,7 @@ import getCroppedImg from '@/utils/cropImage';
 import { useAuth } from '@/context/AuthContext';
 import { getImageUrl } from '@/utils/imageUrl';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 
 interface ProfileImageUploadProps {
   currentImage?: string;
@@ -88,13 +89,11 @@ export default function ProfileImageUpload({
       const formData = new FormData();
       formData.append('profileImage', croppedFile);
 
-      const token = localStorage.getItem('token');
       const response = await fetch(`${apiBaseUrl}/api/v1/profile/update-image`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
+        ...(await createAuthenticatedRequestInit({
+          method: 'PUT',
+          body: formData,
+        })),
       });
 
       const result = await response.json();

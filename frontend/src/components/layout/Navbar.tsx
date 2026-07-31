@@ -8,6 +8,7 @@ import { Show, SignInButton, SignUpButton, useUser as useClerkUser } from '@cler
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getImageUrl } from '@/utils/imageUrl';
+import { clearLegacyAuthState } from '@/utils/auth-session';
 
 import Logo from '@/components/common/Logo';
 
@@ -35,10 +36,7 @@ const Navbar = () => {
     try {
       await logout();
     } catch {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      document.cookie = 'auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax';
-      window.dispatchEvent(new Event('edmarg-auth-user-change'));
+      clearLegacyAuthState();
     }
     setIsOpen(false);
     router.push('/');

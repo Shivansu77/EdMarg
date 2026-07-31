@@ -3,16 +3,21 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getDefaultAuthenticatedPath } from '@/utils/auth-profile';
+import AuthRecovery from '@/components/common/AuthRecovery';
 
 export default function DashboardRedirect() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isSignedIn, profileError, refreshUser } = useAuth();
   
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !(isSignedIn && !user)) {
       router.replace(user ? getDefaultAuthenticatedPath(user) : '/login');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, isSignedIn, router]);
+
+  if (!isLoading && isSignedIn && !user) {
+    return <AuthRecovery message={profileError} onRetry={refreshUser} />;
+  }
   
   return (
     <div className="flex h-screen items-center justify-center bg-gray-50 px-4">

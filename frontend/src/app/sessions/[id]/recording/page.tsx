@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
+import AuthRecovery from '@/components/common/AuthRecovery';
 import Logo from '@/components/common/Logo';
 import { ArrowLeft, Clock, Film, AlertCircle, RefreshCcw, Video, Play, Pause, Volume2, VolumeX, Maximize, RotateCcw } from 'lucide-react';
 
@@ -28,7 +29,13 @@ type PageState = 'loading' | 'not_found' | 'processing' | 'ready' | 'error';
 export default function SessionRecordingPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, isLoading: authLoading } = useAuth();
+  const {
+    user,
+    isLoading: authLoading,
+    isSignedIn,
+    profileError,
+    refreshUser,
+  } = useAuth();
   const sessionId = params?.id as string;
 
   const [state, setState] = useState<PageState>('loading');
@@ -103,10 +110,10 @@ export default function SessionRecordingPage() {
 
   // ── Auth gate ────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !user && !isSignedIn) {
       router.replace(`/login?redirect=/sessions/${sessionId}/recording`);
     }
-  }, [authLoading, user, router, sessionId]);
+  }, [authLoading, isSignedIn, user, router, sessionId]);
 
   // ── Fetch recording ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -177,6 +184,10 @@ export default function SessionRecordingPage() {
   };
 
   // ── Don't render until auth resolves ──────────────────────────────────────
+  if (!authLoading && isSignedIn && !user) {
+    return <AuthRecovery message={profileError} onRetry={refreshUser} />;
+  }
+
   if (authLoading || !user) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
