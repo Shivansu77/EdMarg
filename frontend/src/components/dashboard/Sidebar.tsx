@@ -51,7 +51,7 @@ const studentNavGroups = [
     group: 'Mentorship',
     items: [
       { name: 'Mentors', href: '/student/mentors', icon: Users },
-      { name: 'Careers', href: '/student/careers', icon: Briefcase },
+      { name: 'Become a Mentor', href: '/student/careers', icon: Briefcase },
       { name: 'Book Session', href: '/student/booking', icon: CalendarCheck },
       { name: 'Schedule', href: '/student/schedule', icon: CalendarDays },
     ]

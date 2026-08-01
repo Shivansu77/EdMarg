@@ -79,7 +79,12 @@ exports.authorize = (...roles) => {
       });
     }
 
-    const userRole = String(req.user.role).toLowerCase();
+    let userRole = String(req.user.role).toLowerCase();
+
+    // Treat pending/rejected mentors as students for authorization purposes
+    if (userRole === 'mentor' && req.user.mentorProfile?.approvalStatus !== 'approved') {
+      userRole = 'student';
+    }
 
     const allowedRoles = roles.map((r) => r.toLowerCase());
 

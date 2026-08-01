@@ -21,6 +21,19 @@ const hasText = (value?: string | null) => Boolean(value && value.trim());
 
 const hasItems = (value?: string[] | null) => Array.isArray(value) && value.length > 0;
 
+/**
+ * A mentor whose application has NOT been approved yet is effectively still
+ * a student. This helper centralises that check so every routing decision
+ * stays consistent.
+ */
+export const isEffectivelyStudent = (user?: AuthProfileUser | null): boolean =>
+  Boolean(
+    user &&
+      (user.role === 'student' ||
+        (user.role === 'mentor' &&
+          user.mentorProfile?.approvalStatus !== 'approved'))
+  );
+
 export const isProfileComplete = (user?: AuthProfileUser | null) => {
   if (!user?.role) {
     return false;
@@ -30,10 +43,12 @@ export const isProfileComplete = (user?: AuthProfileUser | null) => {
     return true;
   }
 
-  if (user.role === 'student') {
+  // Pending/rejected mentors are treated as students for profile-completeness
+  if (isEffectivelyStudent(user)) {
     return hasText(user.studentProfile?.classLevel);
   }
 
+  // Approved mentors need LinkedIn + expertise
   if (user.role === 'mentor') {
      return (
       hasText(user.mentorProfile?.linkedinUrl) &&
@@ -57,10 +72,11 @@ export const getDefaultAuthenticatedPath = (user?: AuthProfileUser | null) => {
     return '/admin/dashboard';
   }
 
+  // Approved mentors go to mentor dashboard; everyone else goes to student
   if (user.role === 'mentor') {
     return user.mentorProfile?.approvalStatus === 'approved'
       ? '/mentor/dashboard'
-      : '/mentor/profile';
+      : '/student/dashboard';
   }
 
   if (user.role === 'student') {

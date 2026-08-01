@@ -179,8 +179,9 @@ class UserService {
       throw new Error('User not found');
     }
 
-    if (user.role !== 'student' && !(user.role === 'mentor' && user.mentorProfile?.approvalStatus === 'pending')) {
-      throw new ValidationError('Only students or pending mentor applicants can apply to become a mentor');
+    const isEffectivelyStudent = user.role === 'student' || (user.role === 'mentor' && user.mentorProfile?.approvalStatus !== 'approved');
+    if (!isEffectivelyStudent) {
+      throw new ValidationError('Only students can apply to become a mentor');
     }
 
     if (!data.linkedinUrl || !data.linkedinUrl.trim()) {
@@ -196,8 +197,9 @@ class UserService {
       throw new Error('User not found');
     }
 
-    if (user.role !== 'student' && !(user.role === 'mentor' && user.mentorProfile?.approvalStatus === 'pending')) {
-      throw new Error('Only students or pending applicants can withdraw a mentor application');
+    const isEffectivelyStudent = user.role === 'student' || (user.role === 'mentor' && user.mentorProfile?.approvalStatus !== 'approved');
+    if (!isEffectivelyStudent) {
+      throw new Error('Only students can withdraw a mentor application');
     }
 
     const approvalStatus = user.mentorProfile?.approvalStatus;

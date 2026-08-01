@@ -82,11 +82,7 @@ class UserRepository {
     const skip = (safePage - 1) * safeLimit;
 
     return User.find({
-      role: 'mentor',
-      $or: [
-        { 'mentorProfile.approvalStatus': 'pending' },
-        { 'mentorProfile.approvalStatus': { $exists: false } },
-      ],
+      'mentorProfile.approvalStatus': 'pending',
     })
       .select('-password')
       .sort({ createdAt: -1 })
@@ -97,24 +93,26 @@ class UserRepository {
 
   async countPendingMentors() {
     return User.countDocuments({
-      role: 'mentor',
-      $or: [
-        { 'mentorProfile.approvalStatus': 'pending' },
-        { 'mentorProfile.approvalStatus': { $exists: false } },
-      ],
+      'mentorProfile.approvalStatus': 'pending',
     });
   }
 
   async updateMentorStatus(id, status, metadata = {}) {
+    const updateObj = {
+      'mentorProfile.approvalStatus': status,
+      ...Object.keys(metadata).reduce((acc, key) => {
+        acc[`mentorProfile.${key}`] = metadata[key];
+        return acc;
+      }, {}),
+    };
+    if (status === 'approved') {
+      updateObj.role = 'mentor';
+    } else if (status === 'rejected') {
+      updateObj.role = 'student';
+    }
     return User.findByIdAndUpdate(
       id,
-      {
-        'mentorProfile.approvalStatus': status,
-        ...Object.keys(metadata).reduce((acc, key) => {
-          acc[`mentorProfile.${key}`] = metadata[key];
-          return acc;
-        }, {}),
-      },
+      { $set: updateObj },
       { new: true }
     ).select('-password');
   }
@@ -152,7 +150,6 @@ class UserRepository {
 
   async applyAsMentor(id, profileData) {
     const updateObj = {
-      role: 'mentor',
       'mentorProfile.approvalStatus': 'pending',
     };
     

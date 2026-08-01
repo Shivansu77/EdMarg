@@ -33,7 +33,9 @@ class AdminService {
   async approveMentor(mentorId, adminId) {
     const existingMentor = await userRepository.findById(mentorId);
     if (!existingMentor) throw new NotFoundError('Mentor not found');
-    if (existingMentor.role !== 'mentor') throw new ValidationError('User is not a mentor');
+    if (existingMentor.mentorProfile?.approvalStatus !== 'pending') {
+      throw new ValidationError('Mentor application is not pending');
+    }
 
     const mentor = await userRepository.updateMentorStatus(mentorId, 'approved', {
       approvedAt: new Date(),
@@ -46,6 +48,12 @@ class AdminService {
   }
 
   async rejectMentor(mentorId, reason = 'No reason provided') {
+    const existingMentor = await userRepository.findById(mentorId);
+    if (!existingMentor) throw new NotFoundError('Mentor not found');
+    if (existingMentor.mentorProfile?.approvalStatus !== 'pending') {
+      throw new ValidationError('Mentor application is not pending');
+    }
+
     const mentor = await userRepository.updateMentorStatus(mentorId, 'rejected', {
       rejectionReason: reason,
     });
@@ -63,11 +71,7 @@ class AdminService {
         'mentorProfile.approvalStatus': 'approved',
       }),
       userRepository.countByQuery({
-        role: 'mentor',
-        $or: [
-          { 'mentorProfile.approvalStatus': 'pending' },
-          { 'mentorProfile.approvalStatus': { $exists: false } },
-        ],
+        'mentorProfile.approvalStatus': 'pending',
       }),
     ]);
 

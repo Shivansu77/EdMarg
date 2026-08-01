@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import AuthRecovery from '@/components/common/AuthRecovery';
 import { createAuthenticatedRequestInit } from '@/utils/auth-fetch';
 import { resolveApiBaseUrl } from '@/utils/api-base';
-import { getDefaultAuthenticatedPath, isProfileComplete } from '@/utils/auth-profile';
+import { getDefaultAuthenticatedPath, isProfileComplete, isEffectivelyStudent } from '@/utils/auth-profile';
 
 interface ProtectedRouteProps {
   children?: React.ReactNode;
@@ -106,11 +106,7 @@ export default function ProtectedRoute({
   const currentMentorApprovalStatus =
     user?.mentorProfile?.approvalStatus ?? readStoredAuthUser()?.mentorProfile?.approvalStatus ?? null;
   const isAuthorized = Boolean(
-    user &&
-      (user.role === requiredRole ||
-        (requiredRole === 'student' &&
-          user.role === 'mentor' &&
-          (user.mentorProfile?.approvalStatus === 'pending' || currentMentorApprovalStatus === 'pending')))
+    user && user.role === requiredRole
   );
 
   useEffect(() => {
@@ -173,8 +169,12 @@ export default function ProtectedRoute({
         }
 
         if (serverRole !== requiredRole) {
-          router.replace(destinationPath);
-          return;
+          // Pending/rejected mentors are effectively students — don't redirect them
+          const serverUserData = result?.data;
+          if (!(requiredRole === 'student' && isEffectivelyStudent(serverUserData))) {
+            router.replace(destinationPath);
+            return;
+          }
         }
 
         if (refreshedUser) {
