@@ -1,4 +1,0 @@
-{
-  "buildCommand": "cd frontend && npm install --include=dev && npm run build:static",
-  "outputDirectory": "frontend/out"
-}
