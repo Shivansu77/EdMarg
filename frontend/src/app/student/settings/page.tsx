@@ -341,7 +341,7 @@ function StudentSettingsContent() {
                               className="w-full h-11 pl-9 pr-3.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 text-sm cursor-not-allowed"
                             />
                           </div>
-                          <p className="mt-1 text-xs text-slate-400">Email can't be changed here.</p>
+                          <p className="mt-1 text-xs text-slate-400">Email can&apos;t be changed here.</p>
                         </div>
                       </div>
 
@@ -382,7 +382,7 @@ function StudentSettingsContent() {
                   <section className="rounded-xl border border-slate-200 bg-white p-6">
                     <div className="mb-6">
                       <h2 className="text-base font-semibold text-slate-900">Career Interests</h2>
-                      <p className="text-sm text-slate-500 mt-0.5">Select the fields you'd like mentorship in. These help curate your dashboard.</p>
+                      <p className="text-sm text-slate-500 mt-0.5">Select the fields you&apos;d like mentorship in. These help curate your dashboard.</p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">

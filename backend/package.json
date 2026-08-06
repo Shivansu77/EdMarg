@@ -9,7 +9,6 @@
     "build": "tsc",
     "seed:admin": "ts-node scripts/seedAdmin.ts",
     "seed:assessments": "ts-node scripts/seedAssessments.ts",
-    "verify:db": "ts-node scripts/verifyConnection.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
