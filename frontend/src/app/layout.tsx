@@ -11,10 +11,8 @@ export const metadata: Metadata = {
   description: 'Find clarity and confidence through AI-driven assessments and expert mentorship. Your guide to the right career path. Connect with industry experts 1:1, get actionable feedback, and accelerate your career.',
   metadataBase: new URL(SITE_URL),
   icons: {
-    icon: [
-      { url: '/edmargLogo.png', type: 'image/png' },
-    ],
-    apple: '/edmargLogo.png',
+    icon: [{ url: '/favicon.png', sizes: '812x812', type: 'image/png' }],
+    apple: [{ url: '/favicon.png', sizes: '812x812', type: 'image/png' }],
   },
   manifest: '/manifest.webmanifest',
   keywords: 'career mentorship, AI career guidance, career assessment, mentor platform, career clarity, professional guidance, 1:1 mentor video calls',
