@@ -1,0 +1,23 @@
+# Development image for the EdMarg backend.
+# Runs the TypeScript source directly via nodemon + ts-node so edits on the
+# host (bind-mounted at /app) reload the server without a rebuild.
+FROM node:22-alpine
+
+WORKDIR /app
+
+# ffmpeg is required by fluent-ffmpeg (recording processing pipeline).
+RUN apk add --no-cache ffmpeg
+
+# Install dependencies first so this layer is cached until package files change.
+# Source is bind-mounted at runtime, so we only need the manifests here.
+COPY package*.json ./
+
+RUN npm install
+
+EXPOSE 5000
+
+# Bind to all interfaces so the mapped port is reachable from the host.
+# (server.ts defaults HOST to 127.0.0.1, which would be container-local only.)
+ENV HOST=0.0.0.0
+
+CMD ["npm", "run", "dev"]

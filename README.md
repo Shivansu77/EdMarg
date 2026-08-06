@@ -13,11 +13,7 @@
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
-- [Setup Instructions](#setup-instructions)
-  - [1. Clone the Repository](#1-clone-the-repository)
-  - [2. Backend Setup](#2-backend-setup)
-  - [3. Frontend Setup](#3-frontend-setup)
-  - [4. Docker Setup (Alternative)](#4-docker-setup-alternative)
+- [Setup Instructions](#setup-instructions) — see [DEVELOPMENT.md](./DEVELOPMENT.md) for the full Docker guide
 - [Environment Variables](#environment-variables)
 - [Database Schema](#database-schema)
 - [API Endpoints](#api-endpoints)
@@ -251,61 +247,46 @@ Optional:
 
 ## Setup Instructions
 
-### 1. Clone the Repository
+**For local development with Docker (recommended)**, see the detailed
+[DEVELOPMENT.md](./DEVELOPMENT.md) guide. Quick start:
+
+```bash
+make setup    # Create .env files (one-time)
+make dev      # Start with hot reload
+make seed     # Seed admin + sample data
+```
+
+**For manual setup without Docker**, see below.
+
+### Manual Setup
+
+#### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/your-username/EdMarg.git
 cd EdMarg
 ```
 
-### 2. Backend Setup
+#### 2. Backend Setup
 
 ```bash
-# Navigate to backend directory
 cd backend
-
-# Install dependencies
 npm install
-
-# Copy environment template and configure
 cp .env.example .env
-# Edit .env with your MongoDB URI, JWT secret, and other credentials
-
-# Seed the database with initial data
-npm run seed:admin          # Creates admin user (admin@edmarg.com / Admin@123)
-npm run seed:assessments    # Creates sample assessment templates
-
-# Start the development server
+# Edit .env with your MongoDB URI, JWT secret, and credentials
+npm run seed:admin          # Creates admin user
+npm run seed:assessments    # Creates sample assessments
 npm run dev                 # Starts on http://localhost:5000
 ```
 
-### 3. Frontend Setup
+#### 3. Frontend Setup
 
 ```bash
-# Navigate to frontend directory (from project root)
 cd frontend
-
-# Install dependencies
 npm install
-
-# Copy environment template and configure
 cp .env.example .env.local
 # Edit .env.local with your API URLs
-
-# Start the development server
 npm run dev                 # Starts on http://localhost:3000
-```
-
-### 4. Docker Setup (Alternative)
-
-```bash
-# From project root — starts MongoDB, backend, and frontend
-docker-compose up --build
-
-# Services will be available at:
-# Frontend:  http://localhost:3000
-# Backend:   http://localhost:5000
-# MongoDB:   localhost:27017
 ```
 
 ---
@@ -486,6 +467,7 @@ The project includes a `render.yaml` blueprint for one-click deployment on Rende
 | Document | Description |
 |----------|-------------|
 | [README.md](./README.md) | This file — setup, architecture, and overview |
+| [DEVELOPMENT.md](./DEVELOPMENT.md) | Local development guide — Docker setup, hot reload, troubleshooting |
 | [SCOPE.md](./SCOPE.md) | Data anomaly log, CSV import handling, and complete database schema |
 | [DECISIONS.md](./DECISIONS.md) | Decision log with rationale for every significant choice |
 | [AI_USAGE.md](./AI_USAGE.md) | AI tools used, key prompts, and error correction cases |

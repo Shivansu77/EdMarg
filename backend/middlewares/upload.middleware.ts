@@ -41,8 +41,18 @@ const ALLOWED_VIDEO_MIMES = new Set([
   'video/x-msvideo',       // .avi
 ]);
 
+const ALLOWED_VIDEO_EXTENSIONS = ['.mp4', '.mov', '.mkv', '.webm', '.avi'];
+
 const videoFileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('video/') || ALLOWED_VIDEO_MIMES.has(file.mimetype)) {
+  // Check MIME type
+  const hasValidMime = file.mimetype.startsWith('video/') || ALLOWED_VIDEO_MIMES.has(file.mimetype);
+  
+  // Check file extension as fallback (browsers sometimes report incorrect MIME types)
+  const extension = path.extname(file.originalname).toLowerCase();
+  const hasValidExtension = ALLOWED_VIDEO_EXTENSIONS.includes(extension);
+  
+  // Accept if either MIME type or extension is valid
+  if (hasValidMime || hasValidExtension) {
     cb(null, true);
   } else {
     cb(new Error('Only video files are allowed! Accepted formats: .mp4, .mov, .mkv, .webm'), false);

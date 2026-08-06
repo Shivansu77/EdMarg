@@ -1,0 +1,94 @@
+# EdMarg — LOCAL DEVELOPMENT stack.
+#
+# Unlike docker-compose.yml (which builds optimized production images), this
+# file mounts your source into the containers and runs the dev servers with
+# hot reload. Edit code on your host and the running services pick it up.
+#
+#   Start:   docker compose -f docker-compose.dev.yml up        (or: make dev)
+#   Rebuild: docker compose -f docker-compose.dev.yml up --build
+#   Stop:    docker compose -f docker-compose.dev.yml down
+#
+# Services:
+#   frontend  http://localhost:3000
+#   backend   http://localhost:5000  (health: /health)
+#   mongodb   localhost:27017
+#
+# Env: backend reads backend/.env, frontend reads frontend/.env.local.
+# Run `./scripts/setup-dev.sh` (or `make setup`) to create them from templates.
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: edmarg-mongodb-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: edmarg_db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: edmarg-backend-dev
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    environment:
+      NODE_ENV: development
+      PORT: 5000
+      HOST: 0.0.0.0
+      # Override the DB host so it points at the compose service, not localhost.
+      MONGODB_URI: mongodb://mongodb:27017/edmarg_db
+      FRONTEND_ORIGIN: http://localhost:3000
+      # ts-node/nodemon inside a container needs polling to see host file changes.
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      # Mount source for hot reload, but keep the container's node_modules
+      # (the named volume shadows the host folder so native deps stay intact).
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: edmarg-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./frontend/.env.local
+    environment:
+      NODE_ENV: development
+      # Browser requests hit the host-mapped backend port directly.
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api/v1
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:5000
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:5000
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
+      # Keep the Next.js build cache out of the host mount.
+      - frontend_next_cache:/app/.next
+    depends_on:
+      - backend
+
+volumes:
+  mongodb_dev_data:
+  backend_node_modules:
+  frontend_node_modules:
+  frontend_next_cache:
