@@ -11,21 +11,20 @@ interface LogoProps {
 
 const Logo: React.FC<LogoProps> = ({
   className = '',
-  imgClassName = 'h-9 w-auto',
+  imgClassName = 'h-14 w-auto',
   showText = true,
   textColor = 'text-slate-900'
 }) => {
   return (
-    <Link href="/" className={`group flex items-center gap-3 ${className}`}>
-      <div className={`relative flex-shrink-0 ${imgClassName}`}>
-        <AppImage
-          src="/logo.png"
-          alt="EdMarg Logo"
-          fill
-          className="object-contain transition-transform duration-300 group-hover:-translate-y-0.5"
-          priority
-        />
-      </div>
+    <Link href="/" className={`group flex items-center gap-0 ${className}`}>
+      <AppImage
+        src="/edmargLogo.png"
+        alt="EdMarg Logo"
+        width={144}
+        height={144}
+        className={`-mr-1 flex-shrink-0 object-contain transition-transform duration-300 group-hover:-translate-y-0.5 ${imgClassName}`}
+        priority
+      />
       {showText && (
         <span className={`text-xl font-extrabold tracking-tight transition-colors ${textColor} group-hover:text-emerald-500`}>
           EdMarg

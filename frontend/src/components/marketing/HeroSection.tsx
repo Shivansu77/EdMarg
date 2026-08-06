@@ -19,7 +19,7 @@ const heroSlides = [
     description: 'Real advice from working professionals',
   },
   {
-    src: '/mentors/omar.png',
+    src: '/mentors/natasha.png',
     alt: 'Career mentor sharing practical feedback',
     title: 'Confidence built step by step',
     description: 'Clear next actions for the right role',
@@ -83,7 +83,7 @@ const HeroSection = () => {
             {/* Social Proof */}
             <div className="flex items-center gap-4">
               <div className="flex -space-x-2">
-                {['/hero-student.png', '/mentors/samantha.png', '/mentors/omar.png'].map((src, i) => (
+                {['/hero-student.png', '/mentors/samantha.png', '/mentors/natasha.png'].map((src, i) => (
                   <div
                     key={i}
                     className="h-8 w-8 rounded-full border-2 border-white bg-slate-100 overflow-hidden relative"

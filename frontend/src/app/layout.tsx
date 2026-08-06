@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import { Providers } from '@/context/Providers';
 import { NetworkStatusLoader } from '@/components/common/NetworkStatusLoader';
+import { CookieConsent } from '@/components/common/CookieConsent';
 import { SITE_URL } from '@/utils/site-url';
 import './globals.css';
 
@@ -11,9 +12,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   icons: {
     icon: [
-      { url: '/logo.png', type: 'image/png' },
+      { url: '/edmargLogo.png', type: 'image/png' },
     ],
-    apple: '/logo.png',
+    apple: '/edmargLogo.png',
   },
   manifest: '/manifest.webmanifest',
   keywords: 'career mentorship, AI career guidance, career assessment, mentor platform, career clarity, professional guidance, 1:1 mentor video calls',
@@ -53,7 +54,7 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="flex min-h-full flex-col bg-surface font-manrope text-on-surface">
         <ClerkProvider>
-          <Providers>{children}<NetworkStatusLoader /></Providers>
+          <Providers>{children}<NetworkStatusLoader /><CookieConsent /></Providers>
         </ClerkProvider>
       </body>
     </html>

@@ -11,6 +11,8 @@ import { getImageUrl } from '@/utils/imageUrl';
 import { clearLegacyAuthState } from '@/utils/auth-session';
 
 import Logo from '@/components/common/Logo';
+import PromoAnnouncementBar from '@/components/marketing/PromoAnnouncementBar';
+
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -43,14 +45,17 @@ const Navbar = () => {
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled
-          ? 'border-b border-slate-200/60 bg-white/80 py-2 shadow-sm backdrop-blur-xl'
-          : 'bg-transparent py-3'
-      }`}
-    >
+    <header className="fixed top-0 left-0 right-0 z-50">
+      <PromoAnnouncementBar />
+      <div
+        className={`transition-all duration-300 ${
+          scrolled
+            ? 'border-b border-slate-200/60 bg-white/80 py-2 shadow-sm backdrop-blur-xl'
+            : 'bg-transparent py-3'
+        }`}
+      >
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex items-center justify-between">
+
         <Logo />
 
         <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 rounded-full border border-slate-200/60 bg-white/80 px-2 py-1.5 text-[13px] font-medium text-slate-600 shadow-sm backdrop-blur-md">
@@ -203,8 +208,10 @@ const Navbar = () => {
           </div>
         )}
       </div>
+      </div>
     </header>
   );
 };
+
 
 export default Navbar;

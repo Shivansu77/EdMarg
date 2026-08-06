@@ -7,11 +7,10 @@ import { useAuth } from '@/context/AuthContext';
 import { apiClient } from '@/utils/api-client';
 import ProfileImageUpload from '@/components/common/ProfileImageUpload';
 import { UserProfile as ClerkUserProfile } from '@clerk/nextjs';
-import { 
-  UserCircle, 
-  Mail, 
-  Briefcase, 
-  Save, 
+import {
+  UserCircle,
+  Mail,
+  Briefcase,
   Loader2,
   CheckCircle2,
   AlertCircle,
@@ -21,7 +20,6 @@ import {
   MapPin,
   Settings2,
   IndianRupee,
-  Clock3,
   Bell,
   Smartphone,
   Megaphone,
@@ -29,13 +27,12 @@ import {
   CreditCard,
   Trash2,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 
 const PREDEFINED_EXPERTISE = [
-  'Software Engineering', 'Data Science', 'Machine Learning', 
-  'Product Management', 'Design', 'Marketing', 'Finance', 
-  'Consulting', 'Entrepreneurship', 'Web Development', 
+  'Software Engineering', 'Data Science', 'Machine Learning',
+  'Product Management', 'Design', 'Marketing', 'Finance',
+  'Consulting', 'Entrepreneurship', 'Web Development',
   'Mobile Development', 'Cybersecurity', 'Cloud Computing',
   'DevOps', 'System Design', 'Interview Prep', 'Career Guidance'
 ];
@@ -117,11 +114,17 @@ const DEFAULT_SETTINGS: MentorSettings = {
   rejectionReason: '',
 };
 
+const inputClass =
+  'w-full h-11 px-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors';
+const inputWithIconClass =
+  'w-full h-11 pl-9 pr-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors';
+const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
+
 function MentorSettingsContent() {
   const { user, updateUser } = useAuth();
-  
+
   const [activeTab, setActiveTab] = useState('profile');
-  
+
   const [settings, setSettings] = useState<MentorSettings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -238,11 +241,11 @@ function MentorSettingsContent() {
         throw new Error(response.error || response.message || 'Unable to save settings');
       }
 
-      updateUser({ 
-        name: settings.name.trim(), 
-        profileImage: settings.profileImage, 
-        profileImageUpdatedAt: Date.now(), 
-        mentorProfile: response.data?.mentorProfile 
+      updateUser({
+        name: settings.name.trim(),
+        profileImage: settings.profileImage,
+        profileImageUpdatedAt: Date.now(),
+        mentorProfile: response.data?.mentorProfile
       });
 
       setSuccess('Settings updated successfully.');
@@ -277,151 +280,152 @@ function MentorSettingsContent() {
     return (
       <MentorDashboardLayout>
         <div className="flex min-h-[60vh] items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+          <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
         </div>
       </MentorDashboardLayout>
     );
   }
 
-  // completion logic can go here if needed
+  const statusLabel = settings.approvalStatus.charAt(0).toUpperCase() + settings.approvalStatus.slice(1);
 
   return (
     <MentorDashboardLayout>
-      <div className="max-w-7xl mx-auto pb-16 relative">
-        <div className="mb-8 overflow-hidden rounded-[2.5rem] border border-white/60 bg-white/40 backdrop-blur-xl p-8 shadow-[0_8px_32px_rgba(0,0,0,0.04)]">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
-                Settings & Configuration
-              </p>
-              <h1 className="mt-4 text-4xl font-extrabold tracking-tight text-slate-900">
-                Mentor Settings
-              </h1>
-              <p className="mt-3 text-base text-slate-600 font-medium leading-relaxed max-w-2xl">
-                Manage your account, professional profile, session rates, and preferences.
-              </p>
-            </div>
-            <div className="rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-sm backdrop-blur-md">
-              <p className="text-xs font-bold uppercase tracking-widest text-emerald-600">Verification Status</p>
-              <p className={`mt-1 text-base font-extrabold ${settings.approvalStatus === 'approved' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                {settings.approvalStatus.charAt(0).toUpperCase() + settings.approvalStatus.slice(1)}
-              </p>
-            </div>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between border-b border-slate-200 pb-6 mb-8">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Settings</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Manage your profile, session rates, and preferences.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-500">Verification</span>
+            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+              settings.approvalStatus === 'approved'
+                ? 'bg-emerald-50 text-emerald-700'
+                : settings.approvalStatus === 'rejected'
+                  ? 'bg-red-50 text-red-700'
+                  : 'bg-amber-50 text-amber-700'
+            }`}>
+              {statusLabel}
+            </span>
           </div>
         </div>
 
         {settings.approvalStatus !== 'approved' && (
-          <div className={`mb-8 rounded-xl p-4 border flex items-start gap-3 ${
+          <div className={`mb-6 rounded-lg p-3.5 border flex items-start gap-2.5 ${
             settings.approvalStatus === 'rejected'
               ? 'bg-red-50 border-red-200'
               : 'bg-amber-50 border-amber-200'
           }`}>
-            <Clock className={`w-5 h-5 mt-0.5 ${settings.approvalStatus === 'rejected' ? 'text-red-600' : 'text-amber-600'}`} />
+            <Clock className={`w-4.5 h-4.5 mt-0.5 flex-shrink-0 ${settings.approvalStatus === 'rejected' ? 'text-red-500' : 'text-amber-500'}`} />
             <div>
-              <p className={`text-sm font-semibold ${settings.approvalStatus === 'rejected' ? 'text-red-900' : 'text-amber-900'}`}>
+              <p className={`text-sm font-medium ${settings.approvalStatus === 'rejected' ? 'text-red-800' : 'text-amber-800'}`}>
                 {settings.approvalStatus === 'rejected'
                   ? 'Your mentor account is currently rejected.'
                   : 'Your mentor profile is under admin review.'}
               </p>
-              <p className={`text-sm mt-1 ${settings.approvalStatus === 'rejected' ? 'text-red-800' : 'text-amber-800'}`}>
-                You can update this profile now. Full mentor dashboard access will unlock after approval.
+              <p className={`text-sm mt-0.5 ${settings.approvalStatus === 'rejected' ? 'text-red-700' : 'text-amber-700'}`}>
+                You can update this profile now. Full dashboard access unlocks after approval.
               </p>
               {settings.approvalStatus === 'rejected' && settings.rejectionReason && (
-                <p className="text-sm mt-2 text-red-800"><span className="font-semibold">Reason:</span> {settings.rejectionReason}</p>
+                <p className="text-sm mt-1.5 text-red-700"><span className="font-medium">Reason:</span> {settings.rejectionReason}</p>
               )}
             </div>
           </div>
         )}
 
         {error && (
-          <div className="mb-8 flex items-start gap-3 rounded-2xl border border-red-200/50 bg-red-50/80 backdrop-blur-sm p-4 shadow-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-600 mt-0.5" />
-            <p className="text-sm font-bold text-red-900">{error}</p>
+          <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 p-3.5">
+            <AlertCircle className="w-4.5 h-4.5 flex-shrink-0 text-red-500 mt-0.5" />
+            <p className="text-sm text-red-700">{error}</p>
           </div>
         )}
 
         {success && (
-          <div className="mb-8 flex items-start gap-3 rounded-2xl border border-emerald-200/50 bg-emerald-50/80 backdrop-blur-sm p-4 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
-            <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-600 mt-0.5" />
-            <p className="text-sm font-bold text-emerald-900">{success}</p>
+          <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-emerald-200 bg-emerald-50 p-3.5">
+            <CheckCircle2 className="w-4.5 h-4.5 flex-shrink-0 text-emerald-500 mt-0.5" />
+            <p className="text-sm text-emerald-700">{success}</p>
           </div>
         )}
 
         <div className="flex flex-col lg:flex-row gap-8">
-          
+
           {/* Sidebar Tabs */}
-          <div className="lg:w-64 shrink-0">
-            <div className="sticky top-24 flex flex-col gap-2 rounded-[2rem] border border-white/60 bg-white/40 p-4 backdrop-blur-xl shadow-sm">
+          <aside className="lg:w-56 shrink-0">
+            <nav className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible lg:sticky lg:top-24">
               {TABS.map(tab => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
+                const isDanger = tab.id === 'danger';
                 return (
                   <button
                     key={tab.id}
                     onClick={() => handleTabChange(tab.id)}
-                    className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all text-sm font-bold ${
-                      isActive 
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-100 shadow-sm' 
-                        : 'text-slate-600 hover:bg-white hover:text-slate-900 border border-transparent'
+                    className={`flex items-center gap-2.5 whitespace-nowrap px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive
+                        ? isDanger
+                          ? 'bg-red-50 text-red-700'
+                          : 'bg-slate-100 text-slate-900'
+                        : isDanger
+                          ? 'text-red-500 hover:bg-red-50'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-emerald-500' : 'text-slate-400'}`} />
+                    <Icon className="w-4 h-4" />
                     {tab.label}
                   </button>
                 );
               })}
-            </div>
-          </div>
+            </nav>
+          </aside>
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            <form onSubmit={handleSave} className="space-y-8">
-              
+            <form onSubmit={handleSave} className="space-y-6">
+
               {/* PROFILE TAB */}
               {activeTab === 'profile' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-10 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-3">
-                        <UserCircle className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Personal Information</h2>
-                        <p className="text-sm text-slate-600 font-medium leading-relaxed">Your public identity on the platform</p>
-                      </div>
+                <>
+                  <section className="rounded-xl border border-slate-200 bg-white p-6">
+                    <div className="mb-6">
+                      <h2 className="text-base font-semibold text-slate-900">Personal Information</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">Your public identity on the platform.</p>
                     </div>
-                    
-                    <div className="space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Full Name</label>
+
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                          <label className={labelClass}>Full Name</label>
                           <input
                             type="text"
                             value={settings.name}
                             onChange={(e) => setSettings(s => ({ ...s, name: e.target.value }))}
                             required
-                            className="w-full h-14 px-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                            className={inputClass}
                           />
                         </div>
-                        
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Email Address</label>
+
+                        <div>
+                          <label className={labelClass}>Email Address</label>
                           <div className="relative">
-                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             <input
                               type="email"
                               value={user?.email || ''}
                               disabled
-                              className="w-full h-14 pl-14 pr-6 rounded-2xl border border-slate-100 bg-slate-50/50 text-slate-400 text-sm font-bold cursor-not-allowed"
+                              className="w-full h-11 pl-9 pr-3.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-400 text-sm cursor-not-allowed"
                             />
                           </div>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Profile Picture</label>
-                        <div className="rounded-[2rem] border-2 border-dashed border-emerald-100 bg-emerald-50/30 p-8 transition-all hover:bg-emerald-50/50">
-                          <ProfileImageUpload 
+                      <div>
+                        <label className={labelClass}>Profile Picture</label>
+                        <div className="rounded-lg border border-slate-200 bg-slate-50/50 p-5">
+                          <ProfileImageUpload
                             currentImage={settings.profileImage}
                             userName={settings.name}
                             onUploadSuccess={(url) => setSettings(s => ({ ...s, profileImage: url }))}
@@ -431,472 +435,407 @@ function MentorSettingsContent() {
                     </div>
                   </section>
 
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-10 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 -rotate-3">
-                        <Briefcase className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Professional Details</h2>
-                        <p className="text-sm text-slate-600 font-medium leading-relaxed">Your experience and background</p>
-                      </div>
+                  <section className="rounded-xl border border-slate-200 bg-white p-6">
+                    <div className="mb-6">
+                      <h2 className="text-base font-semibold text-slate-900">Professional Details</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">Your experience and background.</p>
                     </div>
-                    
-                    <div className="space-y-8">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">LinkedIn Profile</label>
+
+                    <div className="space-y-5">
+                      <div>
+                        <label className={labelClass}>LinkedIn Profile</label>
                         <div className="relative">
-                          <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
                             type="url"
                             value={settings.linkedinUrl}
                             onChange={(e) => setSettings(s => ({ ...s, linkedinUrl: e.target.value }))}
                             placeholder="https://www.linkedin.com/in/your-profile"
-                            className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                            className={inputWithIconClass}
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Bio / About Me</label>
+                      <div>
+                        <label className={labelClass}>Bio / About Me</label>
                         <textarea
                           rows={4}
                           value={settings.bio}
                           onChange={(e) => setSettings(s => ({ ...s, bio: e.target.value }))}
-                          placeholder="Tell students about your journey, what you do, and how you can help them..."
-                          className="w-full p-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm resize-none leading-relaxed"
+                          placeholder="Tell students about your journey, what you do, and how you can help them…"
+                          className="w-full p-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors resize-none leading-relaxed"
                         />
                       </div>
-                      
-                      <div className="space-y-3 max-w-sm">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Years of Experience</label>
+
+                      <div className="max-w-xs">
+                        <label className={labelClass}>Years of Experience</label>
                         <div className="relative">
-                          <Briefcase className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
                             type="number"
                             min="0"
                             value={settings.experienceYears}
                             onChange={(e) => setSettings(s => ({ ...s, experienceYears: e.target.value ? Number(e.target.value) : '' }))}
-                            className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                            className={inputWithIconClass}
                           />
                         </div>
                       </div>
                     </div>
                   </section>
-                  
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-10 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-6">
-                        <Building2 className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Work & Education</h2>
-                        <p className="text-sm text-slate-600 font-medium leading-relaxed">Where you are right now</p>
-                      </div>
+
+                  <section className="rounded-xl border border-slate-200 bg-white p-6">
+                    <div className="mb-6">
+                      <h2 className="text-base font-semibold text-slate-900">Work & Education</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">Where you are right now.</p>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Current Company</label>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className={labelClass}>Current Company</label>
                         <div className="relative">
-                          <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                          <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
                             type="text"
                             value={settings.currentCompany}
                             onChange={(e) => setSettings(s => ({ ...s, currentCompany: e.target.value }))}
                             placeholder="e.g. Google, Microsoft, Startup"
-                            className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                            className={inputWithIconClass}
                           />
                         </div>
                       </div>
-                      
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Current Title</label>
+
+                      <div>
+                        <label className={labelClass}>Current Title</label>
                         <div className="relative">
-                          <Briefcase className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                          <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
                             type="text"
                             value={settings.currentTitle}
                             onChange={(e) => setSettings(s => ({ ...s, currentTitle: e.target.value }))}
                             placeholder="e.g. Senior Software Engineer"
-                            className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                            className={inputWithIconClass}
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Location</label>
+                      <div>
+                        <label className={labelClass}>Location</label>
                         <div className="relative">
-                          <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
                             type="text"
                             value={settings.location}
                             onChange={(e) => setSettings(s => ({ ...s, location: e.target.value }))}
                             placeholder="e.g. San Francisco, CA"
-                            className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                            className={inputWithIconClass}
                           />
                         </div>
                       </div>
 
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Education</label>
+                      <div>
+                        <label className={labelClass}>Education</label>
                         <div className="relative">
-                          <Globe className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
+                          <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                           <input
                             type="text"
                             value={settings.education}
                             onChange={(e) => setSettings(s => ({ ...s, education: e.target.value }))}
                             placeholder="e.g. BS Computer Science, MIT"
-                            className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
+                            className={inputWithIconClass}
                           />
                         </div>
                       </div>
                     </div>
                   </section>
-                  
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-10 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-6">
-                        <Sparkles className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Areas of Expertise</h2>
-                        <p className="text-sm text-slate-600 font-medium leading-relaxed">What you can mentor on</p>
-                      </div>
+
+                  <section className="rounded-xl border border-slate-200 bg-white p-6">
+                    <div className="mb-6">
+                      <h2 className="text-base font-semibold text-slate-900">Areas of Expertise</h2>
+                      <p className="text-sm text-slate-500 mt-0.5">What you can mentor on.</p>
                     </div>
-                    
-                    <div className="space-y-6">
-                      <div className="flex flex-wrap gap-3">
-                        {PREDEFINED_EXPERTISE.map(skill => {
-                          const isSelected = settings.expertise.includes(skill);
-                          return (
-                            <button
-                              key={skill}
-                              type="button"
-                              onClick={() => handleExpertiseToggle(skill)}
-                              className={`px-5 py-2.5 rounded-xl text-[11px] font-extrabold uppercase tracking-widest transition-all duration-300 ${
-                                isSelected 
-                                  ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20 scale-105' 
-                                  : 'bg-white/60 text-slate-500 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50'
-                              }`}
-                            >
-                              {skill}
-                            </button>
-                          );
-                        })}
-                      </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {PREDEFINED_EXPERTISE.map(skill => {
+                        const isSelected = settings.expertise.includes(skill);
+                        return (
+                          <button
+                            key={skill}
+                            type="button"
+                            onClick={() => handleExpertiseToggle(skill)}
+                            className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                              isSelected
+                                ? 'bg-slate-900 text-white border-slate-900'
+                                : 'bg-white text-slate-600 border-slate-300 hover:border-slate-400'
+                            }`}
+                          >
+                            {skill}
+                          </button>
+                        );
+                      })}
                     </div>
                   </section>
-                </div>
+                </>
               )}
 
               {/* ACCOUNT & SECURITY TAB */}
               {activeTab === 'account' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-4 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-6 px-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-3">
-                          <ShieldCheck className="w-6 h-6" />
-                        </div>
-                        <div>
-                          <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Account & Security</h2>
-                          <p className="text-sm text-slate-600 font-medium">Manage passwords, 2FA, and connected accounts</p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="w-full flex justify-start overflow-x-auto rounded-[2rem] bg-white border border-slate-100 shadow-sm">
-                      <ClerkUserProfile 
-                        routing="hash" 
-                        appearance={{
-                          elements: {
-                            rootBox: "w-full",
-                            cardBox: "w-full shadow-none",
-                            card: "w-full shadow-none"
-                          }
-                        }}
-                      />
-                    </div>
-                  </section>
-                </div>
+                <section className="rounded-xl border border-slate-200 bg-white p-6">
+                  <div className="mb-6">
+                    <h2 className="text-base font-semibold text-slate-900">Account & Security</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Manage passwords, 2FA, and connected accounts.</p>
+                  </div>
+                  <div className="w-full overflow-x-auto rounded-lg border border-slate-200">
+                    <ClerkUserProfile
+                      routing="hash"
+                      appearance={{
+                        elements: {
+                          rootBox: "w-full",
+                          cardBox: "w-full shadow-none",
+                          card: "w-full shadow-none"
+                        }
+                      }}
+                    />
+                  </div>
+                </section>
               )}
 
               {/* SESSIONS & RATES TAB */}
               {activeTab === 'sessions' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-8 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 -rotate-3">
-                        <Settings2 className="w-6 h-6" />
-                      </div>
+                <section className="rounded-xl border border-slate-200 bg-white p-6">
+                  <div className="mb-6">
+                    <h2 className="text-base font-semibold text-slate-900">Session & Rates</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">How students book and pay you.</p>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Session & Rates</h2>
-                        <p className="text-sm text-slate-600 font-medium">How students book and pay you</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-8">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Price Per Session (INR)</label>
-                          <div className="relative">
-                            <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
-                            <input
-                              type="number"
-                              min="0"
-                              step="1"
-                              value={settings.pricePerSession}
-                              onChange={(e) => setSettings(s => ({ ...s, pricePerSession: Number(e.target.value) }))}
-                              className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Session Duration</label>
-                          <div className="relative">
-                            <Clock3 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 pointer-events-none" />
-                            <select
-                              value={settings.sessionDuration}
-                              onChange={(e) => setSettings(s => ({ ...s, sessionDuration: Number(e.target.value) }))}
-                              className="w-full h-14 pl-14 pr-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm appearance-none cursor-pointer"
-                            >
-                              {[15, 30, 45, 60, 90, 120].map((duration) => (
-                                <option key={duration} value={duration}>{duration} minutes</option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-6 sm:p-8 rounded-[2rem] bg-emerald-50/50 border border-emerald-100 ring-1 ring-emerald-500/5">
-                        <div className="max-w-lg">
-                          <h4 className="text-sm font-bold text-slate-950 uppercase tracking-tight">Auto-Confirm Bookings</h4>
-                          <p className="text-xs text-slate-500 mt-1 font-medium leading-relaxed">
-                            Automatically accept all session requests without manual approval. Recommended for high-volume mentors.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setSettings(s => ({ ...s, autoConfirm: !s.autoConfirm }))}
-                          className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-300 shadow-inner shrink-0 ${
-                            settings.autoConfirm ? 'bg-emerald-500' : 'bg-slate-200'
-                          }`}
-                        >
-                          <span
-                            className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform duration-300 shadow-md ${
-                              settings.autoConfirm ? 'translate-x-7' : 'translate-x-1'
-                            }`}
+                        <label className={labelClass}>Price Per Session (INR)</label>
+                        <div className="relative">
+                          <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            value={settings.pricePerSession}
+                            onChange={(e) => setSettings(s => ({ ...s, pricePerSession: Number(e.target.value) }))}
+                            className={inputWithIconClass}
                           />
-                        </button>
-                      </div>
-
-                      <div className="space-y-3">
-                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Default Session Note</label>
-                        <textarea
-                          rows={4}
-                          value={settings.sessionNotes}
-                          onChange={(e) => setSettings(s => ({ ...s, sessionNotes: e.target.value }))}
-                          placeholder="Add a reusable note students should know before booking."
-                          className="w-full p-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm resize-none leading-relaxed"
-                        />
-                      </div>
-                    </div>
-                  </section>
-                </div>
-              )}
-
-              {/* NOTIFICATIONS TAB */}
-              {activeTab === 'notifications' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-8 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-6">
-                        <Bell className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Notifications</h2>
-                        <p className="text-sm text-slate-600 font-medium">Manage how we contact you</p>
-                      </div>
-                    </div>
-
-                    <div className="grid gap-4">
-                      {[
-                        { key: 'email', label: 'Email Notifications', desc: 'Receive booking confirmations and messages via email', icon: Mail },
-                        { key: 'sms', label: 'SMS Alerts', desc: 'Get text messages for upcoming session reminders', icon: Smartphone },
-                        { key: 'marketing', label: 'Platform Updates', desc: 'Tips, features, and platform news', icon: Megaphone },
-                      ].map(({ key, label, desc, icon: Icon }) => (
-                        <div key={key} className="flex items-center justify-between p-6 rounded-[2rem] bg-white/60 border border-white hover:border-emerald-100 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-500 border border-slate-100">
-                              <Icon className="h-5 w-5" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-bold text-slate-900">{label}</h4>
-                              <p className="text-xs text-slate-500 font-medium mt-0.5">{desc}</p>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleNotificationToggle(key as keyof NotificationPreferences)}
-                            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 ${
-                              settings.notificationPreferences[key as keyof NotificationPreferences] ? 'bg-emerald-500' : 'bg-slate-200'
-                            }`}
-                          >
-                            <span
-                              className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform duration-300 shadow-sm ${
-                                settings.notificationPreferences[key as keyof NotificationPreferences] ? 'translate-x-6' : 'translate-x-1'
-                              }`}
-                            />
-                          </button>
                         </div>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-              )}
+                      </div>
 
-              {/* PREFERENCES TAB */}
-              {activeTab === 'preferences' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-8 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 rotate-3">
-                        <Globe className="w-6 h-6" />
-                      </div>
                       <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Account Preferences</h2>
-                        <p className="text-sm text-slate-600 font-medium">Localization and global settings</p>
-                      </div>
-                    </div>
-                    
-                    <div className="max-w-md space-y-3">
-                      <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 ml-1">Timezone</label>
-                      <div className="relative">
+                        <label className={labelClass}>Session Duration</label>
                         <select
-                          value={settings.timezone}
-                          onChange={(e) => setSettings(s => ({ ...s, timezone: e.target.value }))}
-                          className="w-full h-14 px-6 rounded-2xl border border-white bg-white/60 text-slate-950 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-400 transition-all shadow-sm appearance-none cursor-pointer"
+                          value={settings.sessionDuration}
+                          onChange={(e) => setSettings(s => ({ ...s, sessionDuration: Number(e.target.value) }))}
+                          className={`${inputClass} appearance-none cursor-pointer`}
                         >
-                          {TIMEZONES.map(tz => (
-                            <option key={tz} value={tz}>{tz.replace('_', ' ')}</option>
+                          {[15, 30, 45, 60, 90, 120].map((duration) => (
+                            <option key={duration} value={duration}>{duration} minutes</option>
                           ))}
                         </select>
-                        <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none">
-                          <Globe className="h-5 w-5 text-slate-300" />
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-500 ml-1">All your bookings will be displayed in this timezone.</p>
-                    </div>
-                  </section>
-                </div>
-              )}
-
-              {/* INTEGRATIONS TAB */}
-              {activeTab === 'integrations' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <section className="rounded-[3rem] border border-white/60 bg-white/40 backdrop-blur-3xl p-8 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.03]">
-                    <div className="mb-8 flex items-center gap-4">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 -rotate-3">
-                        <Calendar className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <h2 className="text-2xl font-extrabold text-slate-950 tracking-tight">Integrations</h2>
-                        <p className="text-sm text-slate-600 font-medium">Connect external services</p>
                       </div>
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2">
-                      <div className="p-6 rounded-[2rem] bg-white/60 border border-white shadow-sm flex flex-col justify-between min-h-[180px]">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <Calendar className="h-6 w-6 text-blue-500" />
-                            <h3 className="font-bold text-slate-900">Google Calendar</h3>
-                          </div>
-                          <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                            Sync your bookings automatically and prevent double-booking.
-                          </p>
-                        </div>
-                        <div className="mt-6 flex items-center justify-between">
-                          <span className={`text-xs font-bold uppercase tracking-wider ${calendarConnected ? 'text-emerald-500' : 'text-slate-400'}`}>
-                            {calendarConnected ? 'Connected' : 'Not Connected'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setCalendarConnected(!calendarConnected)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                              calendarConnected ? 'bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600' : 'bg-emerald-500 text-white hover:bg-emerald-600'
-                            }`}
-                          >
-                            {calendarConnected ? 'Disconnect' : 'Connect'}
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="p-6 rounded-[2rem] bg-white/60 border border-white shadow-sm flex flex-col justify-between min-h-[180px]">
-                        <div>
-                          <div className="flex items-center gap-3 mb-3">
-                            <CreditCard className="h-6 w-6 text-indigo-500" />
-                            <h3 className="font-bold text-slate-900">Stripe Payouts</h3>
-                          </div>
-                          <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                            Receive payouts directly to your bank account after completed sessions.
-                          </p>
-                        </div>
-                        <div className="mt-6 flex items-center justify-between">
-                          <span className={`text-xs font-bold uppercase tracking-wider ${stripeConnected ? 'text-emerald-500' : 'text-slate-400'}`}>
-                            {stripeConnected ? 'Active' : 'Pending Setup'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setStripeConnected(!stripeConnected)}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                              stripeConnected ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-indigo-500 text-white hover:bg-indigo-600 shadow-md shadow-indigo-500/20'
-                            }`}
-                          >
-                            {stripeConnected ? 'Manage' : 'Setup Payouts'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                </div>
-              )}
-
-              {/* DANGER ZONE TAB */}
-              {activeTab === 'danger' && (
-                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <section className="rounded-[3rem] border border-red-100 bg-red-50/50 backdrop-blur-3xl p-8 sm:p-10 shadow-sm ring-1 ring-red-500/10">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                      <div>
-                        <h2 className="text-xl font-extrabold text-red-900 tracking-tight">Danger Zone</h2>
-                        <p className="mt-2 text-sm text-red-700/80 font-medium max-w-md">
-                          Permanently delete your account and all associated data. This action cannot be undone.
+                    <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200">
+                      <div className="max-w-lg pr-4">
+                        <h4 className="text-sm font-medium text-slate-900">Auto-Confirm Bookings</h4>
+                        <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                          Automatically accept all session requests without manual approval. Recommended for high-volume mentors.
                         </p>
                       </div>
                       <button
                         type="button"
-                        className="shrink-0 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-white border border-red-200 text-sm font-bold text-red-600 hover:bg-red-600 hover:text-white transition-colors hover:border-red-600"
+                        onClick={() => setSettings(s => ({ ...s, autoConfirm: !s.autoConfirm }))}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors shrink-0 ${
+                          settings.autoConfirm ? 'bg-slate-900' : 'bg-slate-200'
+                        }`}
                       >
-                        <Trash2 className="h-4 w-4" />
-                        Delete Account
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            settings.autoConfirm ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
                       </button>
                     </div>
-                  </section>
-                </div>
+
+                    <div>
+                      <label className={labelClass}>Default Session Note</label>
+                      <textarea
+                        rows={4}
+                        value={settings.sessionNotes}
+                        onChange={(e) => setSettings(s => ({ ...s, sessionNotes: e.target.value }))}
+                        placeholder="Add a reusable note students should know before booking."
+                        className="w-full p-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-colors resize-none leading-relaxed"
+                      />
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* NOTIFICATIONS TAB */}
+              {activeTab === 'notifications' && (
+                <section className="rounded-xl border border-slate-200 bg-white p-6">
+                  <div className="mb-6">
+                    <h2 className="text-base font-semibold text-slate-900">Notifications</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Manage how we contact you.</p>
+                  </div>
+
+                  <div className="divide-y divide-slate-100">
+                    {[
+                      { key: 'email', label: 'Email Notifications', desc: 'Booking confirmations and messages via email', icon: Mail },
+                      { key: 'sms', label: 'SMS Alerts', desc: 'Text reminders for upcoming sessions', icon: Smartphone },
+                      { key: 'marketing', label: 'Platform Updates', desc: 'Tips, features, and platform news', icon: Megaphone },
+                    ].map(({ key, label, desc, icon: Icon }) => (
+                      <div key={key} className="flex items-center justify-between py-4 first:pt-0 last:pb-0">
+                        <div className="flex items-start gap-3">
+                          <div className="h-9 w-9 rounded-lg bg-slate-50 flex items-center justify-center text-slate-500 border border-slate-200">
+                            <Icon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-slate-900">{label}</h4>
+                            <p className="text-xs text-slate-500 mt-0.5">{desc}</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleNotificationToggle(key as keyof NotificationPreferences)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            settings.notificationPreferences[key as keyof NotificationPreferences] ? 'bg-slate-900' : 'bg-slate-200'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              settings.notificationPreferences[key as keyof NotificationPreferences] ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* PREFERENCES TAB */}
+              {activeTab === 'preferences' && (
+                <section className="rounded-xl border border-slate-200 bg-white p-6">
+                  <div className="mb-6">
+                    <h2 className="text-base font-semibold text-slate-900">Account Preferences</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Localization and global settings.</p>
+                  </div>
+
+                  <div className="max-w-sm">
+                    <label className={labelClass}>Timezone</label>
+                    <select
+                      value={settings.timezone}
+                      onChange={(e) => setSettings(s => ({ ...s, timezone: e.target.value }))}
+                      className={`${inputClass} appearance-none cursor-pointer`}
+                    >
+                      {TIMEZONES.map(tz => (
+                        <option key={tz} value={tz}>{tz.replace('_', ' ')}</option>
+                      ))}
+                    </select>
+                    <p className="mt-1.5 text-xs text-slate-400">All your bookings display in this timezone.</p>
+                  </div>
+                </section>
+              )}
+
+              {/* INTEGRATIONS TAB */}
+              {activeTab === 'integrations' && (
+                <section className="rounded-xl border border-slate-200 bg-white p-6">
+                  <div className="mb-6">
+                    <h2 className="text-base font-semibold text-slate-900">Integrations</h2>
+                    <p className="text-sm text-slate-500 mt-0.5">Connect external services.</p>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="p-5 rounded-lg border border-slate-200 flex flex-col justify-between min-h-[170px]">
+                      <div>
+                        <div className="flex items-center gap-2.5 mb-2">
+                          <Calendar className="h-5 w-5 text-slate-700" />
+                          <h3 className="text-sm font-medium text-slate-900">Google Calendar</h3>
+                        </div>
+                        <p className="text-sm text-slate-500 leading-relaxed">
+                          Sync your bookings automatically and prevent double-booking.
+                        </p>
+                      </div>
+                      <div className="mt-5 flex items-center justify-between">
+                        <span className={`text-xs font-medium ${calendarConnected ? 'text-emerald-600' : 'text-slate-400'}`}>
+                          {calendarConnected ? 'Connected' : 'Not connected'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setCalendarConnected(!calendarConnected)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                            calendarConnected ? 'border border-slate-200 text-slate-600 hover:bg-slate-50' : 'bg-slate-900 text-white hover:bg-slate-800'
+                          }`}
+                        >
+                          {calendarConnected ? 'Disconnect' : 'Connect'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="p-5 rounded-lg border border-slate-200 flex flex-col justify-between min-h-[170px]">
+                      <div>
+                        <div className="flex items-center gap-2.5 mb-2">
+                          <CreditCard className="h-5 w-5 text-slate-700" />
+                          <h3 className="text-sm font-medium text-slate-900">Stripe Payouts</h3>
+                        </div>
+                        <p className="text-sm text-slate-500 leading-relaxed">
+                          Receive payouts directly to your bank account after completed sessions.
+                        </p>
+                      </div>
+                      <div className="mt-5 flex items-center justify-between">
+                        <span className={`text-xs font-medium ${stripeConnected ? 'text-emerald-600' : 'text-slate-400'}`}>
+                          {stripeConnected ? 'Active' : 'Pending setup'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setStripeConnected(!stripeConnected)}
+                          className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                            stripeConnected ? 'border border-slate-200 text-slate-600 hover:bg-slate-50' : 'bg-slate-900 text-white hover:bg-slate-800'
+                          }`}
+                        >
+                          {stripeConnected ? 'Manage' : 'Setup payouts'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* DANGER ZONE TAB */}
+              {activeTab === 'danger' && (
+                <section className="rounded-xl border border-red-200 bg-white p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <h2 className="text-base font-semibold text-red-700">Delete Account</h2>
+                      <p className="mt-1 text-sm text-slate-500 max-w-md">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-sm font-medium text-white hover:bg-red-700 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete Account
+                    </button>
+                  </div>
+                </section>
               )}
 
               {/* Submit Action */}
               {activeTab !== 'account' && activeTab !== 'danger' && activeTab !== 'integrations' && (
-                <div className="sticky bottom-8 z-10 flex flex-col sm:flex-row items-center justify-end gap-6 rounded-[2rem] border border-white/60 bg-white/40 p-5 shadow-2xl shadow-slate-950/10 backdrop-blur-3xl ring-1 ring-black/[0.03]">
+                <div className="flex items-center justify-end pt-2">
                   <button
                     type="submit"
                     disabled={saving}
-                    className="w-full sm:w-auto inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-slate-950 px-10 text-base font-bold text-white shadow-xl shadow-slate-950/20 transition-all hover:bg-slate-800 hover:-translate-y-1 active:scale-95 disabled:opacity-50"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-slate-900 px-5 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:opacity-50"
                   >
-                    {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
-                    Save Configuration
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                    Save changes
                   </button>
                 </div>
               )}

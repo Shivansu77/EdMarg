@@ -13,7 +13,7 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#10b981",
     icons: [
       {
-        src: "/logo.png",
+        src: "/edmargLogo.png",
         sizes: "512x512",
         type: "image/png",
       },
