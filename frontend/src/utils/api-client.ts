@@ -1,5 +1,6 @@
 import { resolveApiBaseUrl } from '@/utils/api-base';
 import { getAuthToken } from '@/utils/auth-session';
+import { dedupeInFlight } from '@/utils/request-dedupe';
 
 const API_BASE_URL = resolveApiBaseUrl();
 
@@ -61,7 +62,22 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const { params, ...fetchOptions } = options;
     const url = this.buildUrl(endpoint, params);
+    const method = (fetchOptions.method ?? 'GET').toUpperCase();
 
+    // Only idempotent GETs are coalesced. POST/PUT/PATCH/DELETE always execute
+    // so side effects are never dropped when two callers overlap (e.g. React
+    // StrictMode's double-invoked effects in development).
+    if (method === 'GET') {
+      return dedupeInFlight(`GET:${url}`, () => this.execute<T>(url, fetchOptions));
+    }
+
+    return this.execute<T>(url, fetchOptions);
+  }
+
+  private async execute<T>(
+    url: string,
+    fetchOptions: RequestInit
+  ): Promise<ApiResponse<T>> {
     try {
       const headers = new Headers(fetchOptions.headers);
       const token = await getAuthToken();

@@ -7,6 +7,7 @@ import {
   useUser as useClerkUser,
 } from '@clerk/nextjs';
 import { resolveApiBaseUrl } from '@/utils/api-base';
+import { dedupeInFlight } from '@/utils/request-dedupe';
 import {
   clearLegacyAuthState,
   persistLegacyToken,
@@ -107,18 +108,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!token) throw new Error('Clerk session token is unavailable');
         persistLegacyToken(token);
 
-        const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/me`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'x-bypass-cache': '1',
-            'Cache-Control': 'no-cache',
-          },
-        });
+        // Coalesce overlapping profile fetches. React StrictMode (dev) mounts
+        // this provider twice and re-renders can retrigger this effect; sharing
+        // a single in-flight request avoids duplicate `/users/me` calls.
+        const { ok, result } = await dedupeInFlight(
+          'GET:/api/v1/users/me',
+          async () => {
+            const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/me`, {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'x-bypass-cache': '1',
+                'Cache-Control': 'no-cache',
+              },
+            });
+            return { ok: response.ok, result: await readApiResponse(response) };
+          }
+        );
 
-        const result = await readApiResponse(response);
-        
-        if (!response.ok || !result.data?._id) {
+        if (!ok || !result.data?._id) {
           throw new Error(result.error || result.message || 'Unable to sync profile');
         }
 
