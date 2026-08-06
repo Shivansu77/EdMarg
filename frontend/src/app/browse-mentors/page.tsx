@@ -8,7 +8,7 @@ import Image from 'next/image';
 
 import { getImageUrl } from '@/utils/imageUrl';
 import { resolveApiBaseUrl } from '@/utils/api-base';
-import { useWishlist } from '@/hooks/useWishlist';
+import { useWishlistContext } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
 type Mentor = {
   _id: string;
@@ -33,7 +33,7 @@ export default function BrowseMentorsPage() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const { user } = useAuth();
-  const { toggleWishlist, isWishlisted } = useWishlist();
+  const { toggleWishlist, isWishlisted } = useWishlistContext();
   const itemsPerPage = 12;
   const isLoggedIn = Boolean(user);
 
@@ -187,11 +187,10 @@ export default function BrowseMentorsPage() {
                       <button
                         key={skill}
                         onClick={() => toggleSkill(skill)}
-                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${
-                          selectedSkills.includes(skill)
+                        className={`px-4 py-2 rounded-full text-sm font-semibold transition-all ${selectedSkills.includes(skill)
                             ? 'bg-emerald-500 text-white shadow-[0_10px_24px_rgba(16,185,129,0.3)]'
                             : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
-                        }`}
+                          }`}
                       >
                         {skill}
                       </button>
@@ -271,7 +270,7 @@ export default function BrowseMentorsPage() {
                                 <span className="text-sm font-bold text-gray-900">{Number(rating).toFixed(1)}</span>
                               </div>
                             )}
-                            
+
                             {/* Wishlist Button */}
                             {user?.role === 'student' && (
                               <button
@@ -279,9 +278,8 @@ export default function BrowseMentorsPage() {
                                   e.preventDefault();
                                   toggleWishlist(mentor._id);
                                 }}
-                                className={`absolute top-3 left-3 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110 active:scale-95 ${
-                                  isWishlisted(mentor._id) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
-                                }`}
+                                className={`absolute top-3 left-3 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur-sm transition-all hover:scale-110 active:scale-95 ${isWishlisted(mentor._id) ? 'text-red-500' : 'text-slate-400 hover:text-red-400'
+                                  }`}
                               >
                                 <Heart size={18} className={isWishlisted(mentor._id) ? 'fill-current' : ''} />
                               </button>
@@ -373,11 +371,10 @@ export default function BrowseMentorsPage() {
                             <button
                               key={page}
                               onClick={() => setCurrentPage(page)}
-                              className={`px-3 py-2.5 rounded-lg font-semibold transition-all ${
-                                currentPage === page
+                              className={`px-3 py-2.5 rounded-lg font-semibold transition-all ${currentPage === page
                                   ? 'bg-emerald-500 text-white shadow-[0_8px_20px_rgba(16,185,129,0.3)]'
                                   : 'border border-emerald-200 bg-white text-slate-700 hover:bg-emerald-50'
-                              }`}
+                                }`}
                             >
                               {page}
                             </button>

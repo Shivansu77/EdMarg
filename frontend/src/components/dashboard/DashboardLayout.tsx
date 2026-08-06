@@ -60,13 +60,8 @@ const DashboardLayout = ({ children, userName }: DashboardLayoutProps) => {
   };
 
   return (
-    <div className="relative min-h-screen bg-slate-50/50 overflow-hidden">
-      {/* Glassmorphism Background Ambient Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-cyan-200/40 mix-blend-multiply blur-[120px] opacity-70 pointer-events-none"></div>
-      <div className="absolute top-[20%] right-[-10%] w-[400px] h-[400px] rounded-full bg-blue-200/40 mix-blend-multiply blur-[120px] opacity-70 pointer-events-none"></div>
-      <div className="absolute bottom-[-10%] left-[20%] w-[600px] h-[600px] rounded-full bg-indigo-200/40 mix-blend-multiply blur-[120px] opacity-70 pointer-events-none"></div>
-
-      <div className="relative flex min-h-screen z-10">
+    <div className="min-h-screen bg-slate-50/60 font-sans antialiased">
+      <div className="flex min-h-screen">
         <Sidebar
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
@@ -79,7 +74,7 @@ const DashboardLayout = ({ children, userName }: DashboardLayoutProps) => {
             userName={userName}
             onMenuClick={() => setIsSidebarOpen((currentValue) => !currentValue)}
           />
-          <main className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-10 lg:pb-10 lg:pt-8">
+          <main className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
             <div className="mx-auto max-w-7xl">{children}</div>
           </main>
         </div>

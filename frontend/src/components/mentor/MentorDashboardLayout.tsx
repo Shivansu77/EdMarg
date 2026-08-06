@@ -62,7 +62,7 @@ const MentorDashboardLayout = ({ children }: MentorDashboardLayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-slate-50/60 font-sans antialiased">
       <div className="flex min-h-screen">
         <MentorSidebar
           isOpen={isSidebarOpen}
@@ -72,7 +72,7 @@ const MentorDashboardLayout = ({ children }: MentorDashboardLayoutProps) => {
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <MentorHeader onMenuClick={() => setIsSidebarOpen((v) => !v)} />
-          <main className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-10 lg:pb-10 lg:pt-8">
+          <main className="flex-1 px-4 pb-8 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-8">
             <div className="mx-auto max-w-7xl">{children}</div>
           </main>
         </div>

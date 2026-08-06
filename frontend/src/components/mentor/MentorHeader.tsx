@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -13,14 +12,13 @@ import {
   Calendar,
   Check,
   Settings,
-  Shield,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useClerk } from '@clerk/nextjs';
 import { useSocket } from '@/context/SocketProvider';
 import { apiClient } from '@/utils/api-client';
 import { getImageUrl } from '@/utils/imageUrl';
+import AppImage from '@/components/AppImage';
 
 interface MentorHeaderProps {
   onMenuClick: () => void;
@@ -58,7 +56,6 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
 
   const router = useRouter();
   const { user, logout } = useAuth();
-  const clerk = useClerk();
   const { socket } = useSocket();
 
   const displayName = user?.name?.trim() || 'Mentor';
@@ -278,18 +275,17 @@ const MentorHeader = ({ onMenuClick }: MentorHeaderProps) => {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="h-11 w-11 items-center justify-center rounded-full bg-black text-sm font-bold text-white hover:bg-gray-800 transition-colors flex shadow-sm"
+              className="h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white hover:bg-slate-800 transition-colors flex shadow-xs"
               aria-label="Profile menu"
             >
               {user?.profileImage ? (
                 <div className="relative h-full w-full rounded-full overflow-hidden">
-                  <img
+                  <AppImage
                     src={getImageUrl(user.profileImage, user.name, 300, user.profileImageUpdatedAt)}
                     alt={`${displayName} profile`}
-                    className="h-full w-full object-cover object-top"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = getImageUrl('', user.name);
-                    }}
+                    fill
+                    fallbackName={user.name}
+                    className="object-cover object-top"
                   />
                 </div>
               ) : (

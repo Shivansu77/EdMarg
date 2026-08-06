@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 import { getImageUrl } from '@/utils/imageUrl';
-import { useWishlist } from '@/hooks/useWishlist';
+import { useWishlistContext } from '@/context/WishlistContext';
 
 export interface MentorMarketplaceCardData {
   id: string;
@@ -65,7 +65,7 @@ export default function MentorMarketplaceCard({
     : `/login?redirect=${encodeURIComponent(`/student/booking?id=${mentor.id}`)}`;
 
   const imageUrl = getImageUrl(mentor.profileImage, mentor.name, 200);
-  const { toggleWishlist, isWishlisted } = useWishlist();
+  const { toggleWishlist, isWishlisted } = useWishlistContext();
   const wishlisted = isWishlisted(mentor.id);
 
   // Compute display title

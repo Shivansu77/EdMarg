@@ -17,7 +17,7 @@ import {
   Zap,
   Heart,
 } from 'lucide-react';
-import { useWishlist } from '@/hooks/useWishlist';
+import { useWishlistContext } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
 
 interface RecommendedMentor {
@@ -54,7 +54,7 @@ export default function RecommendedMentors({ variant = 'dashboard' }: Recommende
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
-  const { toggleWishlist, isWishlisted } = useWishlist();
+  const { toggleWishlist, isWishlisted } = useWishlistContext();
 
   useEffect(() => {
     const fetch = async () => {

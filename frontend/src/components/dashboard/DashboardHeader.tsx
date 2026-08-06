@@ -1,16 +1,12 @@
-/* eslint-disable @typescript-eslint/no-unused-vars, @next/next/no-img-element */
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Menu, Search, LogOut, User, MessageSquare, Calendar, Check, Settings, Heart, Shield } from 'lucide-react';
+import { Bell, Menu, Search, LogOut, User, MessageSquare, Calendar, Check, Settings, Heart } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { useClerk } from '@clerk/nextjs';
-import Image from 'next/image';
 import { apiClient } from '@/utils/api-client';
 import Link from 'next/link';
 import AppImage from '@/components/AppImage';
-
 import { getImageUrl } from '@/utils/imageUrl';
 interface HeaderProps {
   userName?: string;
@@ -75,7 +71,6 @@ const DashboardHeader = ({
 
   const router = useRouter();
   const { user, logout } = useAuth();
-  const clerk = useClerk();
 
   const resolvedDisplayName = user?.name?.trim() || userName;
   const avatarLetter = resolvedDisplayName.charAt(0).toUpperCase() || 'U';
@@ -161,49 +156,44 @@ const DashboardHeader = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 border-b border-emerald-100/50 bg-white/70 backdrop-blur-xl shadow-[0_4px_30px_rgba(16,185,129,0.03)]">
-      <div className="flex items-center gap-3 px-4 py-4 sm:px-6 lg:px-10">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
+      <div className="flex items-center gap-4 px-4 py-3.5 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={onMenuClick}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-900 transition-colors hover:bg-slate-50 lg:hidden shadow-sm"
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition-colors hover:bg-slate-50 lg:hidden shadow-xs"
           aria-label="Open navigation"
         >
           <Menu size={18} />
         </button>
 
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600 mb-0.5">
-            Workspace
-          </p>
-          <h1 className="truncate text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+          <h1 className="truncate text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
             {userName}
           </h1>
         </div>
 
         <form onSubmit={handleSearchSubmit} className="relative hidden w-full max-w-sm md:block">
-          <button type="submit" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-emerald-500 transition-colors">
-            <Search size={17} />
+          <button type="submit" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors">
+            <Search size={16} />
           </button>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search mentors or sessions"
-            className="w-full rounded-full border border-slate-200 bg-slate-50/50 py-3 pl-11 pr-4 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-500/20"
+            placeholder="Search mentors or sessions..."
+            className="w-full rounded-lg border border-slate-200 bg-slate-50/70 py-2 pl-10 pr-4 text-sm text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-slate-400 focus:bg-white focus:ring-1 focus:ring-slate-400"
           />
         </form>
 
         <div className="flex items-center gap-2">
-
-
           {user?.role === 'student' && (
             <Link 
               href="/student/wishlist" 
               className={actionButtonClasses}
               aria-label="Wishlist"
             >
-              <Heart size={18} className="text-slate-500" />
+              <Heart size={18} className="text-slate-600" />
             </Link>
           )}
 
@@ -216,32 +206,32 @@ const DashboardHeader = ({
             >
               <Bell size={18} />
               {unreadCount > 0 && (
-                <span className="absolute top-2 right-2 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white shadow-sm border border-emerald-600"></span>
+                <span className="absolute top-2 right-2 flex h-2 w-2 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white"></span>
               )}
             </button>
 
             {isNotificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden text-left">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
-                  <h3 className="font-bold text-sm text-gray-900">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 z-50 overflow-hidden text-left">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+                  <h3 className="font-semibold text-sm text-slate-900">Notifications</h3>
                   {unreadCount > 0 && (
                     <button 
                       onClick={() => setNotifications(notifications.map(n => ({ ...n, unread: false })))}
-                      className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1"
+                      className="text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors flex items-center gap-1"
                     >
                       <Check size={14} />
-                      Mark all as read
+                      Mark all read
                     </button>
                   )}
                 </div>
-                <div className="max-h-90 overflow-y-auto">
+                <div className="max-h-80 overflow-y-auto">
                   {notifications.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 text-sm">
-                      <Bell size={24} className="mx-auto mb-2 opacity-20" />
+                    <div className="p-8 text-center text-slate-500 text-sm">
+                      <Bell size={22} className="mx-auto mb-2 opacity-30 text-slate-400" />
                       No notifications yet
                     </div>
                   ) : (
-                    <div className="divide-y divide-gray-50">
+                    <div className="divide-y divide-slate-100">
                       {notifications.map((notification) => (
                         <div 
                           key={notification.id} 
@@ -249,46 +239,53 @@ const DashboardHeader = ({
                             setIsNotificationsOpen(false);
                             router.push('/student/schedule');
                           }}
-                          className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer ${notification.unread ? 'bg-emerald-50/40' : ''}`}
+                          className={`p-3.5 hover:bg-slate-50 transition-colors flex gap-3 cursor-pointer ${notification.unread ? 'bg-slate-50/80' : ''}`}
                         >
                           <div className={`mt-0.5 shrink-0 flex h-8 w-8 items-center justify-center rounded-full ${
-                            notification.type === 'meeting' ? 'bg-emerald-100 text-emerald-600' :
-                            'bg-amber-100 text-amber-700'
+                            notification.type === 'meeting' ? 'bg-slate-100 text-slate-700' :
+                            'bg-amber-50 text-amber-700'
                           }`}>
                             {notification.type === 'meeting' && <Calendar size={14} />}
                             {notification.type === 'message' && <MessageSquare size={14} />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm ${notification.unread ? 'font-bold text-gray-900' : 'font-medium text-gray-700'}`}>
+                            <p className={`text-xs ${notification.unread ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
                               {notification.title}
                             </p>
-                            <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-relaxed">
+                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2 leading-relaxed">
                               {notification.message}
                             </p>
-                            <p className="text-[10px] text-gray-400 mt-1.5 font-medium uppercase tracking-wider">
+                            <p className="text-[10px] text-slate-400 mt-1 font-medium">
                               {notification.time}
                             </p>
                           </div>
                           {notification.unread && (
-                            <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-emerald-500"></div>
+                            <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-900"></div>
                           )}
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
-                <div className="p-2 border-t border-gray-100 bg-gray-50/50">
-                  <button className="w-full py-1.5 text-xs font-bold text-gray-600 hover:text-gray-900 text-center transition-colors rounded-lg hover:bg-gray-200/50">
+                <div className="p-2 border-t border-slate-100 bg-slate-50/50">
+                  <button 
+                    onClick={() => {
+                      setIsNotificationsOpen(false);
+                      router.push('/student/schedule');
+                    }}
+                    className="w-full py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 text-center transition-colors rounded-md hover:bg-slate-100"
+                  >
                     View all notifications
                   </button>
                 </div>
               </div>
             )}
           </div>
+
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="hidden h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-emerald-400 to-green-500 text-sm font-bold text-slate-900 hover:from-emerald-500 hover:to-green-600 transition-colors sm:flex shadow-sm shadow-emerald-500/20"
+              className="hidden h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-xs font-semibold text-white hover:bg-slate-800 transition-colors sm:flex shadow-xs"
               aria-label="Profile menu"
             >
                {user?.profileImage ? (

@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { apiClient } from '@/utils/api-client';
 import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/common/Logo';
 import {
@@ -44,28 +43,10 @@ const MentorSidebar = ({
   onToggleCollapsed,
 }: MentorSidebarProps) => {
   const pathname = usePathname();
-  const { logout } = useAuth();
-  const [isRestrictedMentor, setIsRestrictedMentor] = React.useState(true);
+  const { user, logout } = useAuth();
 
-  React.useEffect(() => {
-    let isMounted = true;
-
-    const loadApprovalStatus = async () => {
-      const res = await apiClient.get<{ mentorProfile?: { approvalStatus?: string } }>('/api/v1/users/me');
-      if (!isMounted || !res.success) {
-        return;
-      }
-
-      const approvalStatus = res.data?.mentorProfile?.approvalStatus || 'pending';
-      setIsRestrictedMentor(approvalStatus !== 'approved');
-    };
-
-    void loadApprovalStatus();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const isRestrictedMentor =
+    user?.role === 'mentor' && user?.mentorProfile?.approvalStatus !== 'approved';
 
   const visibleNavItems = isRestrictedMentor
     ? navItems.filter((item) => item.href === '/mentor/settings')

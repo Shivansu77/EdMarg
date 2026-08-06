@@ -5,7 +5,7 @@ import { apiClient } from '@/utils/api-client';
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users, Heart } from 'lucide-react';
-import { useWishlist } from '@/hooks/useWishlist';
+import { useWishlistContext } from '@/context/WishlistContext';
 import { useAuth } from '@/context/AuthContext';
 import Link from 'next/link';
 import AppImage from '@/components/AppImage';
@@ -29,7 +29,7 @@ const TopMentorsSection = () => {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
-  const { toggleWishlist, isWishlisted } = useWishlist();
+  const { toggleWishlist, isWishlisted } = useWishlistContext();
 
   useEffect(() => {
     const fetchMentors = async () => {
