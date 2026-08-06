@@ -1,9 +1,10 @@
 import SessionRecordingPageClient from './SessionRecordingPageClient';
 
 // Session IDs are per-user bookings and not enumerable at build time.
-// The page fetches its data client-side, so no params are pre-rendered.
+// `output: export` requires at least one param, so we emit a placeholder
+// shell; the real recording is resolved client-side from the URL.
 export async function generateStaticParams() {
-  return [];
+  return [{ id: 'placeholder' }];
 }
 
 export default function SessionRecordingPage() {

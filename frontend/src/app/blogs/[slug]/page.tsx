@@ -16,17 +16,20 @@ type BlogRouteParams = {
 const fallbackDescription = 'Read this insightful article on EdMarg Blog.';
 const getBlogBySlugCached = cache(async (slug: string) => getBlogBySlugFromAPI(slug));
 
-export const revalidate = 3600;
+// revalidate is incompatible with output: export
+// export const revalidate = 3600;
 
 export async function generateStaticParams() {
   try {
     const blogs = await getAllBlogsFromAPI();
-    return blogs
+    const params = blogs
       .filter((blog) => Boolean(blog.slug))
       .map((blog) => ({ slug: blog.slug }));
+    // `output: export` requires at least one param
+    return params.length > 0 ? params : [{ slug: 'placeholder' }];
   } catch (error) {
     console.error('Failed to generate blog static params:', error instanceof Error ? error.message : String(error));
-    return [];
+    return [{ slug: 'placeholder' }];
   }
 }
 
