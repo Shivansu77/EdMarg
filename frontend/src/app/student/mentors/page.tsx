@@ -622,7 +622,7 @@ const mentorPageStyles = `
 /* ─── Page Layout ────────────────────────────────────────── */
 .mmp-page {
   min-height: 100vh;
-  background: linear-gradient(180deg, #f8fafb 0%, #ffffff 40%);
+  background: #ffffff;
   padding-bottom: 64px;
 }
 .mmp-content {
@@ -634,19 +634,13 @@ const mentorPageStyles = `
 /* ─── Hero Section ───────────────────────────────────────── */
 .mmp-hero {
   position: relative;
-  border-radius: 24px;
+  border-radius: 16px;
   overflow: hidden;
   background: white;
-  border: 1px solid #e8ebef;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 12px 40px rgba(0,0,0,0.03);
+  border: 1px solid #e2e8f0;
 }
 .mmp-hero-bg {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 0% 0%, rgba(16,185,129,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(59,130,246,0.04) 0%, transparent 50%);
-  pointer-events: none;
+  display: none;
 }
 .mmp-hero-content {
   position: relative;
@@ -673,12 +667,12 @@ const mentorPageStyles = `
   align-items: center;
   gap: 6px;
   padding: 5px 14px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
-  border: 1px solid #a7f3d0;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   font-size: 12px;
   font-weight: 700;
-  color: #059669;
+  color: #475569;
   width: fit-content;
   letter-spacing: 0.02em;
 }
@@ -694,10 +688,7 @@ const mentorPageStyles = `
   .mmp-hero-title { font-size: 40px; }
 }
 .mmp-hero-title-accent {
-  background: linear-gradient(135deg, #10b981, #0d9488);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #0f172a;
 }
 .mmp-hero-desc {
   margin-top: 12px;
@@ -769,9 +760,9 @@ const mentorPageStyles = `
   flex-direction: column;
   gap: 16px;
   padding: 24px;
-  border-radius: 20px;
-  background: linear-gradient(145deg, #fafbfc, #f5f7f9);
-  border: 1px solid #e8ebef;
+  border-radius: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
 }
 .mmp-search-panel-header {
   display: flex;

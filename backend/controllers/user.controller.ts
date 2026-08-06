@@ -61,7 +61,15 @@ exports.updateUserProfile = async (req, res, next) => {
       languages, currentCompany, currentTitle, location, education,
       timezone, notificationPreferences, profileVisibility
     } = req.body;
-    const normalizedRole = role === 'mentor' || role === 'student' ? role : userRole;
+    // An admin account must never be downgraded to mentor/student through the
+    // profile-completion or settings flows. Only allow student <-> mentor
+    // transitions for non-admin users; admins always stay admin.
+    const normalizedRole =
+      userRole === 'admin'
+        ? 'admin'
+        : role === 'mentor' || role === 'student'
+          ? role
+          : userRole;
 
     const profileData = {
       phoneNumber,

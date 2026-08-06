@@ -121,7 +121,7 @@ function Card({ children, className = '' }: { children: React.ReactNode; classNa
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-xs font-bold uppercase tracking-widest text-emerald-500/80">
+    <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
       {children}
     </p>
   );
@@ -228,32 +228,29 @@ function MentorDashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-16">
-      {/* Dynamic Header */}
-      <div className="relative overflow-hidden border-b border-white/60 bg-white/40 backdrop-blur-3xl px-6 pb-12 pt-10 sm:px-12">
-        <div className="absolute -top-32 -right-32 h-[40rem] w-[40rem] rounded-full bg-emerald-200/20 blur-[120px] pointer-events-none" />
-        <div className="absolute top-1/2 -left-32 h-[30rem] w-[30rem] rounded-full bg-cyan-100/30 blur-[100px] pointer-events-none" />
-        
-        <div className="relative z-10 w-full max-w-7xl mx-auto">
-          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50/80 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-700 mb-8">
+    <div className="min-h-screen pb-16">
+      {/* Header */}
+      <div className="border-b border-slate-200 bg-white px-6 pb-12 pt-10 sm:px-12">
+        <div className="w-full max-w-7xl mx-auto">
+          <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600 mb-8">
             Mentor Workspace
           </div>
           <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-6xl max-w-4xl">
-            Welcome back, <span className="text-emerald-600">{user?.name?.split(' ')[0] || 'Mentor'}</span>.
+            Welcome back, <span className="text-slate-900">{user?.name?.split(' ')[0] || 'Mentor'}</span>.
           </h1>
           <p className="mt-6 max-w-2xl text-xl text-slate-600 font-medium leading-relaxed">
-            Manage your mentoring sessions, respond to requests, and see the difference you&apos;re making — all in one beautifully connected space.
+            Manage your mentoring sessions, respond to requests, and see the difference you&apos;re making — all in one connected space.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link
               href="/mentor/requests"
-              className="group relative inline-flex h-14 items-center gap-3 rounded-2xl bg-emerald-500 px-8 text-base font-bold text-white shadow-xl shadow-emerald-500/25 transition-all duration-300 hover:bg-emerald-600 hover:-translate-y-0.5 active:scale-95"
+              className="group inline-flex h-14 items-center gap-3 rounded-xl bg-slate-900 px-8 text-base font-bold text-white transition-all hover:bg-slate-800 active:scale-95"
             >
               Review {stats?.pending || 0} requests <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="/mentor/schedule"
-              className="inline-flex h-14 items-center gap-3 rounded-2xl border border-white/60 bg-white/60 backdrop-blur-xl px-8 text-base font-bold text-slate-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-md active:scale-95"
+              className="inline-flex h-14 items-center gap-3 rounded-xl border border-slate-200 bg-white px-8 text-base font-bold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95"
             >
               Set Availability
             </Link>
@@ -262,24 +259,23 @@ function MentorDashboardContent() {
       </div>
 
       <div className="space-y-8 px-6 pt-8 sm:px-8 mx-auto" style={{ maxWidth: '1600px' }}>
-        {/* Stats Glassmorphic Board */}
-        <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm lg:grid-cols-4">
+        {/* Stats Board */}
+        <div className="grid grid-cols-2 overflow-hidden rounded-2xl border border-slate-200 bg-white lg:grid-cols-4">
           {statItems.map((s, i) => (
             <div
               key={s.label}
-              className={`group relative px-6 py-6 transition-colors hover:bg-emerald-50/50 ${i < statItems.length - 1 ? 'border-r border-emerald-100' : ''}`}
+              className={`group relative px-6 py-6 transition-colors hover:bg-slate-50 ${i < statItems.length - 1 ? 'border-r border-slate-200' : ''}`}
             >
               <div className="flex justify-between items-start">
                   <Label>{s.label}</Label>
-                  <s.icon size={16} className="text-emerald-300 group-hover:text-emerald-400 transition-colors" />
+                  <s.icon size={16} className="text-slate-300 group-hover:text-slate-400 transition-colors" />
                 </div>
-              <p className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 group-hover:text-emerald-900 transition-colors">
+              <p className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 transition-colors">
                 {s.value}
               </p>
               <p className="mt-1 flex items-center gap-2 text-sm text-slate-600 font-medium">
                 {s.sub}
               </p>
-              <div className="absolute bottom-0 left-6 right-6 h-0.5 bg-linear-to-r from-emerald-500 to-green-400 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full"></div>
             </div>
           ))}
         </div>
@@ -290,17 +286,17 @@ function MentorDashboardContent() {
           <div className="space-y-8">
             {/* Upcoming sessions */}
             <Card>
-              <div className="flex flex-col gap-5 border-b border-emerald-200 bg-emerald-50/30 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-col gap-5 border-b border-slate-200 bg-slate-50 px-6 py-6 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <Label>Scheduled Sessions</Label>
                   <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
                     Separate session cards
                   </h2>
                 </div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-emerald-700">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-slate-700">
                   <span className="relative inline-flex h-2.5 w-2.5">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-600" />
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-slate-400 opacity-75" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-slate-600" />
                   </span>
                   {spotlightMeetings.length > 0 ? `${spotlightMeetings.length} upcoming` : 'No upcoming session'}
                 </div>
@@ -320,11 +316,11 @@ function MentorDashboardContent() {
                     return (
                       <div
                         key={meeting._id}
-                        className={`rounded-3xl border-2 ${isPrimary ? 'border-emerald-300 bg-linear-to-br from-white via-emerald-50/40 to-green-50/50' : 'border-emerald-200 bg-white'} p-6 shadow-[0_18px_40px_-28px_rgba(16,185,129,0.5)]`}
+                        className={`rounded-2xl border ${isPrimary ? 'border-slate-300 bg-slate-50' : 'border-slate-200 bg-white'} p-6`}
                       >
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div>
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-600">
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">
                               {isPrimary ? 'Upcoming Meeting' : 'Next After That'}
                             </p>
                             <p className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900">
@@ -335,18 +331,18 @@ function MentorDashboardContent() {
                             type="button"
                             onClick={() => handleStartSession(meeting._id)}
                             disabled={actionLoadingId === meeting._id}
-                            className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white px-4 py-2 text-sm font-bold text-emerald-700 transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="inline-flex items-center justify-center rounded-full bg-slate-900 px-4 py-2 text-sm font-bold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                           >
                             {actionLoadingId === meeting._id ? 'Starting...' : 'Start Session'}
                           </button>
                         </div>
 
                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                          <div className="rounded-2xl border border-emerald-300 bg-white px-5 py-4">
+                          <div className="rounded-xl border border-slate-200 bg-white px-5 py-4">
                             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Meeting date</p>
                             <p className="mt-2 text-xl font-bold text-slate-900">{formatMeetingDate(meetingStart)}</p>
                           </div>
-                          <div className="rounded-2xl border border-emerald-300 bg-white px-5 py-4">
+                          <div className="rounded-xl border border-slate-200 bg-white px-5 py-4">
                             <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-500">Meeting time</p>
                             <p className="mt-2 text-xl font-bold text-slate-900">{formatMeetingTimeOnly(meetingStart)}</p>
                           </div>
@@ -367,7 +363,7 @@ function MentorDashboardContent() {
 
             {/* Student requests */}
             <Card>
-              <div className="border-b border-emerald-50 bg-emerald-50/30 px-6 py-6">
+              <div className="border-b border-slate-200 bg-slate-50 px-6 py-6">
                 <Label>Student requests</Label>
                 <h2 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">
                   New mentees looking for guidance
@@ -376,11 +372,11 @@ function MentorDashboardContent() {
               {pendingRequests.length === 0 ? (
                 <div className="p-12 text-center text-slate-600">You have no pending mentorship requests.</div>
               ) : (
-                <ul className="divide-y divide-emerald-50/50">
+                <ul className="divide-y divide-slate-100">
                   {pendingRequests.map((r) => (
-                    <li key={r._id} className="flex items-center justify-between gap-4 px-6 py-5 transition-colors hover:bg-emerald-50/30">
+                    <li key={r._id} className="flex items-center justify-between gap-4 px-6 py-5 transition-colors hover:bg-slate-50">
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className="h-10 w-10 shrink-0 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold">
+                        <div className="h-10 w-10 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-bold">
                           {r.student?.name?.charAt(0) || 'S'}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -405,20 +401,20 @@ function MentorDashboardContent() {
           {/* Right sidebar */}
           <div className="space-y-8">
             <Card>
-              <div className="border-b border-emerald-50 bg-emerald-50/30 px-6 py-5">
+              <div className="border-b border-slate-200 bg-slate-50 px-6 py-5">
                 <Label>Recent Activity</Label>
               </div>
               {recentHistory.length === 0 ? (
                 <div className="p-8 text-center text-slate-600 text-sm">No recent activity found.</div>
               ) : (
-                <ul className="divide-y divide-emerald-50/50">
+                <ul className="divide-y divide-slate-100">
                   {recentHistory.map((item) => (
-                    <li key={item._id} className="group flex items-start gap-4 px-6 py-5 transition-colors hover:bg-emerald-50/30">
-                      <div className="mt-0.5 rounded-full bg-emerald-100 p-1.5 shadow-sm group-hover:bg-emerald-50 transition-colors">
-                        <Clock3 size={14} className="text-emerald-600 group-hover:text-emerald-700 transition-colors" strokeWidth={2.5} />
+                    <li key={item._id} className="group flex items-start gap-4 px-6 py-5 transition-colors hover:bg-slate-50">
+                      <div className="mt-0.5 rounded-full bg-slate-100 p-1.5 transition-colors">
+                        <Clock3 size={14} className="text-slate-600" strokeWidth={2.5} />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 group-hover:text-emerald-900">Session with {item.student?.name || 'Student'}</p>
+                        <p className="text-sm font-bold text-slate-900">Session with {item.student?.name || 'Student'}</p>
                         <p className="mt-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                            {formatDate(item.date)} · {item.startTime}
                         </p>

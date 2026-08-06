@@ -136,7 +136,7 @@ function MentorRecordingsContent() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm shadow-emerald-500/20">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900">
                   <Film className="h-5 w-5 text-white" />
                 </span>
                 Session Recordings
@@ -148,7 +148,7 @@ function MentorRecordingsContent() {
 
             <Link
               href="/mentor/requests?tab=past"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 whitespace-nowrap self-start sm:self-auto"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-all active:scale-95 whitespace-nowrap self-start sm:self-auto"
             >
               <Upload className="h-4 w-4" />
               Upload New
@@ -188,7 +188,7 @@ function MentorRecordingsContent() {
             </p>
             <Link
               href="/mentor/requests?tab=past"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
+              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-all active:scale-95"
             >
               <Upload className="h-4 w-4" />
               Go to Past Sessions
@@ -212,7 +212,7 @@ function MentorRecordingsContent() {
                   <div className="p-6">
                     {/* Student info */}
                     <div className="flex items-start gap-4 mb-5">
-                      <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-100 to-green-100 border border-emerald-200 flex items-center justify-center overflow-hidden shrink-0">
+                      <div className="h-12 w-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden shrink-0">
                         {student?.profileImage ? (
                           <Image
                             src={getImageUrl(

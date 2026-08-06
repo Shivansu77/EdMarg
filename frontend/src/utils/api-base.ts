@@ -49,7 +49,7 @@ export const resolveApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     // A static export has no Next route handler to receive `/api/v1/*` calls.
     // Direct mode is the safe default for every deployed frontend.
-    if (process.env.NEXT_PUBLIC_API_TRANSPORT !== 'direct') {
+    if (process.env.NEXT_PUBLIC_API_TRANSPORT === 'proxy') {
       return window.location.origin;
     }
 

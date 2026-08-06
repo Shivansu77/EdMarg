@@ -165,16 +165,12 @@ function ResultsContent() {
 
   return (
     <DashboardLayout userName="Results">
-      <div className="min-h-screen bg-slate-50/50 pb-20 pt-6">
+      <div className="min-h-screen pb-20 pt-6">
         <div className="mx-auto max-w-[1200px] w-full px-4 lg:px-8 space-y-8">
           
-          {/* ── Premium Hero Section ── */}
-          <section className="relative overflow-hidden rounded-[32px] bg-white border border-slate-200 shadow-sm p-8 sm:p-10">
-            {/* Decorative Orbs */}
-            <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-cyan-100/40 blur-[80px]" />
-            <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-emerald-100/40 blur-[80px]" />
-
-            <div className="relative z-10 flex flex-col lg:flex-row gap-8 lg:items-end justify-between">
+          {/* ── Hero Section ── */}
+          <section className="rounded-2xl bg-white border border-slate-200 p-8 sm:p-10">
+            <div className="flex flex-col lg:flex-row gap-8 lg:items-end justify-between">
               <div className="max-w-2xl">
                 <span className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600 mb-5">
                   <Award size={14} className="text-slate-400" />
@@ -189,11 +185,11 @@ function ResultsContent() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 shrink-0 sm:min-w-[320px]">
-                <div className="rounded-[20px] bg-slate-50 border border-slate-100 p-5 text-center">
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 text-center">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Match Score</p>
                   <p className="text-3xl font-extrabold text-slate-900">{matchScore}</p>
                 </div>
-                <div className="rounded-[20px] bg-slate-50 border border-slate-100 p-5 text-center">
+                <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 text-center">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Signals</p>
                   <p className="text-3xl font-extrabold text-slate-900">{signalsAnalyzed}</p>
                 </div>
@@ -210,7 +206,7 @@ function ResultsContent() {
 
           {/* ── Status Grid ── */}
           <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Career Assessment</p>
               <div className="mt-4 flex items-center gap-3">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${hasCareerResult ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-slate-50 text-slate-400 border border-slate-100'}`}>
@@ -225,7 +221,7 @@ function ResultsContent() {
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Assigned Tasks</p>
               <div className="mt-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
@@ -238,7 +234,7 @@ function ResultsContent() {
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6">
               <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Top Path</p>
               <div className="mt-4 flex items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
@@ -259,9 +255,9 @@ function ResultsContent() {
             <motion.section 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50/50 p-12 text-center"
+              className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-12 text-center"
             >
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white text-slate-300 shadow-sm border border-slate-100 mb-6">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white text-slate-300 border border-slate-200 mb-6">
                 <ClipboardCheck size={36} />
               </div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">No Results Available Yet</h2>
@@ -269,10 +265,10 @@ function ResultsContent() {
                 Complete your Career Assessment and any assigned mentor tasks to generate your personalized career fit summary.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Link href="/student/assessment" className="inline-flex h-12 items-center justify-center rounded-xl bg-slate-900 px-8 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95">
+                <Link href="/student/assessment" className="inline-flex h-12 items-center justify-center rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-95">
                   Start Career Assessment
                 </Link>
-                <Link href="/student/assessments" className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-8 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300">
+                <Link href="/student/assessments" className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-8 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300">
                   View Tasks
                 </Link>
               </div>
@@ -284,7 +280,7 @@ function ResultsContent() {
               <motion.section 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-white p-8 sm:p-10 shadow-sm"
+                className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-10"
               >
                 <div className="mb-6 flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
@@ -303,11 +299,11 @@ function ResultsContent() {
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-4 pt-8 border-t border-slate-100">
-                  <Link href="/student/mentors" className="group inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white shadow-[0_4px_14px_rgba(15,23,42,0.15)] transition-all hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95">
+                  <Link href="/student/mentors" className="group inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-95">
                     Find a Mentor
                     <ArrowRight size={18} className="transition-transform group-hover:translate-x-1" />
                   </Link>
-                  <Link href="/student/assessment" className="inline-flex h-14 items-center justify-center rounded-xl border border-slate-200 bg-white px-8 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300">
+                  <Link href="/student/assessment" className="inline-flex h-14 items-center justify-center rounded-xl border border-slate-200 bg-white px-8 text-sm font-bold text-slate-700 transition-all hover:bg-slate-50 hover:border-slate-300">
                     Review Responses
                   </Link>
                 </div>
@@ -316,7 +312,7 @@ function ResultsContent() {
               <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_400px]">
                 
                 {/* Secondary Recommendations */}
-                <section className="rounded-[32px] border border-slate-200 bg-white p-8 shadow-sm">
+                <section className="rounded-2xl border border-slate-200 bg-white p-8">
                   <div className="mb-8 flex items-center justify-between">
                     <div>
                       <h3 className="text-2xl font-extrabold tracking-tight text-slate-900">Alternative Paths</h3>
@@ -352,7 +348,7 @@ function ResultsContent() {
                 </section>
 
                 {/* Next Steps & Dominant Traits */}
-                <section className="rounded-[32px] bg-slate-900 p-8 text-white shadow-xl">
+                <section className="rounded-2xl bg-slate-900 p-8 text-white">
                   <div className="mb-8 flex items-center justify-between">
                     <div>
                       <h3 className="text-2xl font-extrabold tracking-tight text-white">Action Plan</h3>

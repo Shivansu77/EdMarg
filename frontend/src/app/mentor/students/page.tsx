@@ -132,7 +132,7 @@ export default function MentorStudentsPage() {
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm shadow-emerald-500/20">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900">
                   <Users className="h-5 w-5 text-white" />
                 </span>
                 My Students
@@ -220,12 +220,12 @@ export default function MentorStudentsPage() {
                 className="group bg-white rounded-2xl border border-slate-200 overflow-hidden transition-all hover:shadow-[0_8px_30px_rgba(16,185,129,0.07)] hover:border-emerald-200/60"
               >
                 {/* Top accent bar */}
-                <div className="h-1 bg-gradient-to-r from-emerald-400 to-green-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="h-1 bg-slate-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                 <div className="p-6">
                   {/* Student Info */}
                   <div className="flex items-start gap-4 mb-5">
-                    <div className="h-14 w-14 rounded-full bg-gradient-to-br from-emerald-100 to-green-100 border-2 border-white shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="h-14 w-14 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center overflow-hidden flex-shrink-0">
                       {student.profileImage ? (
                         <Image
                           src={getImageUrl(student.profileImage, student.name)}

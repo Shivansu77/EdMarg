@@ -174,7 +174,7 @@ function MentorScheduleContent() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 shadow-sm shadow-emerald-500/20">
+                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900">
                   <CalendarDays className="h-5 w-5 text-white" />
                 </span>
                 Manage Schedule
@@ -188,7 +188,7 @@ function MentorScheduleContent() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 disabled:opacity-60 disabled:active:scale-100 whitespace-nowrap self-start sm:self-auto"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-60 disabled:active:scale-100 whitespace-nowrap self-start sm:self-auto"
             >
               {saving ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -282,7 +282,7 @@ function MentorScheduleContent() {
                         type="button"
                         onClick={() => handleToggleDay(index)}
                         className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:ring-offset-2 ${
-                          schedule.isAvailable ? 'bg-gradient-to-br from-emerald-400 to-green-500' : 'bg-slate-200'
+                          schedule.isAvailable ? 'bg-slate-900' : 'bg-slate-200'
                         }`}
                         role="switch"
                         aria-checked={schedule.isAvailable}

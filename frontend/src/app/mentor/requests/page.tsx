@@ -363,8 +363,8 @@ function MentorRequestsContent() {
         {/* Bookings List */}
         <div className="space-y-4">
           {filteredBookings.length === 0 ? (
-            <div className="text-center py-24 bg-white rounded-2xl border border-slate-200 shadow-[0_4px_20px_rgba(16,185,129,0.03)]">
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-50 mb-4 border border-emerald-100">
+            <div className="text-center py-24 bg-white rounded-2xl border border-slate-200">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-slate-50 mb-4 border border-slate-200">
                 <CalendarClock className="h-6 w-6 text-emerald-400" />
               </div>
               <h3 className="text-base font-bold text-slate-900">
@@ -380,7 +380,7 @@ function MentorRequestsContent() {
             filteredBookings.map((booking) => (
               <article
                 key={booking._id}
-                className="group bg-white rounded-2xl border border-slate-200 p-6 flex flex-col md:flex-row gap-6 md:gap-8 transition-all hover:shadow-[0_8px_30px_rgba(16,185,129,0.07)] hover:border-emerald-200/60"
+                className="group bg-white rounded-2xl border border-slate-200 p-6 flex flex-col md:flex-row gap-6 md:gap-8 transition-all hover:border-slate-300"
               >
                 {/* Left: Student & Details */}
                 <div className="flex-1 min-w-0">
@@ -400,7 +400,7 @@ function MentorRequestsContent() {
 
                   {/* Student info */}
                   <div className="flex items-start gap-4 mb-5">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-emerald-100 to-green-100 border border-emerald-200 flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="h-12 w-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
                       {booking.student.profileImage ? (
                         <Image
                           src={getImageUrl(booking.student.profileImage, booking.student.name)}
@@ -547,7 +547,7 @@ function MentorRequestsContent() {
                         <button
                           onClick={() => handleAction(booking._id, 'accept')}
                           disabled={actionLoading === booking._id}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                         >
                           {actionLoading === booking._id ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -584,7 +584,7 @@ function MentorRequestsContent() {
                         <button
                           onClick={() => handleAction(booking._id, 'start')}
                           disabled={actionLoading === booking._id}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                         >
                           {actionLoading === booking._id ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -619,7 +619,7 @@ function MentorRequestsContent() {
                         <button
                           onClick={() => handleAction(booking._id, 'complete')}
                           disabled={actionLoading === booking._id}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:active:scale-100"
                         >
                           {actionLoading === booking._id ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -651,7 +651,7 @@ function MentorRequestsContent() {
                           </button>
                           <button
                             onClick={() => setUploadSessionId(booking._id)}
-                            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl shadow-sm shadow-emerald-500/20 hover:from-emerald-600 hover:to-green-700 transition-all active:scale-95"
+                            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-white bg-slate-900 rounded-xl hover:bg-slate-800 transition-all active:scale-95"
                             id={`upload-recording-${booking._id}`}
                           >
                             <Upload size={16} />

@@ -1,6 +1,7 @@
 'use client';
 import { getImageUrl } from '@/utils/imageUrl';
-import { resolveApiBaseUrl } from '@/utils/api-base';
+import { apiClient } from '@/utils/api-client';
+
 
 import React, { useRef, useEffect, useState } from 'react';
 import { Award, BriefcaseBusiness, ChevronLeft, ChevronRight, Star, Users, Heart } from 'lucide-react';
@@ -33,19 +34,18 @@ const TopMentorsSection = () => {
   useEffect(() => {
     const fetchMentors = async () => {
       try {
-        const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/browsementor`);
-        if (response.ok) {
-          const result = await response.json();
-          const mentorData = Array.isArray(result?.data) ? result.data.slice(0, 3) : [];
-          setMentors(mentorData);
+        const result = await apiClient.get<Mentor[]>('/api/v1/users/browsementor');
+        if (result.success && Array.isArray(result.data)) {
+          setMentors(result.data.slice(0, 3));
         }
-      } catch (error) {
-        console.error('Failed to fetch mentors:', error);
+      } catch {
+        // Non-critical: mentors strip is hidden when the request fails.
       } finally {
         setLoading(false);
       }
     };
     fetchMentors();
+
   }, []);
 
   const scroll = (d: 'left' | 'right') => scrollRef.current?.scrollBy({ left: d === 'left' ? -350 : 350, behavior: 'smooth' });

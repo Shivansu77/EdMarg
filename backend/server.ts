@@ -272,8 +272,9 @@ module.exports = app;
 
 // Only listen if running locally or on Render
 if (require.main === module || process.env.RENDER) {
-  const serverInstance = server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  const HOST = process.env.HOST || '127.0.0.1';
+  const serverInstance = server.listen(PORT, HOST, () => {
+    console.log(`Server running on http://${HOST}:${PORT}`);
   });
 
   const shutdown = () => {

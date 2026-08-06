@@ -139,10 +139,10 @@ function ScheduleContent() {
 
   return (
     <DashboardLayout userName={user?.name || "Student Schedule"}>
-      <div className="space-y-8 pb-16 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+      <div className="space-y-8 pb-16 min-h-screen">
 
-        {/* Dynamic Header */}
-        <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
+        {/* Header */}
+        <div className="bg-white border-b border-slate-200 px-6 py-8 sm:px-8">
           <div className="max-w-4xl flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500 mb-1">
@@ -157,17 +157,17 @@ function ScheduleContent() {
             </div>
 
             <div className="grid grid-cols-3 gap-4">
-              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 shadow-sm text-center">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Upcoming</p>
-                <p className="mt-1 text-2xl font-black text-black">{upcomingCount}</p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Upcoming</p>
+                <p className="mt-1 text-2xl font-black text-slate-900">{upcomingCount}</p>
               </div>
-              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 shadow-sm text-center">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Today</p>
-                <p className="mt-1 text-2xl font-black text-black">{todayCount}</p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Today</p>
+                <p className="mt-1 text-2xl font-black text-slate-900">{todayCount}</p>
               </div>
-              <div className="rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 shadow-sm text-center">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Completed</p>
-                <p className="mt-1 text-2xl font-black text-black">{completedCount}</p>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-center">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Completed</p>
+                <p className="mt-1 text-2xl font-black text-slate-900">{completedCount}</p>
               </div>
             </div>
           </div>
@@ -183,7 +183,7 @@ function ScheduleContent() {
           )}
 
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl px-4 pt-4 shadow-sm relative z-20">
+          <div className="flex border-b border-slate-200 mb-6 bg-white rounded-t-xl px-4 pt-4 relative z-20">
             <button
               onClick={() => setActiveTab('upcoming')}
               className={`px-6 py-4 text-sm font-bold border-b-2 transition-colors ${activeTab === 'upcoming'
@@ -232,7 +232,7 @@ function ScheduleContent() {
 
               <div className="space-y-5">
                 {filteredBookings.map((booking) => (
-                  <div key={booking._id} className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:shadow-xl hover:border-black transition-all duration-300">
+                  <div key={booking._id} className="group rounded-2xl border border-slate-200 bg-white overflow-hidden hover:border-slate-300 transition-all duration-300">
                     <div className="p-6">
                       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                         <div className="flex items-start gap-4">

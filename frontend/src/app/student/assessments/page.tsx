@@ -303,16 +303,12 @@ function StudentAssessmentContent() {
     <DashboardLayout userName="Assessments">
       <div className="mx-auto max-w-[1200px] w-full pt-4 pb-16 space-y-8">
         
-        {/* ── Premium Hero Section ── */}
-        <section className="relative overflow-hidden rounded-[32px] bg-white border border-slate-200 shadow-sm p-8 sm:p-10 lg:p-12">
-          {/* Decorative Background Elements */}
-          <div className="pointer-events-none absolute -left-20 top-0 h-64 w-64 rounded-full bg-emerald-100/40 blur-[80px]" />
-          <div className="pointer-events-none absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-cyan-100/40 blur-[80px]" />
-          
-          <div className="relative z-10 flex flex-col xl:flex-row gap-10 xl:items-end justify-between">
+        {/* ── Hero Section ── */}
+        <section className="rounded-2xl bg-white border border-slate-200 p-8 sm:p-10 lg:p-12">
+          <div className="flex flex-col xl:flex-row gap-10 xl:items-end justify-between">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-emerald-700 mb-5">
-                <Sparkles size={14} className="text-emerald-500" />
+              <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-slate-600 mb-5">
+                <Sparkles size={14} className="text-slate-400" />
                 Your Skill Journey
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl mb-4 leading-tight">
@@ -331,19 +327,19 @@ function StudentAssessmentContent() {
 
             {/* Quick Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 shrink-0">
-              <div className="rounded-[20px] bg-slate-50 border border-slate-100 p-5 text-center">
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 text-center">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Total</p>
                 <p className="text-3xl font-extrabold text-slate-900">{totalCount}</p>
               </div>
-              <div className="rounded-[20px] bg-emerald-50 border border-emerald-100 p-5 text-center">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-600/70 mb-1">Done</p>
-                <p className="text-3xl font-extrabold text-emerald-700">{completedCount}</p>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 text-center">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Done</p>
+                <p className="text-3xl font-extrabold text-slate-900">{completedCount}</p>
               </div>
-              <div className="rounded-[20px] bg-amber-50 border border-amber-100 p-5 text-center">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-amber-600/70 mb-1">In Progress</p>
-                <p className="text-3xl font-extrabold text-amber-700">{inProgressCount}</p>
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 text-center">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">In Progress</p>
+                <p className="text-3xl font-extrabold text-slate-900">{inProgressCount}</p>
               </div>
-              <div className="rounded-[20px] bg-slate-50 border border-slate-100 p-5 text-center">
+              <div className="rounded-xl bg-slate-50 border border-slate-200 p-5 text-center">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">To Do</p>
                 <p className="text-3xl font-extrabold text-slate-900">{notStartedCount}</p>
               </div>
@@ -351,13 +347,11 @@ function StudentAssessmentContent() {
           </div>
         </section>
 
-        {/* ── Spotlight: Career Assessment ── */}
-        <section className="group relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm transition-all hover:border-emerald-300 hover:shadow-[0_8px_30px_rgba(16,185,129,0.06)]">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          
-          <div className="relative p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* ── Career Assessment ── */}
+        <section className="group rounded-2xl border border-slate-200 bg-white transition-all hover:border-slate-300">
+          <div className="p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-start sm:items-center gap-5 flex-1">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[20px] bg-emerald-100 text-emerald-600 border border-emerald-200/50 shadow-sm transition-transform duration-300 group-hover:scale-105 group-hover:-rotate-3">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-900 border border-slate-200">
                 <Sparkles size={28} />
               </div>
               <div>
@@ -384,7 +378,7 @@ function StudentAssessmentContent() {
 
             <button
               onClick={handleOpenCareerAssessment}
-              className="w-full md:w-auto shrink-0 inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all shadow-[0_4px_14px_rgba(15,23,42,0.15)] hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95"
+              className="w-full md:w-auto shrink-0 inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-slate-900 px-8 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-95"
             >
               {hasCompletedCareerAssessment ? 'Review Results' : 'Start Assessment'}
               <ArrowRight size={16} />
@@ -402,7 +396,7 @@ function StudentAssessmentContent() {
           {loading ? (
             <div className="grid gap-4">
               {[1, 2].map((i) => (
-                <div key={i} className="rounded-[24px] border border-slate-100 bg-white p-6 sm:p-8 shadow-sm animate-pulse flex flex-col md:flex-row gap-6 justify-between">
+                <div key={i} className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 animate-pulse flex flex-col md:flex-row gap-6 justify-between">
                    <div className="flex gap-4 w-full md:w-2/3">
                      <div className="h-14 w-14 rounded-2xl bg-slate-100 shrink-0" />
                      <div className="flex-1 space-y-3 pt-2">
@@ -415,8 +409,8 @@ function StudentAssessmentContent() {
               ))}
             </div>
           ) : assignments.length === 0 ? (
-            <div className="rounded-[32px] border-2 border-dashed border-slate-200 bg-slate-50/50 p-16 text-center">
-              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[24px] bg-white text-slate-300 shadow-sm mb-6 border border-slate-100">
+            <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-16 text-center">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-xl bg-white text-slate-300 mb-6 border border-slate-200">
                  <FileText size={32} />
               </div>
               <h2 className="mb-2 text-2xl font-bold tracking-tight text-slate-900">You're all caught up!</h2>
@@ -438,7 +432,7 @@ function StudentAssessmentContent() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     key={assignment._id}
-                    className="group rounded-[28px] border border-slate-200 bg-white p-6 sm:p-8 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
+                    className="group rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 transition-all hover:border-slate-300"
                   >
                     <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                       
@@ -452,7 +446,7 @@ function StudentAssessmentContent() {
                         </div>
 
                         <div className="flex-1">
-                          <h2 className="text-xl font-bold tracking-tight text-slate-900 mb-1.5 group-hover:text-black transition-colors">
+                          <h2 className="text-xl font-bold tracking-tight text-slate-900 mb-1.5">
                             {assignment.template.title}
                           </h2>
                           <p className="mb-4 text-sm leading-relaxed text-slate-600 max-w-2xl">
@@ -505,7 +499,7 @@ function StudentAssessmentContent() {
                         ) : (
                           <button
                             onClick={() => handleStartAssessment(assignment._id)}
-                            className="w-full md:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-bold text-white transition-all shadow-[0_4px_12px_rgba(15,23,42,0.12)] hover:bg-slate-800 hover:-translate-y-0.5 active:scale-95"
+                            className="w-full md:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 text-sm font-bold text-white transition-all hover:bg-slate-800 active:scale-95"
                           >
                             {status === 'in-progress' ? 'Continue' : 'Start Now'}
                             <ArrowRight size={16} />

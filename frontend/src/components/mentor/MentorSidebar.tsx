@@ -4,22 +4,19 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { apiClient } from '@/utils/api-client';
+import { useAuth } from '@/context/AuthContext';
 import Logo from '@/components/common/Logo';
 import {
   LayoutGrid,
-  MessageSquare,
   Calendar,
   Users,
-  BarChart3,
-  User,
-  Settings,
-  X,
   ChevronLeft,
-  ChevronRight,
   History,
-  Zap,
   Video,
   CalendarCheck,
+  Settings,
+  LogOut,
+  BarChart3,
 } from 'lucide-react';
 
 interface MentorSidebarProps {
@@ -47,6 +44,7 @@ const MentorSidebar = ({
   onToggleCollapsed,
 }: MentorSidebarProps) => {
   const pathname = usePathname();
+  const { logout } = useAuth();
   const [isRestrictedMentor, setIsRestrictedMentor] = React.useState(true);
 
   React.useEffect(() => {
@@ -73,11 +71,16 @@ const MentorSidebar = ({
     ? navItems.filter((item) => item.href === '/mentor/settings')
     : navItems;
 
+  const handleLogout = async () => {
+    await logout();
+    window.location.href = '/login';
+  };
+
   return (
     <>
       {/* Mobile overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-slate-950/30 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
+        className={`fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity duration-300 lg:hidden ${
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
@@ -85,56 +88,46 @@ const MentorSidebar = ({
       />
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white border-r border-slate-200/80 pb-4 pt-4 shadow-sm transition-all duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 lg:shadow-none ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-slate-200 bg-white transition-all duration-300 lg:sticky lg:top-0 lg:z-20 lg:h-screen lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } ${isCollapsed ? 'w-20' : 'w-64'}`}
       >
         {/* Header */}
-        <div className={`flex items-center justify-between px-4 mb-6 ${isCollapsed ? 'flex-col gap-4' : ''}`}>
+        <div className={`flex h-16 items-center border-b border-slate-200 ${isCollapsed ? 'justify-center px-4' : 'justify-between px-6'}`}>
           {!isCollapsed && (
-            <div className="group block">
-              <Logo imgClassName="h-8 w-auto" className="mb-0" />
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-500 mt-1 pl-1">
-                Mentor Hub
+            <Logo imgClassName="h-8 w-auto" />
+          )}
+          {!isCollapsed && (
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          )}
+          {isCollapsed && (
+            <button
+              type="button"
+              onClick={onToggleCollapsed}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            >
+              <ChevronLeft className="h-4 w-4 rotate-180" />
+            </button>
+          )}
+        </div>
+
+        {/* Navigation */}
+        <div className="flex flex-1 flex-col overflow-y-auto px-3 py-4">
+          {!isCollapsed && (
+            <div className="mb-2 px-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                Navigation
               </p>
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            {/* Close button — mobile only */}
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:hidden"
-              aria-label="Close navigation"
-            >
-              <X size={16} />
-            </button>
-
-            {/* Collapse button — desktop only */}
-            <button
-              type="button"
-              onClick={onToggleCollapsed}
-              className="hidden lg:flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900"
-              aria-label="Toggle sidebar"
-            >
-              <ChevronLeft
-                size={16}
-                className={`transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`}
-              />
-            </button>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <div className="flex h-full flex-col px-2 overflow-y-auto">
-          {!isCollapsed && (
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 px-2 mb-4">
-              Navigation
-            </p>
-          )}
-
-          <nav className="space-y-1 flex-1">
+          <nav className="space-y-1">
             {visibleNavItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
               const Icon = item.icon;
@@ -144,59 +137,35 @@ const MentorSidebar = ({
                   key={item.name}
                   href={item.href}
                   onClick={onClose}
-                  className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
+                  className={`group flex items-center gap-3 rounded-lg px-3 py-2 transition-all ${
                     isActive
-                      ? 'bg-emerald-50/80 text-emerald-900 font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]'
-                      : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-semibold'
-                  }`}
+                      ? 'bg-slate-900 text-white'
+                      : 'text-slate-700 hover:bg-slate-100'
+                  } ${isCollapsed ? 'justify-center' : ''}`}
                   title={isCollapsed ? item.name : undefined}
                 >
-                  <span
-                    className={`flex h-9 w-9 items-center justify-center rounded-lg shrink-0 transition-colors duration-300 ${
-                      isActive
-                        ? 'bg-gradient-to-br from-emerald-400 to-green-500 text-slate-900 shadow-sm shadow-emerald-500/20'
-                        : 'bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-700'
-                    }`}
-                  >
-                    <Icon size={18} strokeWidth={2} />
-                  </span>
+                  <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
                   {!isCollapsed && (
-                    <>
-                      <span className={`flex-1 text-sm ${isActive ? 'font-bold' : 'font-semibold'}`}>
-                        {item.name}
-                      </span>
-                      <ChevronRight
-                        size={14}
-                        className={`transition-transform duration-200 ${
-                          isActive
-                            ? 'text-emerald-700 opacity-100'
-                            : 'text-slate-400 opacity-0 group-hover:opacity-100'
-                        }`}
-                      />
-                    </>
+                    <span className="text-sm font-medium">{item.name}</span>
                   )}
                 </Link>
               );
             })}
           </nav>
+        </div>
 
-          {/* Pro tip card */}
-          {!isCollapsed && !isRestrictedMentor && (
-            <div className="rounded-xl border border-emerald-100/50 bg-emerald-50/50 p-4 mt-6 shadow-[0_4px_20px_rgba(16,185,129,0.03)]">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap size={14} className="text-emerald-600" />
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
-                  Mentor Tip
-                </p>
-              </div>
-              <p className="mt-1 text-sm font-extrabold text-slate-900">
-                Keep your schedule up to date
-              </p>
-              <p className="mt-1 text-xs leading-relaxed text-slate-600 font-medium">
-                Update your availability weekly so students can always find and book sessions with you.
-              </p>
-            </div>
-          )}
+        {/* Logout Button */}
+        <div className="border-t border-slate-200 p-3">
+          <button
+            onClick={handleLogout}
+            className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-slate-700 transition-all hover:bg-red-50 hover:text-red-600 ${
+              isCollapsed ? 'justify-center' : ''
+            }`}
+            title={isCollapsed ? 'Sign Out' : undefined}
+          >
+            <LogOut className="h-5 w-5 shrink-0" strokeWidth={2} />
+            {!isCollapsed && <span className="text-sm font-medium">Sign Out</span>}
+          </button>
         </div>
       </aside>
     </>
