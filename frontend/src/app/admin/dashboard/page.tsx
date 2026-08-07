@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { apiClient } from '@/utils/api-client';
@@ -23,6 +24,8 @@ import {
   Activity,
   AlertTriangle,
   Clock,
+  SquareArrowOutUpRight,
+  ExternalLink,
 } from 'lucide-react';
 
 type DashboardStats = {
@@ -78,16 +81,8 @@ type AdminRecording = {
   duration?: number;
   createdAt?: string;
   meetingId?: string;
-  studentId?: {
-    _id?: string;
-    name?: string;
-    email?: string;
-  };
-  mentorId?: {
-    _id?: string;
-    name?: string;
-    email?: string;
-  };
+  studentId?: { _id?: string; name?: string; email?: string };
+  mentorId?: { _id?: string; name?: string; email?: string };
   sessionId?: {
     _id?: string;
     sessionType?: string;
@@ -113,16 +108,8 @@ type RecordingSummary = {
 };
 
 const EMPTY_RECORDING_SUMMARY: RecordingSummary = {
-  total: 0,
-  completed: 0,
-  pending: 0,
-  downloading: 0,
-  uploading: 0,
-  failed: 0,
-  manualUploads: 0,
-  zoomCaptures: 0,
-  totalStorageBytes: 0,
-  averageDurationMinutes: 0,
+  total: 0, completed: 0, pending: 0, downloading: 0, uploading: 0, failed: 0,
+  manualUploads: 0, zoomCaptures: 0, totalStorageBytes: 0, averageDurationMinutes: 0,
   recentNeedsAction: [],
 };
 
@@ -136,26 +123,15 @@ const formatBytes = (bytes: number) => {
   const units = ['B', 'KB', 'MB', 'GB', 'TB'];
   let value = bytes;
   let index = 0;
-
-  while (value >= 1024 && index < units.length - 1) {
-    value /= 1024;
-    index += 1;
-  }
-
-  const digits = value >= 10 ? 1 : 2;
-  return `${value.toFixed(digits)} ${units[index]}`;
+  while (value >= 1024 && index < units.length - 1) { value /= 1024; index += 1; }
+  return `${value.toFixed(value >= 10 ? 1 : 2)} ${units[index]}`;
 };
 
 const formatRelativeDate = (rawDate?: string) => {
   if (!rawDate) return '—';
   const date = new Date(rawDate);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  return date.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
 };
 
 const formatRecordingStatus = (status?: string) => {
@@ -169,10 +145,67 @@ const formatRecordingStatus = (status?: string) => {
 const recordingStatusClass = (status?: string) => {
   if (status === 'completed') return 'border-emerald-200 bg-emerald-50 text-emerald-700';
   if (status === 'failed') return 'border-rose-200 bg-rose-50 text-rose-700';
-  if (status === 'downloading' || status === 'uploading') return 'border-blue-200 bg-blue-50 text-blue-700';
+  if (status === 'downloading' || status === 'uploading') return 'border-sky-200 bg-sky-50 text-sky-700';
   return 'border-amber-200 bg-amber-50 text-amber-700';
 };
 
+// ── Skeleton ──────────────────────────────────────────────────
+const Skeleton = ({ className = '' }: { className?: string }) => (
+  <div className={`animate-pulse rounded-lg bg-[var(--color-surface-dim)] ${className}`} />
+);
+
+// ── Empty State ───────────────────────────────────────────────
+const EmptyState = ({ icon: Icon, title, subtitle }: { icon: React.ElementType; title: string; subtitle: string }) => (
+  <div className="py-20 flex flex-col items-center justify-center text-center px-6">
+    <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--color-primary-container)]/40 mb-5">
+      <Icon className="w-7 h-7 text-[var(--color-primary-fixed-dim)]" strokeWidth={1.5} />
+    </div>
+    <h3 className="text-base font-semibold text-[var(--color-on-surface)]">{title}</h3>
+    <p className="mt-1.5 text-sm text-[var(--color-on-surface-variant)] max-w-xs">{subtitle}</p>
+  </div>
+);
+
+// ── Stat Card ─────────────────────────────────────────────────
+const StatCard = ({
+  label, value, icon: Icon, href, trend,
+}: {
+  label: string; value: string | number; icon: React.ElementType; href: string; trend?: { value: string; positive: boolean };
+}) => (
+  <Link href={href} className="group block">
+    <div className="relative overflow-hidden rounded-2xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] p-5 transition-all duration-200 hover:border-[var(--color-primary)]/20 hover:shadow-[0_4px_24px_rgba(78,69,226,0.06)]">
+      <div className="flex items-start justify-between">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium tracking-wider uppercase text-[var(--color-on-surface-variant)]">{label}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight text-[var(--color-on-surface)] tabular-nums">{value}</p>
+          {trend && (
+            <p className={`mt-1 text-xs font-medium ${trend.positive ? 'text-emerald-600' : 'text-rose-600'}`}>{trend.value}</p>
+          )}
+        </div>
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--color-primary-container)]/40 group-hover:bg-[var(--color-primary-container)]/70 transition-colors">
+          <Icon className="w-5 h-5 text-[var(--color-primary)]" strokeWidth={1.5} />
+        </div>
+      </div>
+    </div>
+  </Link>
+);
+
+// ── Mini Summary Pill ─────────────────────────────────────────
+const SummaryPill = ({ label, value, color }: { label: string; value: number | string; color: 'emerald' | 'sky' | 'rose' | 'violet' }) => {
+  const palette = {
+    emerald: 'border-emerald-200 bg-emerald-50/60 text-emerald-700',
+    sky: 'border-sky-200 bg-sky-50/60 text-sky-700',
+    rose: 'border-rose-200 bg-rose-50/60 text-rose-700',
+    violet: 'border-violet-200 bg-violet-50/60 text-violet-700',
+  };
+  return (
+    <div className={`flex flex-col items-center rounded-xl border px-4 py-3 ${palette[color]}`}>
+      <span className="text-lg font-bold tabular-nums">{value}</span>
+      <span className="text-[11px] font-medium tracking-wide uppercase mt-0.5 opacity-80">{label}</span>
+    </div>
+  );
+};
+
+// ── Main Content ──────────────────────────────────────────────
 function AdminDashboardContent() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [bookingStats, setBookingStats] = useState<BookingStats | null>(null);
@@ -197,19 +230,11 @@ function AdminDashboardContent() {
   const [isProcessingBulk, setIsProcessingBulk] = useState(false);
 
   const loadDashboard = async (page: number) => {
-    const statsRes = await apiClient.get<DashboardStats>('/api/v1/admin/stats', {
-      headers: NO_CACHE_HEADERS,
-    });
-    const pendingRes = await apiClient.get<Mentor[]>(`/api/v1/admin/mentors/pending?page=${page}`, {
-      headers: NO_CACHE_HEADERS,
-    });
-    const bookingStatsRes = await apiClient.get<BookingStats>('/api/v1/admin/bookings/stats', {
-      headers: NO_CACHE_HEADERS,
-    });
-
+    const statsRes = await apiClient.get<DashboardStats>('/api/v1/admin/stats', { headers: NO_CACHE_HEADERS });
+    const pendingRes = await apiClient.get<Mentor[]>(`/api/v1/admin/mentors/pending?page=${page}`, { headers: NO_CACHE_HEADERS });
+    const bookingStatsRes = await apiClient.get<BookingStats>('/api/v1/admin/bookings/stats', { headers: NO_CACHE_HEADERS });
     if (!statsRes.success) throw new Error(statsRes.error || statsRes.message || 'Failed to fetch stats');
     if (!pendingRes.success) throw new Error(pendingRes.error || pendingRes.message || 'Failed to fetch pending mentors');
-
     setStats(statsRes.data || null);
     setBookingStats(bookingStatsRes.success ? (bookingStatsRes.data ?? null) : null);
     setPendingMentors(pendingRes.data || []);
@@ -220,115 +245,65 @@ function AdminDashboardContent() {
   };
 
   const loadAssessments = async (page: number) => {
-    const assessmentsRes = await apiClient.get<AssessmentSubmission[]>(
+    const res = await apiClient.get<AssessmentSubmission[]>(
       `/api/v1/admin/assessments?page=${page}&limit=10`,
       { headers: NO_CACHE_HEADERS }
     );
-    if (!assessmentsRes.success) {
-      throw new Error(assessmentsRes.error || assessmentsRes.message || 'Failed to fetch assessments');
-    }
-
-    setAssessments(assessmentsRes.data || []);
-    setAssessmentPage(assessmentsRes.page || page);
-    setAssessmentPages(assessmentsRes.pages || 1);
-    setAssessmentTotal(assessmentsRes.total || 0);
+    if (!res.success) throw new Error(res.error || res.message || 'Failed to fetch assessments');
+    setAssessments(res.data || []);
+    setAssessmentPage(res.page || page);
+    setAssessmentPages(res.pages || 1);
+    setAssessmentTotal(res.total || 0);
   };
 
   const loadRecordingSummary = async () => {
     const res = await apiClient.get<AdminRecording[]>('/api/v1/admin/recordings', {
-      params: {
-        page: 1,
-        limit: 50,
-        status: 'all',
-        type: 'all',
-        search: '',
-        sortField: 'date',
-        sortAsc: false,
-      },
+      params: { page: 1, limit: 50, status: 'all', type: 'all', search: '', sortField: 'date', sortAsc: false },
       headers: NO_CACHE_HEADERS,
     });
-
-    if (!res.success) {
-      throw new Error(res.error || res.message || 'Failed to fetch recording snapshot');
-    }
-
+    if (!res.success) throw new Error(res.error || res.message || 'Failed to fetch recording snapshot');
     const rows = res.data || [];
     const summary = rows.reduce<RecordingSummary>(
-      (acc, recording) => {
-        const status = String(recording.processingStatus || 'pending');
-
-        if (status === 'completed') acc.completed += 1;
-        else if (status === 'failed') acc.failed += 1;
-        else if (status === 'downloading') acc.downloading += 1;
-        else if (status === 'uploading') acc.uploading += 1;
+      (acc, rec) => {
+        const s = String(rec.processingStatus || 'pending');
+        if (s === 'completed') acc.completed += 1;
+        else if (s === 'failed') acc.failed += 1;
+        else if (s === 'downloading') acc.downloading += 1;
+        else if (s === 'uploading') acc.uploading += 1;
         else acc.pending += 1;
-
-        if (recording.recordingType === 'manual_upload') acc.manualUploads += 1;
+        if (rec.recordingType === 'manual_upload') acc.manualUploads += 1;
         else acc.zoomCaptures += 1;
-
-        acc.totalStorageBytes += Number(recording.fileSize || 0);
-
-        if (Number(recording.duration || 0) > 0) {
-          acc.averageDurationMinutes += Number(recording.duration || 0) / 60;
-        }
-
+        acc.totalStorageBytes += Number(rec.fileSize || 0);
+        if (Number(rec.duration || 0) > 0) acc.averageDurationMinutes += Number(rec.duration || 0) / 60;
         return acc;
       },
-      {
-        total: Number(res.total || rows.length),
-        completed: 0,
-        pending: 0,
-        downloading: 0,
-        uploading: 0,
-        failed: 0,
-        manualUploads: 0,
-        zoomCaptures: 0,
-        totalStorageBytes: 0,
-        averageDurationMinutes: 0,
-        recentNeedsAction: rows.filter((item) => item.processingStatus !== 'completed').slice(0, 5),
-      }
+      { ...EMPTY_RECORDING_SUMMARY, total: Number(res.total || rows.length) }
     );
-
-    const completedRows = rows.filter((item) => Number(item.duration || 0) > 0);
-    summary.averageDurationMinutes = completedRows.length
-      ? Number((summary.averageDurationMinutes / completedRows.length).toFixed(1))
-      : 0;
-
+    const completedRows = rows.filter(r => Number(r.duration || 0) > 0);
+    summary.averageDurationMinutes = completedRows.length ? +(summary.averageDurationMinutes / completedRows.length).toFixed(1) : 0;
+    summary.recentNeedsAction = rows.filter(r => r.processingStatus !== 'completed').slice(0, 5);
     setRecordingSummary(summary);
   };
 
   const loadAll = async (showLoader: boolean) => {
     try {
-      if (showLoader) {
-        setLoading(true);
-      }
-
+      if (showLoader) setLoading(true);
       setError(null);
-
-      await Promise.all([
-        loadDashboard(pendingPage),
-        loadAssessments(assessmentPage),
-        loadRecordingSummary(),
-      ]);
-
+      await Promise.all([loadDashboard(pendingPage), loadAssessments(assessmentPage), loadRecordingSummary()]);
       setLastUpdatedAt(new Date().toISOString());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
-      if (showLoader) {
-        setLoading(false);
-      }
+      if (showLoader) setLoading(false);
       setIsRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    void loadAll(true);
-  }, [pendingPage, assessmentPage]);
+  useEffect(() => { void loadAll(true); }, []);
 
   const totalSessions = useMemo(() => {
     if (!bookingStats) return 0;
-    return Object.values(bookingStats).reduce<number>((sum, value) => sum + Number(value || 0), 0);
+    return Object.values(bookingStats).reduce<number>((sum, v) => sum + Number(v || 0), 0);
   }, [bookingStats]);
 
   const completedSessions = Number(bookingStats?.completed || 0);
@@ -339,531 +314,225 @@ function AdminDashboardContent() {
   const activeQueue = pendingSessions + confirmedSessions + inProgressSessions;
   const completionRate = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
   const cancellationRate = totalSessions > 0 ? Math.round((cancelledSessions / totalSessions) * 100) : 0;
-  const processingRecordings =
-    recordingSummary.pending + recordingSummary.downloading + recordingSummary.uploading;
+  const processingRecordings = recordingSummary.pending + recordingSummary.downloading + recordingSummary.uploading;
 
-  const adminStats = [
-    {
-      label: 'Students Active',
-      value: stats?.totalStudents || '0',
-      icon: GraduationCap,
-      href: '/admin/users',
-    },
-    {
-      label: 'Mentors Verified',
-      value: stats?.approvedMentors || '0',
-      icon: ShieldCheck,
-      href: '/admin/users?tab=mentor',
-    },
-    {
-      label: 'Pending Approval',
-      value: stats?.pendingMentors || '0',
-      icon: UserCog,
-      href: '/admin/users?tab=mentor',
-    },
-    {
-      label: 'Total Users',
-      value: stats?.totalUsers || '0',
-      icon: Users,
-      href: '/admin/users',
-    },
-    {
-      label: 'Total Sessions',
-      value: totalSessions || '0',
-      icon: CalendarDays,
-      href: '/admin/bookings',
-    },
-    {
-      label: 'Recordings Tracked',
-      value: recordingSummary.total || '0',
-      icon: Video,
-      href: '/admin/recordings',
-    },
-  ];
+  const runRefresh = async () => { setIsRefreshing(true); await loadAll(false); };
 
-  const runRefresh = async () => {
-    setIsRefreshing(true);
-    await loadAll(false);
+  const handleApprove = async (mentorId: string) => {
+    try { setError(null); const r = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/approve`, {}); if (!r.success) { setError(r.error || r.message || 'Failed'); return; } setPendingPage(1); await Promise.all([loadDashboard(1), loadRecordingSummary()]); setLastUpdatedAt(new Date().toISOString()); } catch (err) { setError(err instanceof Error ? err.message : 'Failed'); }
   };
 
-  const handleApproveMentor = async (mentorId: string) => {
-    try {
-      setError(null);
-      const res = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/approve`, {});
-      if (!res.success) {
-        setError(res.error || res.message || 'Failed to approve mentor');
-        return;
-      }
-
-      setPendingPage(1);
-      await Promise.all([loadDashboard(1), loadRecordingSummary()]);
-      setLastUpdatedAt(new Date().toISOString());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to approve mentor');
-      console.error('Error approving mentor:', err);
-    }
+  const handleReject = async (mentorId: string, mentorName: string) => {
+    if (!window.confirm(`Reject ${mentorName}?`)) return;
+    try { setError(null); const r = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/reject`, { reason: 'Rejected by admin' }); if (!r.success) { setError(r.error || r.message || 'Failed'); return; } setPendingPage(1); await Promise.all([loadDashboard(1), loadRecordingSummary()]); setLastUpdatedAt(new Date().toISOString()); } catch (err) { setError(err instanceof Error ? err.message : 'Failed'); }
   };
 
-  const handleRejectMentor = async (mentorId: string, mentorName: string) => {
-    const shouldReject = window.confirm(`Are you sure you want to reject ${mentorName}'s mentor request?`);
-    if (!shouldReject) return;
+  const toggleAll = () => setSelectedMentors(pendingMentors.length > 0 && selectedMentors.size === pendingMentors.length ? new Set() : new Set(pendingMentors.map(m => m._id)));
+  const toggleOne = (id: string) => { const n = new Set(selectedMentors); n.has(id) ? n.delete(id) : n.add(id); setSelectedMentors(n); };
 
-    try {
-      setError(null);
-      const res = await apiClient.put(`/api/v1/admin/mentors/${mentorId}/reject`, {
-        reason: 'Rejected by admin',
-      });
+  const bulkApprove = async () => { if (!selectedMentors.size) return; setIsProcessingBulk(true); try { setError(null); const rr = await Promise.all(Array.from(selectedMentors).map(id => apiClient.put(`/api/v1/admin/mentors/${id}/approve`, {}))); if (rr.some(r => !r.success)) { setError('Some approvals failed'); return; } setSelectedMentors(new Set()); setPendingPage(1); await Promise.all([loadDashboard(1), loadRecordingSummary()]); setLastUpdatedAt(new Date().toISOString()); } catch (err) { setError(err instanceof Error ? err.message : 'Failed'); } finally { setIsProcessingBulk(false); } };
 
-      if (!res.success) {
-        setError(res.error || res.message || 'Failed to reject mentor');
-        return;
-      }
+  const bulkReject = async () => { if (!selectedMentors.size) return; if (!window.confirm(`Reject ${selectedMentors.size} mentor(s)?`)) return; setIsProcessingBulk(true); try { setError(null); const rr = await Promise.all(Array.from(selectedMentors).map(id => apiClient.put(`/api/v1/admin/mentors/${id}/reject`, { reason: 'Bulk rejected by admin' }))); if (rr.some(r => !r.success)) { setError('Some rejections failed'); return; } setSelectedMentors(new Set()); setPendingPage(1); await Promise.all([loadDashboard(1), loadRecordingSummary()]); setLastUpdatedAt(new Date().toISOString()); } catch (err) { setError(err instanceof Error ? err.message : 'Failed'); } finally { setIsProcessingBulk(false); } };
 
-      setPendingPage(1);
-      await Promise.all([loadDashboard(1), loadRecordingSummary()]);
-      setLastUpdatedAt(new Date().toISOString());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject mentor');
-      console.error('Error rejecting mentor:', err);
-    }
-  };
-
-  const toggleAllMentors = () => {
-    if (selectedMentors.size === pendingMentors.length && pendingMentors.length > 0) {
-      setSelectedMentors(new Set());
-    } else {
-      setSelectedMentors(new Set(pendingMentors.map((mentor) => mentor._id)));
-    }
-  };
-
-  const toggleMentor = (id: string) => {
-    const next = new Set(selectedMentors);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    setSelectedMentors(next);
-  };
-
-  const handleBulkApprove = async () => {
-    if (!selectedMentors.size) return;
-
-    setIsProcessingBulk(true);
-    try {
-      setError(null);
-      const responses = await Promise.all(
-        Array.from(selectedMentors).map((id) => apiClient.put(`/api/v1/admin/mentors/${id}/approve`, {}))
-      );
-
-      const failedResponse = responses.find((response) => !response.success);
-      if (failedResponse) {
-        setError(failedResponse.error || failedResponse.message || 'Failed to approve one or more mentors');
-        return;
-      }
-
-      setSelectedMentors(new Set());
-      setPendingPage(1);
-      await Promise.all([loadDashboard(1), loadRecordingSummary()]);
-      setLastUpdatedAt(new Date().toISOString());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to approve mentors');
-      console.error('Error in bulk approval:', err);
-    } finally {
-      setIsProcessingBulk(false);
-    }
-  };
-
-  const handleBulkReject = async () => {
-    if (!selectedMentors.size) return;
-
-    const shouldReject = window.confirm(
-      `Are you sure you want to reject ${selectedMentors.size} selected mentor request(s)?`
-    );
-
-    if (!shouldReject) return;
-
-    setIsProcessingBulk(true);
-    try {
-      setError(null);
-      const responses = await Promise.all(
-        Array.from(selectedMentors).map((id) =>
-          apiClient.put(`/api/v1/admin/mentors/${id}/reject`, { reason: 'Bulk rejected by admin' })
-        )
-      );
-
-      const failedResponse = responses.find((response) => !response.success);
-      if (failedResponse) {
-        setError(failedResponse.error || failedResponse.message || 'Failed to reject one or more mentors');
-        return;
-      }
-
-      setSelectedMentors(new Set());
-      setPendingPage(1);
-      await Promise.all([loadDashboard(1), loadRecordingSummary()]);
-      setLastUpdatedAt(new Date().toISOString());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject mentors');
-      console.error('Error in bulk rejection:', err);
-    } finally {
-      setIsProcessingBulk(false);
-    }
-  };
-
-  const exportAssessmentsToCSV = () => {
+  const exportCSV = () => {
     if (!assessments.length) return;
-
-    const headers = ['Student Name', 'Student Email', 'Responses Logged', 'Submission Date'];
-    const csvRows = [headers.join(',')];
-
-    assessments.forEach((submission) => {
-      const answers = submission.answers || {};
-      const keys = typeof answers === 'object' && answers ? Object.keys(answers) : [];
-      const name = `"${(submission.student?.name || 'Unknown').replace(/"/g, '""')}"`;
-      const email = `"${(submission.student?.email || '').replace(/"/g, '""')}"`;
-      const date = submission.createdAt ? `"${new Date(submission.createdAt).toLocaleDateString()}"` : '""';
-      csvRows.push([name, email, keys.length, date].join(','));
-    });
-
-    const csvData = csvRows.join('\n');
-    const blob = new Blob([csvData], { type: 'text/csv' });
+    const rows = [['Student Name', 'Student Email', 'Responses', 'Submission Date'].join(',')];
+    assessments.forEach(s => { const k = Object.keys(s.answers || {}); rows.push([`"${(s.student?.name || 'Unknown').replace(/"/g, '""')}"`, `"${(s.student?.email || '').replace(/"/g, '""')}"`, k.length, s.createdAt ? `"${new Date(s.createdAt).toLocaleDateString()}"` : '""'].join(',')); });
+    const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = `edmarg_assessments_${new Date().toISOString().split('T')[0]}.csv`;
-    anchor.click();
+    const a = document.createElement('a'); a.href = url; a.download = `edmarg_assessments_${new Date().toISOString().split('T')[0]}.csv`; a.click();
     window.URL.revokeObjectURL(url);
   };
 
+  // ── Render ─────────────────────────────────────────────────
   return (
     <DashboardLayout userName="Admin Team">
-      <div className="space-y-8 pb-16 bg-linear-to-br from-slate-50 to-slate-100 min-h-screen">
-        <div className="bg-white border-b border-gray-200 shadow-sm px-6 py-8 sm:px-8">
-          <div className="max-w-7xl flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">Admin Control Center</p>
-              <h1 className="text-4xl font-bold text-black">Platform Overview</h1>
-              <p className="mt-2 text-gray-600">
-                Manage mentor approvals, monitor recording health, and track platform-wide operations.
-              </p>
-              {lastUpdatedAt && (
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                  <Clock size={12} /> Last updated {formatRelativeDate(lastUpdatedAt)}
-                </p>
-              )}
-            </div>
+      <div className="pb-16">
 
-            <div className="flex flex-wrap gap-3 mt-4 lg:mt-0 items-center">
-              <button
-                onClick={runRefresh}
-                disabled={isRefreshing || loading}
-                className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-bold text-emerald-700 shadow-sm transition-all hover:bg-emerald-100 disabled:opacity-60"
-              >
-                <RefreshCw size={16} className={isRefreshing ? 'animate-spin' : ''} />
-                Refresh Data
-              </button>
-              <Link href="/admin/users">
-                <button className="inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-gray-800 active:scale-95">
-                  <Users size={16} />
-                  Users
-                </button>
-              </Link>
-              <Link href="/admin/bookings">
-                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-800 shadow-sm transition-all hover:bg-gray-50 active:scale-95">
-                  <CalendarDays size={16} />
-                  Sessions
-                </button>
-              </Link>
-              <Link href="/admin/blogs">
-                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-800 shadow-sm transition-all hover:bg-gray-50 active:scale-95">
-                  <BookOpen size={16} />
-                  Blogs
-                </button>
-              </Link>
-              <Link href="/admin/recordings">
-                <button className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-800 shadow-sm transition-all hover:bg-gray-50 active:scale-95">
-                  <Video size={16} />
-                  Recordings
-                </button>
-              </Link>
-            </div>
+        {/* ── Hero Header ── */}
+        <div className="mb-8">
+          <p className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[var(--color-on-surface-variant)] mb-1">Admin Control Center</p>
+          <h1 className="text-28 font-bold text-[var(--color-on-surface)] tracking-tight">Platform Overview</h1>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <p className="text-sm text-[var(--color-on-surface-variant)]">Manage mentor approvals, monitor recordings, and track platform-wide operations.</p>
+            {lastUpdatedAt && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--color-outline-variant)]/40 bg-[var(--color-surface-container-low)] px-3 py-1 text-xs font-medium text-[var(--color-on-surface-variant)]">
+                <Clock size={12} /> Updated {formatRelativeDate(lastUpdatedAt)}
+              </span>
+            )}
           </div>
         </div>
 
-        <div className="px-6 sm:px-8 max-w-7xl mx-auto space-y-8">
-          {error && (
-            <div className="rounded-2xl border border-red-200 bg-red-50 p-6 flex items-center gap-3 shadow-sm">
-              <XCircle className="text-red-500" size={24} />
-              <div>
-                <p className="font-bold text-red-900">Error</p>
-                <p className="mt-1 text-sm font-medium text-red-700">{error}</p>
-              </div>
+        {/* ── Quick Actions ── */}
+        <div className="mb-8 flex flex-wrap items-center gap-2">
+          <button onClick={runRefresh} disabled={isRefreshing || loading} className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-4 py-2.5 text-sm font-medium text-[var(--color-on-surface)] shadow-sm transition-all hover:border-[var(--color-primary)]/30 hover:shadow-md disabled:opacity-50">
+            <RefreshCw size={15} className={isRefreshing ? 'animate-spin' : ''} /> Refresh
+          </button>
+          <Link href="/admin/users" className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[var(--color-primary-dim)] hover:shadow-md">Users</Link>
+          <Link href="/admin/bookings" className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-4 py-2.5 text-sm font-medium text-[var(--color-on-surface)] shadow-sm transition-all hover:border-[var(--color-primary)]/30">Sessions</Link>
+          <Link href="/admin/blogs" className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-4 py-2.5 text-sm font-medium text-[var(--color-on-surface)] shadow-sm transition-all hover:border-[var(--color-primary)]/30">Blogs</Link>
+          <Link href="/admin/recordings" className="inline-flex items-center gap-2 rounded-xl border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-4 py-2.5 text-sm font-medium text-[var(--color-on-surface)] shadow-sm transition-all hover:border-[var(--color-primary)]/30">Recordings</Link>
+        </div>
+
+        {/* ── Error ── */}
+        {error && (
+          <div className="mb-8 flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+            <XCircle className="w-5 h-5 text-rose-500 mt-0.5 shrink-0" />
+            <div><p className="text-sm font-semibold text-rose-800">Error loading data</p><p className="mt-0.5 text-sm text-rose-600">{error}</p></div>
+          </div>
+        )}
+
+        {/* ── Content ── */}
+        {loading ? (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-[104px]" />)}
             </div>
-          )}
-
-          {loading ? (
-            <div className="flex items-center justify-center py-32">
-              <div className="text-center">
-                <div className="inline-block relative">
-                  <div className="w-12 h-12 border-4 border-gray-200 rounded-full" />
-                  <div className="w-12 h-12 border-4 border-black rounded-full border-t-transparent animate-spin absolute top-0 left-0" />
-                </div>
-                <p className="mt-4 text-sm font-bold text-gray-600 uppercase tracking-widest">Loading data...</p>
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[96px]" />)}
             </div>
-          ) : (
-            <>
-              <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-6">
-                {adminStats.map((stat) => (
-                  <Link key={stat.label} href={stat.href}>
-                    <div className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:border-black hover:shadow-xl flex flex-col cursor-pointer">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-black shadow-sm transition-transform group-hover:scale-110 border border-gray-200">
-                          <stat.icon size={22} strokeWidth={2.5} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold uppercase tracking-widest text-gray-500">{stat.label}</p>
-                          <h2 className="mt-1 text-3xl font-extrabold tracking-tight text-black">{stat.value}</h2>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                ))}
-              </section>
+            <Skeleton className="h-[320px]" />
+            <Skeleton className="h-[420px]" />
+            <Skeleton className="h-[320px]" />
+          </div>
+        ) : (
+          <>
+            {/* ── Stats Grid ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-4 mb-8">
+              <StatCard label="Students Active" value={stats?.totalStudents ?? '0'} icon={GraduationCap} href="/admin/users" />
+              <StatCard label="Mentors Verified" value={stats?.approvedMentors ?? '0'} icon={ShieldCheck} href="/admin/users" />
+              <StatCard label="Pending Approval" value={stats?.pendingMentors ?? '0'} icon={UserCog} href="/admin/users" trend={stats?.pendingMentors && stats.pendingMentors > 0 ? { value: `${stats.pendingMentors} need review`, positive: false } : undefined} />
+              <StatCard label="Total Users" value={stats?.totalUsers ?? '0'} icon={Users} href="/admin/users" />
+              <StatCard label="Total Sessions" value={totalSessions || '0'} icon={CalendarDays} href="/admin/bookings" />
+              <StatCard label="Recordings" value={recordingSummary.total || '0'} icon={Video} href="/admin/recordings" />
+            </div>
 
-              <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
-                  <p className="text-xs font-bold uppercase tracking-widest text-emerald-700">Session Completion</p>
-                  <p className="mt-2 text-3xl font-black text-emerald-900">{completionRate}%</p>
-                  <p className="mt-1 text-sm text-emerald-700">{completedSessions} completed out of {totalSessions || 0}</p>
+            {/* ── Session Health ── */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-8">
+              <SummaryPill label="Completion Rate" value={`${completionRate}%`} color="emerald" />
+              <SummaryPill label="Active Queue" value={activeQueue} color="sky" />
+              <SummaryPill label="Recording Risk" value={recordingSummary.failed + processingRecordings} color="rose" />
+              <SummaryPill label="Vault Storage" value={formatBytes(recordingSummary.totalStorageBytes)} color="violet" />
+            </div>
+
+            {/* ── Recording Watchlist ── */}
+            <section className="mb-8 overflow-hidden rounded-2xl border border-[var(--color-outline-variant)]/20 bg-[var(--color-surface-container-lowest)] shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-5 border-b border-[var(--color-outline-variant)]/15">
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--color-on-surface)]">Recording Health Watchlist</h2>
+                  <p className="text-sm text-[var(--color-on-surface-variant)]">Uploads still processing or requiring attention.</p>
                 </div>
-
-                <div className="rounded-xl border border-sky-200 bg-sky-50 p-5 shadow-sm">
-                  <p className="text-xs font-bold uppercase tracking-widest text-sky-700">Active Queue</p>
-                  <p className="mt-2 text-3xl font-black text-sky-900">{activeQueue}</p>
-                  <p className="mt-1 text-sm text-sky-700">
-                    Pending + confirmed + in-progress sessions. Cancel rate: {cancellationRate}%
-                  </p>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase text-amber-700">
+                    <Activity size={11} /> {processingRecordings} processing
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold tracking-wide uppercase text-rose-700">
+                    <AlertTriangle size={11} /> {recordingSummary.failed} failed
+                  </span>
+                  <Link href="/admin/recordings" className="text-sm font-medium text-[var(--color-primary)] hover:text-[var(--color-primary-dim)] transition-colors">Open Vault →</Link>
                 </div>
+              </div>
 
-                <div className="rounded-xl border border-rose-200 bg-rose-50 p-5 shadow-sm">
-                  <p className="text-xs font-bold uppercase tracking-widest text-rose-700">Recording Risk</p>
-                  <p className="mt-2 text-3xl font-black text-rose-900">{recordingSummary.failed + processingRecordings}</p>
-                  <p className="mt-1 text-sm text-rose-700">{recordingSummary.failed} failed, {processingRecordings} in pipeline</p>
-                </div>
-
-                <div className="rounded-xl border border-violet-200 bg-violet-50 p-5 shadow-sm">
-                  <p className="text-xs font-bold uppercase tracking-widest text-violet-700">Vault Storage</p>
-                  <p className="mt-2 text-3xl font-black text-violet-900">{formatBytes(recordingSummary.totalStorageBytes)}</p>
-                  <p className="mt-1 text-sm text-violet-700">Avg duration {recordingSummary.averageDurationMinutes} min</p>
-                </div>
-              </section>
-
-              <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                <div className="border-b border-gray-200 bg-white px-6 py-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold text-black">Recording Health Watchlist</h2>
-                    <p className="mt-1 text-sm font-medium text-gray-500">
-                      Latest uploads that are still in progress or failed.
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-amber-700">
-                      <Activity size={12} /> {processingRecordings} processing
-                    </span>
-                    <span className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-3 py-1 text-xs font-bold uppercase tracking-wide text-rose-700">
-                      <AlertTriangle size={12} /> {recordingSummary.failed} failed
-                    </span>
-                    <Link href="/admin/recordings" className="text-sm font-bold text-slate-700 hover:text-black">
-                      Open Vault →
-                    </Link>
-                  </div>
-                </div>
-
-                {recordingSummary.recentNeedsAction.length === 0 ? (
-                  <div className="rounded-3xl border-2 border-dashed border-emerald-200 bg-emerald-50/40 p-12 text-center m-6">
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-100 mb-4">
-                      <CheckCircle className="h-7 w-7 text-emerald-600" />
-                    </div>
-                    <h3 className="mt-2 text-lg font-extrabold text-emerald-900">No recording incidents right now</h3>
-                    <p className="mt-1 text-sm font-medium text-emerald-700">All recent recordings are ready for playback.</p>
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50/80 text-left border-y border-gray-200">
-                          <th className="px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500">Meeting</th>
-                          <th className="px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500">Participants</th>
-                          <th className="px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500">Status</th>
-                          <th className="px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500">Uploaded</th>
-                          <th className="px-6 py-3 text-right text-xs font-bold uppercase tracking-widest text-gray-500">Action</th>
+              {recordingSummary.recentNeedsAction.length === 0 ? (
+                <EmptyState icon={CheckCircle} title="All recordings are healthy" subtitle="No recordings currently require attention." />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead><tr className="border-b border-[var(--color-outline-variant)]/15 bg-[var(--color-surface-container-low)]/50">
+                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Meeting</th>
+                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Participants</th>
+                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Status</th>
+                      <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Uploaded</th>
+                      <th className="px-6 py-3" />
+                    </tr></thead>
+                    <tbody className="divide-y divide-[var(--color-outline-variant)]/10">
+                      {recordingSummary.recentNeedsAction.map(r => (
+                        <tr key={r._id} className="hover:bg-[var(--color-surface-container-low)]/30 transition-colors">
+                          <td className="px-6 py-3.5"><div className="text-sm font-medium text-[var(--color-on-surface)]">{r.meetingId || r.sessionId?.zoomMeetingId || '—'}</div><div className="text-xs text-[var(--color-on-surface-variant)]">{r.recordingType || 'Unknown type'}</div></td>
+                          <td className="px-6 py-3.5 text-sm text-[var(--color-on-surface)]">{r.studentId?.name || 'Unknown student'}<div className="text-xs text-[var(--color-on-surface-variant)]">with {r.mentorId?.name || 'Unknown mentor'}</div></td>
+                          <td className="px-6 py-3.5"><span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${recordingStatusClass(r.processingStatus)}`}>{formatRecordingStatus(r.processingStatus)}</span></td>
+                          <td className="px-6 py-3.5 text-sm text-[var(--color-on-surface-variant)]">{formatRelativeDate(r.createdAt)}</td>
+                          <td className="px-6 py-3.5 text-right"><Link href="/admin/recordings" className="inline-flex items-center gap-1 rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3 py-1.5 text-xs font-medium text-[var(--color-on-surface)] hover:border-[var(--color-primary)]/30 transition-colors">Review</Link></td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {recordingSummary.recentNeedsAction.map((recording) => (
-                          <tr key={recording._id} className="hover:bg-gray-50/50 transition-colors">
-                            <td className="px-6 py-3">
-                              <div className="text-sm font-bold text-slate-900">{recording.meetingId || recording.sessionId?.zoomMeetingId || '—'}</div>
-                              <div className="text-xs text-slate-500">{recording.recordingType || 'Unknown type'}</div>
-                            </td>
-                            <td className="px-6 py-3 text-sm text-slate-700">
-                              <div>{recording.studentId?.name || 'Unknown student'}</div>
-                              <div className="text-xs text-slate-500">with {recording.mentorId?.name || 'Unknown mentor'}</div>
-                            </td>
-                            <td className="px-6 py-3">
-                              <span className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-bold ${recordingStatusClass(recording.processingStatus)}`}>
-                                {formatRecordingStatus(recording.processingStatus)}
-                              </span>
-                            </td>
-                            <td className="px-6 py-3 text-sm text-slate-600">{formatRelativeDate(recording.createdAt)}</td>
-                            <td className="px-6 py-3 text-right">
-                              <Link href="/admin/recordings">
-                                <button className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 hover:bg-gray-50">
-                                  Review
-                                </button>
-                              </Link>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </section>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
 
-              <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm relative z-20">
-                <div className="border-b border-gray-200 bg-white px-6 py-5 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold text-black">Pending Mentor Approvals</h2>
-                    <p className="mt-1 text-sm font-medium text-gray-500">
-                      <span className="text-black font-bold">{pendingTotal}</span> applications awaiting review
-                    </p>
-                  </div>
+            {/* ── Pending Mentors ── */}
+            <section className="mb-8 overflow-hidden rounded-2xl border border-[var(--color-outline-variant)]/20 bg-[var(--color-surface-container-lowest)] shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-6 py-5 border-b border-[var(--color-outline-variant)]/15">
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--color-on-surface)]">Pending Mentor Approvals</h2>
+                  <p className="text-sm text-[var(--color-on-surface-variant)]"><span className="font-semibold text-[var(--color-on-surface)]">{pendingTotal}</span> applications awaiting review</p>
+                </div>
+                <AnimatePresence>
                   {selectedMentors.size > 0 && (
-                    <div className="flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
-                      <span className="text-sm font-bold text-black bg-gray-100 px-3 py-1 rounded-full border border-gray-300">
-                        {selectedMentors.size} selected
-                      </span>
-                      <button
-                        onClick={handleBulkApprove}
-                        disabled={isProcessingBulk}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-black px-4 py-2 text-sm font-bold text-white shadow-md transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
-                      >
-                        <CheckSquare size={16} />
-                        Approve All
+                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[var(--color-on-surface-variant)] bg-[var(--color-surface-container-low)] px-3 py-1 rounded-lg">{selectedMentors.size} selected</span>
+                      <button onClick={bulkApprove} disabled={isProcessingBulk} className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-primary)] px-3.5 py-2 text-xs font-semibold text-white transition-all hover:bg-[var(--color-primary-dim)] disabled:opacity-50">
+                        <CheckSquare size={13} /> Approve All
                       </button>
-                      <button
-                        onClick={handleBulkReject}
-                        disabled={isProcessingBulk}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-200 active:scale-95 disabled:opacity-50"
-                      >
-                        <XCircle size={16} />
-                        Reject All
+                      <button onClick={bulkReject} disabled={isProcessingBulk} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3.5 py-2 text-xs font-semibold text-[var(--color-on-surface)] transition-all hover:border-rose-300 hover:bg-rose-50 disabled:opacity-50">
+                        <XCircle size={13} /> Reject All
                       </button>
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
+              </div>
 
-                {pendingMentors.length === 0 ? (
-                  <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-20 text-center m-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 ring-8 ring-gray-50/50">
-                      <UserCog className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <h3 className="mt-4 text-xl font-extrabold text-gray-900">All caught up!</h3>
-                    <p className="mt-2 text-sm font-medium text-gray-500 max-w-sm mx-auto">
-                      No new mentor registrations require approval.
-                    </p>
-                  </div>
-                ) : (
+              {pendingMentors.length === 0 ? (
+                <EmptyState icon={UserCog} title="All caught up!" subtitle="No new mentor registrations require approval." />
+              ) : (
+                <>
                   <div className="overflow-x-auto">
-                    <table className="w-full border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50/80 text-left border-y border-gray-200">
-                          <th className="px-6 py-4 w-12">
-                            <input
-                              type="checkbox"
-                              className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
-                              checked={pendingMentors.length > 0 && selectedMentors.size === pendingMentors.length}
-                              onChange={toggleAllMentors}
-                            />
-                          </th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Mentor Details</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Expertise</th>
-                          <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-100">
-                        {pendingMentors.map((mentor) => (
-                          <tr key={mentor._id} className="group transition-colors hover:bg-gray-50/50">
-                            <td className="px-6 py-4">
-                              <input
-                                type="checkbox"
-                                className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
-                                checked={selectedMentors.has(mentor._id)}
-                                onChange={() => toggleMentor(mentor._id)}
-                              />
-                            </td>
+                    <table className="w-full">
+                      <thead><tr className="border-b border-[var(--color-outline-variant)]/15 bg-[var(--color-surface-container-low)]/50">
+                        <th className="px-6 py-3 w-12"><input type="checkbox" className="w-4 h-4 rounded border-[var(--color-outline-variant)] text-[var(--color-primary)] cursor-pointer" checked={pendingMentors.length > 0 && selectedMentors.size === pendingMentors.length} onChange={toggleAll} /></th>
+                        <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Mentor</th>
+                        <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Expertise</th>
+                        <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Actions</th>
+                      </tr></thead>
+                      <tbody className="divide-y divide-[var(--color-outline-variant)]/10">
+                        {pendingMentors.map(m => (
+                          <tr key={m._id} className="hover:bg-[var(--color-surface-container-low)]/30 transition-colors">
+                            <td className="px-6 py-4"><input type="checkbox" className="w-4 h-4 rounded border-[var(--color-outline-variant)] text-[var(--color-primary)] cursor-pointer" checked={selectedMentors.has(m._id)} onChange={() => toggleOne(m._id)} /></td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-full bg-gray-100 border border-gray-200 text-black font-bold flex items-center justify-center">
-                                  {mentor.name.charAt(0)}
-                                </div>
-                                <div>
-                                  <div className="font-bold text-gray-900">{mentor.name}</div>
-                                  <div className="text-xs text-gray-500 font-medium mt-0.5">{mentor.email}</div>
-                                  <div className="text-xs text-gray-500 font-medium mt-0.5">
-                                    {mentor.phoneNumber || 'Phone not provided'}
-                                  </div>
-                                  <div className="text-xs text-gray-600 font-medium mt-1 flex flex-wrap items-center gap-2">
-                                    {mentor.mentorProfile?.linkedinUrl ? (
-                                      <a
-                                        href={mentor.mentorProfile.linkedinUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        className="inline-flex items-center rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest text-cyan-700 transition-colors hover:bg-cyan-100"
-                                      >
-                                        linkedin
+                                <div className="h-9 w-9 rounded-full bg-[var(--color-primary-container)]/60 text-[var(--color-on-primary-container)] font-semibold text-sm flex items-center justify-center shrink-0">{m.name.charAt(0)}</div>
+                                <div className="min-w-0">
+                                  <div className="text-sm font-semibold text-[var(--color-on-surface)]">{m.name}</div>
+                                  <div className="text-xs text-[var(--color-on-surface-variant)]">{m.email}{m.phoneNumber ? ` · ${m.phoneNumber}` : ''}</div>
+                                  <div className="mt-1 flex items-center gap-2">
+                                    {m.mentorProfile?.linkedinUrl ? (
+                                      <a href={m.mentorProfile.linkedinUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sky-700 hover:bg-sky-100 transition-colors">
+                                        LinkedIn <ExternalLink size={9} />
                                       </a>
-                                    ) : (
-                                      <span className="text-gray-400">linkedin missing</span>
-                                    )}
+                                    ) : <span className="text-[10px] text-[var(--color-on-surface-variant)] opacity-60">No LinkedIn</span>}
                                   </div>
-                                  <div className="text-[11px] text-gray-400 font-medium mt-0.5">
-                                    Applied {mentor.createdAt ? new Date(mentor.createdAt).toLocaleDateString() : '—'}
-                                  </div>
+                                  <div className="text-[11px] text-[var(--color-on-surface-variant)] mt-0.5 opacity-70">Applied {m.createdAt ? new Date(m.createdAt).toLocaleDateString() : '—'}</div>
                                 </div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
-                              <div className="flex flex-wrap gap-1.5 mb-2">
-                                {mentor.mentorProfile?.expertise?.slice(0, 3).map((expertise) => (
-                                  <span
-                                    key={expertise}
-                                    className="rounded-full bg-gray-100 border border-gray-200 px-2.5 py-0.5 text-[10px] font-bold text-gray-700"
-                                  >
-                                    {expertise}
-                                  </span>
-                                )) || <span className="text-gray-400 font-medium text-sm">—</span>}
+                              <div className="flex flex-wrap gap-1 mb-1.5">
+                                {m.mentorProfile?.expertise?.slice(0, 3).map(e => (
+                                  <span key={e} className="rounded-full bg-[var(--color-surface-container-low)] border border-[var(--color-outline-variant)]/30 px-2.5 py-0.5 text-[10px] font-medium text-[var(--color-on-surface-variant)]">{e}</span>
+                                )) || <span className="text-xs text-[var(--color-on-surface-variant)] opacity-50">—</span>}
                               </div>
-                              <div className="text-xs text-gray-600 space-y-0.5">
-                                <div>Experience: {mentor.mentorProfile?.experienceYears ?? 0} years</div>
-                                <div>Fee: {mentor.mentorProfile?.pricePerSession ?? 0} / session</div>
-                                <div>Duration: {mentor.mentorProfile?.sessionDuration ?? 45} min</div>
+                              <div className="text-[11px] text-[var(--color-on-surface-variant)] space-y-0.5">
+                                <div>{m.mentorProfile?.experienceYears ?? 0}y exp · ₹{m.mentorProfile?.pricePerSession ?? 0}/session · {m.mentorProfile?.sessionDuration ?? 45}min</div>
                               </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => handleApproveMentor(mentor._id)}
-                                  className="inline-flex items-center gap-1.5 rounded-lg bg-black px-3 py-1.5 text-xs font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95"
-                                >
-                                  <CheckCircle size={14} />
-                                  Approve
+                                <button onClick={() => handleApprove(m._id)} className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white transition-all hover:bg-[var(--color-primary-dim)]">
+                                  <CheckCircle size={13} /> Approve
                                 </button>
-                                <button
-                                  onClick={() => handleRejectMentor(mentor._id, mentor.name)}
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 active:scale-95 shadow-sm"
-                                >
-                                  <XCircle size={14} />
-                                  Reject
+                                <button onClick={() => handleReject(m._id, m.name)} className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3 py-1.5 text-xs font-semibold text-[var(--color-on-surface)] transition-all hover:border-rose-200 hover:bg-rose-50">
+                                  <XCircle size={13} /> Reject
                                 </button>
                               </div>
                             </td>
@@ -872,126 +541,64 @@ function AdminDashboardContent() {
                       </tbody>
                     </table>
                   </div>
-                )}
-
-                <div className="flex items-center justify-center gap-2 border-t border-gray-200 bg-gray-50/50 p-4">
-                  <button
-                    onClick={() => setPendingPage((value) => Math.max(1, value - 1))}
-                    disabled={pendingPage <= 1}
-                    className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    Prev
-                  </button>
-                  <span className="text-xs font-bold text-gray-900 mx-2">Page {pendingPage} of {pendingPages}</span>
-                  <button
-                    onClick={() => setPendingPage((value) => Math.min(pendingPages, value + 1))}
-                    disabled={pendingPage >= pendingPages}
-                    className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              </section>
-
-              <section className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-                <div className="border-b border-gray-200 bg-white px-6 py-5 flex items-center justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Clipboard className="w-5 h-5 text-gray-900" />
-                      <h2 className="text-xl font-bold text-black">Recent Assessments</h2>
-                    </div>
-                    <p className="mt-1 text-sm font-medium text-gray-500">
-                      <span className="text-black font-bold">{assessmentTotal}</span> total submissions tracked
-                    </p>
+                  <div className="flex items-center justify-center gap-3 border-t border-[var(--color-outline-variant)]/15 bg-[var(--color-surface-container-low)]/30 px-6 py-3">
+                    <button onClick={() => setPendingPage(p => Math.max(1, p - 1))} disabled={pendingPage <= 1} className="rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] disabled:opacity-30 transition-colors">Prev</button>
+                    <span className="text-xs font-medium text-[var(--color-on-surface-variant)]">Page {pendingPage} of {pendingPages || 1}</span>
+                    <button onClick={() => setPendingPage(p => Math.min(pendingPages || 1, p + 1))} disabled={pendingPage >= (pendingPages || 1)} className="rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] disabled:opacity-30 transition-colors">Next</button>
                   </div>
-                  {assessments.length > 0 && (
-                    <button
-                      onClick={exportAssessmentsToCSV}
-                      className="inline-flex items-center gap-2 rounded-lg bg-white border border-gray-300 px-4 py-2 text-sm font-bold text-gray-700 shadow-sm transition-all hover:bg-gray-100 hover:text-black active:scale-95"
-                    >
-                      <Download size={16} />
-                      Export to CSV
-                    </button>
-                  )}
+                </>
+              )}
+            </section>
+
+            {/* ── Recent Assessments ── */}
+            <section className="overflow-hidden rounded-2xl border border-[var(--color-outline-variant)]/20 bg-[var(--color-surface-container-lowest)] shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-6 py-5 border-b border-[var(--color-outline-variant)]/15">
+                <div>
+                  <h2 className="text-lg font-semibold text-[var(--color-on-surface)]">Recent Assessments</h2>
+                  <p className="text-sm text-[var(--color-on-surface-variant)]"><span className="font-semibold text-[var(--color-on-surface)]">{assessmentTotal}</span> total submissions</p>
                 </div>
-
-                {assessments.length === 0 ? (
-                  <div className="rounded-3xl border-2 border-dashed border-gray-200 bg-white p-20 text-center m-6">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4 ring-8 ring-gray-50/50">
-                      <Clipboard className="h-8 w-8 text-gray-400" />
-                    </div>
-                    <h3 className="mt-4 text-xl font-extrabold text-gray-900">No submissions yet</h3>
-                    <p className="mt-2 text-sm font-medium text-gray-500 max-w-sm mx-auto">
-                      Submissions will appear here as students complete them.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="overflow-x-auto">
-                      <table className="w-full border-collapse">
-                        <thead>
-                          <tr className="bg-gray-50/80 text-left border-y border-gray-200">
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Student</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Responses</th>
-                            <th className="px-6 py-4 text-xs font-bold uppercase tracking-widest text-gray-500">Date Submitted</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                          {assessments.map((submission) => {
-                            const answers = submission.answers || {};
-                            const keys = typeof answers === 'object' && answers ? Object.keys(answers) : [];
-                            return (
-                              <tr key={submission._id} className="group transition-colors hover:bg-gray-50/50">
-                                <td className="px-6 py-4">
-                                  <div>
-                                    <div className="font-bold text-gray-900">{submission.student?.name || 'Unknown Student'}</div>
-                                    <div className="text-xs text-gray-500 font-medium mt-0.5">{submission.student?.email || '—'}</div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                  <span className="inline-flex items-center rounded-full bg-gray-100 border border-gray-200 px-2.5 py-1 text-xs font-bold text-black">
-                                    {keys.length} Data Points
-                                  </span>
-                                </td>
-                                <td className="px-6 py-4 text-sm font-medium text-gray-600">
-                                  {submission.createdAt
-                                    ? new Date(submission.createdAt).toLocaleDateString('en-US', {
-                                        month: 'short',
-                                        day: 'numeric',
-                                        year: 'numeric',
-                                      })
-                                    : '—'}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-2 border-t border-gray-200 bg-gray-50/50 p-4">
-                      <button
-                        onClick={() => setAssessmentPage((value) => Math.max(1, value - 1))}
-                        disabled={assessmentPage <= 1}
-                        className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Prev
-                      </button>
-                      <span className="text-xs font-bold text-gray-900 mx-2">Page {assessmentPage} of {assessmentPages}</span>
-                      <button
-                        onClick={() => setAssessmentPage((value) => Math.min(assessmentPages, value + 1))}
-                        disabled={assessmentPage >= assessmentPages}
-                        className="rounded-lg border border-gray-300 bg-white px-4 py-1.5 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </>
+                {assessments.length > 0 && (
+                  <button onClick={exportCSV} className="inline-flex items-center gap-2 rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3.5 py-2 text-xs font-semibold text-[var(--color-on-surface)] transition-all hover:border-[var(--color-primary)]/30 hover:text-[var(--color-primary)]">
+                    <Download size={13} /> Export CSV
+                  </button>
                 )}
-              </section>
-            </>
-          )}
-        </div>
+              </div>
+
+              {assessments.length === 0 ? (
+                <EmptyState icon={Clipboard} title="No submissions yet" subtitle="Assessments will appear here as students complete them." />
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead><tr className="border-b border-[var(--color-outline-variant)]/15 bg-[var(--color-surface-container-low)]/50">
+                        <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Student</th>
+                        <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Responses</th>
+                        <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider uppercase text-[var(--color-on-surface-variant)]">Submitted</th>
+                      </tr></thead>
+                      <tbody className="divide-y divide-[var(--color-outline-variant)]/10">
+                        {assessments.map(s => {
+                          const keys = Object.keys(s.answers || {});
+                          return (
+                            <tr key={s._id} className="hover:bg-[var(--color-surface-container-low)]/30 transition-colors">
+                              <td className="px-6 py-4"><div className="text-sm font-medium text-[var(--color-on-surface)]">{s.student?.name || 'Unknown'}</div><div className="text-xs text-[var(--color-on-surface-variant)]">{s.student?.email || '—'}</div></td>
+                              <td className="px-6 py-4"><span className="inline-flex items-center rounded-full bg-[var(--color-primary-container)]/60 px-2.5 py-1 text-xs font-semibold text-[var(--color-on-primary-container)]">{keys.length} data points</span></td>
+                              <td className="px-6 py-4 text-sm text-[var(--color-on-surface-variant)]">{s.createdAt ? new Date(s.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 border-t border-[var(--color-outline-variant)]/15 bg-[var(--color-surface-container-low)]/30 px-6 py-3">
+                    <button onClick={() => setAssessmentPage(p => Math.max(1, p - 1))} disabled={assessmentPage <= 1} className="rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] disabled:opacity-30 transition-colors">Prev</button>
+                    <span className="text-xs font-medium text-[var(--color-on-surface-variant)]">Page {assessmentPage} of {assessmentPages || 1}</span>
+                    <button onClick={() => setAssessmentPage(p => Math.min(assessmentPages || 1, p + 1))} disabled={assessmentPage >= (assessmentPages || 1)} className="rounded-lg border border-[var(--color-outline-variant)]/30 bg-[var(--color-surface-container-lowest)] px-3.5 py-1.5 text-xs font-medium text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] disabled:opacity-30 transition-colors">Next</button>
+                  </div>
+                </>
+              )}
+            </section>
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
