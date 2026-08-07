@@ -272,7 +272,10 @@ module.exports = app;
 
 // Only listen if running locally or on Render
 if (require.main === module || process.env.RENDER) {
-  const HOST = process.env.HOST || '127.0.0.1';
+  // Containers (Render/Docker) must bind 0.0.0.0 so the platform's port scan can
+  // reach the process. Binding to loopback makes the service undetectable and the
+  // deploy times out. Local dev stays on loopback.
+  const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
   const serverInstance = server.listen(PORT, HOST, () => {
     console.log(`Server running on http://${HOST}:${PORT}`);
   });
