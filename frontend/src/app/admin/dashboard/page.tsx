@@ -17,14 +17,12 @@ import {
   Download,
   CheckSquare,
   CalendarDays,
-  BookOpen,
   Users,
   Video,
   RefreshCw,
   Activity,
   AlertTriangle,
   Clock,
-  SquareArrowOutUpRight,
   ExternalLink,
 } from 'lucide-react';
 
@@ -310,10 +308,8 @@ function AdminDashboardContent() {
   const pendingSessions = Number(bookingStats?.pending || 0);
   const inProgressSessions = Number(bookingStats?.['in-progress'] || 0);
   const confirmedSessions = Number(bookingStats?.confirmed || 0);
-  const cancelledSessions = Number(bookingStats?.cancelled || 0) + Number(bookingStats?.rejected || 0);
   const activeQueue = pendingSessions + confirmedSessions + inProgressSessions;
   const completionRate = totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0;
-  const cancellationRate = totalSessions > 0 ? Math.round((cancelledSessions / totalSessions) * 100) : 0;
   const processingRecordings = recordingSummary.pending + recordingSummary.downloading + recordingSummary.uploading;
 
   const runRefresh = async () => { setIsRefreshing(true); await loadAll(false); };
@@ -328,7 +324,12 @@ function AdminDashboardContent() {
   };
 
   const toggleAll = () => setSelectedMentors(pendingMentors.length > 0 && selectedMentors.size === pendingMentors.length ? new Set() : new Set(pendingMentors.map(m => m._id)));
-  const toggleOne = (id: string) => { const n = new Set(selectedMentors); n.has(id) ? n.delete(id) : n.add(id); setSelectedMentors(n); };
+  const toggleOne = (id: string) => {
+    const next = new Set(selectedMentors);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedMentors(next);
+  };
 
   const bulkApprove = async () => { if (!selectedMentors.size) return; setIsProcessingBulk(true); try { setError(null); const rr = await Promise.all(Array.from(selectedMentors).map(id => apiClient.put(`/api/v1/admin/mentors/${id}/approve`, {}))); if (rr.some(r => !r.success)) { setError('Some approvals failed'); return; } setSelectedMentors(new Set()); setPendingPage(1); await Promise.all([loadDashboard(1), loadRecordingSummary()]); setLastUpdatedAt(new Date().toISOString()); } catch (err) { setError(err instanceof Error ? err.message : 'Failed'); } finally { setIsProcessingBulk(false); } };
 
@@ -352,7 +353,7 @@ function AdminDashboardContent() {
         {/* ── Hero Header ── */}
         <div className="mb-8">
           <p className="text-[11px] font-semibold tracking-[0.2em] uppercase text-[var(--color-on-surface-variant)] mb-1">Admin Control Center</p>
-          <h1 className="text-28 font-bold text-[var(--color-on-surface)] tracking-tight">Platform Overview</h1>
+          <h1 className="text-3xl font-bold text-[var(--color-on-surface)] tracking-tight">Platform Overview</h1>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <p className="text-sm text-[var(--color-on-surface-variant)]">Manage mentor approvals, monitor recordings, and track platform-wide operations.</p>
             {lastUpdatedAt && (
