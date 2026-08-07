@@ -9,10 +9,16 @@ import {
 import { resolveApiBaseUrl } from '@/utils/api-base';
 import { dedupeInFlight } from '@/utils/request-dedupe';
 import {
+  ensureBackendAwake,
+  invalidateBackendReadiness,
+  isBackendUnavailableStatus,
+} from '@/utils/backend-ready';
+import {
   clearLegacyAuthState,
   persistLegacyToken,
   registerClerkTokenGetter,
 } from '@/utils/auth-session';
+
 
 interface User {
   _id: string;
@@ -58,6 +64,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/** Attempts for a profile fetch that fails in a way the backend recovers from. */
+const MAX_PROFILE_ATTEMPTS = 3;
+/** A profile sync should never hang the app behind an unbounded request. */
+const PROFILE_TIMEOUT_MS = 20_000;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const readApiResponse = async (response: Response): Promise<AuthApiResponse> => {
   const rawBody = await response.text();
   if (!rawBody) return {};
@@ -67,6 +80,86 @@ const readApiResponse = async (response: Response): Promise<AuthApiResponse> => 
     return { message: rawBody };
   }
 };
+
+interface ProfileFetchOutcome {
+  ok: boolean;
+  status: number;
+  result: AuthApiResponse;
+}
+
+/**
+ * A `fetch()` rejection is always an opaque `TypeError: Failed to fetch` — the
+ * browser deliberately hides whether the cause was a dead server, DNS, a
+ * missing CORS header, or an offline device. Reporting status `0` lets the
+ * caller treat it like any other transient backend-unavailable result.
+ */
+const fetchProfileOnce = async (token: string): Promise<ProfileFetchOutcome> => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), PROFILE_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/me`, {
+      method: 'GET',
+      credentials: 'include',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'x-bypass-cache': '1',
+        'Cache-Control': 'no-cache',
+      },
+    });
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      result: await readApiResponse(response),
+    };
+  } catch {
+    return { ok: false, status: 0, result: {} };
+  } finally {
+    clearTimeout(timer);
+  }
+};
+
+/**
+ * Fetch the profile, retrying only failures that a retry can actually fix
+ * (cold start, proxy 502/503, dropped connection). A 401/403/404 is returned
+ * immediately, since replaying it would produce the same answer.
+ */
+const fetchProfileWithRetry = async (token: string): Promise<ProfileFetchOutcome> => {
+  let outcome = await fetchProfileOnce(token);
+
+  for (let attempt = 1; attempt < MAX_PROFILE_ATTEMPTS; attempt += 1) {
+    if (outcome.ok || !isBackendUnavailableStatus(outcome.status)) {
+      return outcome;
+    }
+
+    invalidateBackendReadiness();
+    await sleep(1000 * attempt);
+    await ensureBackendAwake(30_000);
+    outcome = await fetchProfileOnce(token);
+  }
+
+  return outcome;
+};
+
+/** Turn a failed profile sync into something a user can act on. */
+const describeProfileFailure = ({ status, result }: ProfileFetchOutcome) => {
+  if (result.error || result.message) {
+    return result.error || result.message!;
+  }
+
+  if (status === 0) {
+    return `Cannot reach the server at ${resolveApiBaseUrl()}. Please check that the backend is running and try again.`;
+  }
+
+  if (isBackendUnavailableStatus(status)) {
+    return 'The server is temporarily unavailable. Please try again in a moment.';
+  }
+
+  return 'Unable to sync profile';
+};
+
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { isLoaded: isClerkLoaded, isSignedIn: isClerkSignedIn } = useClerkUser();
@@ -111,27 +204,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Coalesce overlapping profile fetches. React StrictMode (dev) mounts
         // this provider twice and re-renders can retrigger this effect; sharing
         // a single in-flight request avoids duplicate `/users/me` calls.
-        const { ok, result } = await dedupeInFlight(
-          'GET:/api/v1/users/me',
-          async () => {
-            const response = await fetch(`${resolveApiBaseUrl()}/api/v1/users/me`, {
-              method: 'GET',
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'x-bypass-cache': '1',
-                'Cache-Control': 'no-cache',
-              },
-            });
-            return { ok: response.ok, result: await readApiResponse(response) };
-          }
+        const outcome = await dedupeInFlight('GET:/api/v1/users/me', () =>
+          fetchProfileWithRetry(token)
         );
 
-        if (!ok || !result.data?._id) {
-          throw new Error(result.error || result.message || 'Unable to sync profile');
+        if (!outcome.ok || !outcome.result.data?._id) {
+          throw new Error(describeProfileFailure(outcome));
         }
 
         if (isMounted) {
-          setUser(result.data);
+          setUser(outcome.result.data);
         }
       } catch (err) {
         console.error('Failed to fetch user profile:', err);
@@ -142,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           );
         }
       } finally {
+
         if (isMounted) {
           setIsLoadingProfile(false);
         }

@@ -35,7 +35,25 @@ services:
         sync: false
       - key: LOG_LEVEL
         value: info
+    # Render probes this route to decide whether the instance is live. It is
+    # registered before the database middleware, so it answers during a cold
+    # start instead of waiting on MongoDB.
     healthCheckPath: /api/v1/health
+    # NOTE ON HIBERNATION
+    # On the free tier Render suspends an idle instance after ~15 minutes. The
+    # first request afterwards is rejected at the edge with a header-less 503
+    # (`x-render-routing: hibernate-wake-error`), which browsers surface as a
+    # CORS error — this is what broke recording uploads.
+    #
+    # Two defences are in place:
+    #   1. The server self-pings /api/v1/health every 10 minutes (see server.ts),
+    #      which keeps the instance resident on the current plan.
+    #   2. The frontend wakes the backend and retries transient failures, so a
+    #      cold start degrades into a short wait rather than a lost upload.
+    #
+    # For a hard guarantee, move to a paid instance type, which never hibernates:
+    #   plan: starter
+
 
   # Frontend Service
   - type: web

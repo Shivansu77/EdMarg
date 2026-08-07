@@ -276,11 +276,61 @@ if (require.main === module || process.env.RENDER) {
   // reach the process. Binding to loopback makes the service undetectable and the
   // deploy times out. Local dev stays on loopback.
   const HOST = process.env.HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
+
+  // Recording uploads stream up to 500 MB through this process. Node's default
+  // requestTimeout of 300s aborts those mid-flight on slower connections, which
+  // surfaces to the browser as an opaque network/CORS failure.
+  server.requestTimeout = 30 * 60 * 1000;
+  // keepAliveTimeout must exceed the upstream proxy's idle timeout (Render/Cloudflare
+  // use 60s) or the proxy reuses a socket the server is already closing, producing
+  // sporadic 502/503 responses. headersTimeout must in turn exceed keepAliveTimeout.
+  server.keepAliveTimeout = 65 * 1000;
+  server.headersTimeout = 70 * 1000;
+
   const serverInstance = server.listen(PORT, HOST, () => {
     console.log(`Server running on http://${HOST}:${PORT}`);
   });
 
+  // ── Keep-alive self-ping ───────────────────────────────────────────────
+  // Render hibernates an instance after ~15 minutes without traffic. The next
+  // request is then answered by the edge proxy with a bare 503 that carries no
+  // CORS headers, so the browser reports it as a CORS failure and the request
+  // is lost. That is unacceptable for recording uploads, which cannot be redone.
+  //
+  // Pinging our own health route below that idle threshold keeps the instance
+  // resident. RENDER_EXTERNAL_URL is injected by the platform, so this stays
+  // inert locally and in any other environment.
+  const keepAliveUrl = process.env.RENDER_EXTERNAL_URL;
+  let keepAliveTimer = null;
+
+  if (keepAliveUrl) {
+    const KEEP_ALIVE_INTERVAL_MS = 10 * 60 * 1000; // 10 min < 15 min idle limit
+
+    keepAliveTimer = setInterval(async () => {
+      try {
+        const response = await fetch(`${keepAliveUrl}/api/v1/health`, {
+          method: 'GET',
+          headers: { 'User-Agent': 'edmarg-keepalive' },
+        });
+        if (!response.ok) {
+          console.warn(`[KeepAlive] Health ping returned ${response.status}`);
+        }
+      } catch (err) {
+        // A failed ping is not fatal; the next tick retries.
+        console.warn('[KeepAlive] Health ping failed:', err.message);
+      }
+    }, KEEP_ALIVE_INTERVAL_MS);
+
+    // Never hold the event loop open on account of the keep-alive timer.
+    keepAliveTimer.unref?.();
+    console.log(`[KeepAlive] Self-ping enabled every ${KEEP_ALIVE_INTERVAL_MS / 60000} min`);
+  }
+
   const shutdown = () => {
+    if (keepAliveTimer) {
+      clearInterval(keepAliveTimer);
+    }
+
     console.log('SIGTERM/SIGINT received. Shutting down gracefully...');
     serverInstance.close(() => {
       console.log('HTTP server closed.');

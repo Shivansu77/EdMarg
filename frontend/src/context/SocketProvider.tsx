@@ -57,11 +57,37 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
       newSocket = io(baseUrl, {
         auth: { token },
-        transports: ['websocket', 'polling'],
+        // Poll first, then upgrade. A hibernating backend rejects the WebSocket
+        // handshake outright (503), whereas polling degrades gracefully and lets
+        // the transport upgrade once the instance is actually serving traffic.
+        transports: ['polling', 'websocket'],
         reconnection: true,
-        reconnectionAttempts: 5,
+        // A cold start can take 30-60s, so give up only after a much longer
+        // window than the default handful of quick attempts.
+        reconnectionAttempts: Infinity,
         reconnectionDelay: 2000,
+        reconnectionDelayMax: 15000,
+        randomizationFactor: 0.5,
+        timeout: 20000,
       });
+
+      // Clerk session tokens are short-lived (about a minute), so the token
+      // captured above is usually stale by the time a reconnect happens. Each
+      // attempt has to carry a freshly minted token or the server rejects the
+      // handshake with "Invalid or expired token" and never recovers.
+      newSocket.io.on('reconnect_attempt', () => {
+        void getToken()
+          .then((freshToken) => {
+            if (freshToken && newSocket) {
+              newSocket.auth = { token: freshToken };
+              persistLegacyToken(freshToken);
+            }
+          })
+          .catch(() => {
+            // Keep the existing token; the next attempt will try again.
+          });
+      });
+
 
       setSocket(newSocket);
 

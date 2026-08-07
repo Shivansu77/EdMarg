@@ -37,7 +37,15 @@ const extractCloudinaryVersionFromUrl = (url = '') => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
-const getAuthorizedManualUploadBooking = async (sessionId, userId, role) => {
+/**
+ * Resolve a booking and verify the caller may upload a clip to it.
+ *
+ * Both the assigned mentor and the assigned student are allowed: a session can
+ * produce several videos and the student often has their own capture of the
+ * call. Admins may act on any session. Returns the booking plus the caller's
+ * participant role so clips can be attributed.
+ */
+const getAuthorizedSessionBooking = async (sessionId, userId, role) => {
   const booking = await Booking.findById(sessionId).lean();
 
   if (!booking) {
@@ -47,13 +55,26 @@ const getAuthorizedManualUploadBooking = async (sessionId, userId, role) => {
   }
 
   const bookingMentorId = String(booking.mentor?._id || booking.mentor);
-  if (role !== 'admin' && userId !== bookingMentorId) {
-    const error = new Error('Only the assigned mentor or an admin can upload this recording');
+  const bookingStudentId = String(booking.student?._id || booking.student);
+
+  let participantRole = null;
+  if (userId === bookingMentorId) {
+    participantRole = 'mentor';
+  } else if (userId === bookingStudentId) {
+    participantRole = 'student';
+  } else if (role === 'admin') {
+    participantRole = 'admin';
+  }
+
+  if (!participantRole) {
+    const error = new Error(
+      'Only the session mentor, the session student, or an admin can upload this recording'
+    );
     error.statusCode = 403;
     throw error;
   }
 
-  return booking;
+  return { booking, participantRole };
 };
 
 const emitRecordingReadyEvent = (booking, recording, videoUrl) => {
@@ -78,17 +99,155 @@ const emitRecordingReadyEvent = (booking, recording, videoUrl) => {
   }
 };
 
+/**
+ * Build the Cloudinary identifiers for a session's recordings.
+ *
+ * `publicId` is suffixed with the next clip index so every uploaded part gets
+ * its own Cloudinary asset instead of overwriting the previous one. The first
+ * clip keeps the unsuffixed id for backward compatibility with recordings
+ * created before multi-clip support.
+ */
 const getManualRecordingIdentifiers = (booking, existingRecording, sessionId) => {
   const meetingId =
     existingRecording?.meetingId ||
     booking.zoomMeetingId ||
     `manual-session-${String(sessionId)}`;
 
+  const basePublicId = `meeting-${meetingId}`;
+  const clipCount = Array.isArray(existingRecording?.clips)
+    ? existingRecording.clips.length
+    : 0;
+
   return {
     meetingId,
     folder: `recordings/${String(sessionId)}`,
-    publicId: `meeting-${meetingId}`,
+    // First part keeps the legacy id; later parts are unique per clip.
+    publicId: clipCount === 0 ? basePublicId : `${basePublicId}-part${clipCount + 1}`,
+    basePublicId,
+    nextClipIndex: clipCount,
   };
+};
+
+/**
+ * Turn a stored recording into an ordered clip list.
+ *
+ * Documents written before multi-clip support only have the top-level
+ * videoUrl, so they are surfaced as a single-clip timeline. Every read path
+ * goes through here and never has to special-case the old shape.
+ */
+const normalizeRecordingClips = (recording) => {
+  if (Array.isArray(recording?.clips) && recording.clips.length > 0) {
+    return [...recording.clips].sort(
+      (a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)
+    );
+  }
+
+  if (!recording?.videoUrl) {
+    return [];
+  }
+
+  return [
+    {
+      _id: recording._id,
+      title: 'Session recording',
+      videoUrl: recording.videoUrl,
+      cloudinaryPublicId: recording.cloudinaryPublicId || '',
+      duration: Number(recording.duration) || 0,
+      fileSize: Number(recording.fileSize) || 0,
+      order: 0,
+      uploadedByRole: 'system',
+      source: recording.recordingType === 'manual_upload' ? 'manual_upload' : 'zoom',
+      createdAt: recording.createdAt,
+    },
+  ];
+};
+
+/**
+ * Shape a clip for the client, swapping the stored URL for a short-lived
+ * signed delivery URL when the asset lives in Cloudinary.
+ */
+const toClientClip = (clip, index) => {
+  let playbackUrl = clip.videoUrl;
+
+  if (clip.cloudinaryPublicId) {
+    try {
+      playbackUrl = generateSignedDeliveryUrl(clip.cloudinaryPublicId, {
+        expiresInSeconds: 7200,
+        version: extractCloudinaryVersionFromUrl(clip.videoUrl),
+      });
+    } catch (signErr) {
+      console.warn(
+        `[Recording Controller] Failed to sign Cloudinary URL for ${clip.cloudinaryPublicId}:`,
+        signErr.message
+      );
+    }
+  }
+
+  return {
+    _id: clip._id ? String(clip._id) : null,
+    title: clip.title || `Part ${index + 1}`,
+    videoUrl: playbackUrl,
+    duration: Number(clip.duration) || 0,
+    fileSize: Number(clip.fileSize) || 0,
+    order: Number(clip.order) || index,
+    uploadedByRole: clip.uploadedByRole || 'system',
+    source: clip.source || 'manual_upload',
+    createdAt: clip.createdAt || null,
+  };
+};
+
+/**
+ * Append a clip to a recording, keeping order and the legacy mirror fields
+ * consistent. Works on a hydrated (non-lean) Mongoose document.
+ */
+const appendClipToRecording = (recording, clip) => {
+  if (!Array.isArray(recording.clips)) {
+    recording.clips = [];
+  }
+
+  // Existing single-video documents: adopt the old top-level video as part 1
+  // so it stays on the timeline once a second part is added.
+  if (recording.clips.length === 0 && recording.videoUrl) {
+    recording.clips.push({
+      title: 'Part 1',
+      videoUrl: recording.videoUrl,
+      cloudinaryPublicId: recording.cloudinaryPublicId || '',
+      duration: Number(recording.duration) || 0,
+      fileSize: Number(recording.fileSize) || 0,
+      order: 0,
+      uploadedBy: null,
+      uploadedByRole: 'system',
+      source: recording.recordingType === 'manual_upload' ? 'manual_upload' : 'zoom',
+    });
+  }
+
+  const nextOrder = recording.clips.reduce(
+    (max, existing) => Math.max(max, Number(existing.order) || 0),
+    -1
+  ) + 1;
+
+  recording.clips.push({
+    title: clip.title || `Part ${nextOrder + 1}`,
+    videoUrl: clip.videoUrl,
+    cloudinaryPublicId: clip.cloudinaryPublicId || '',
+    duration: Number(clip.duration) || 0,
+    fileSize: Number(clip.fileSize) || 0,
+    order: nextOrder,
+    uploadedBy: clip.uploadedBy || null,
+    uploadedByRole: clip.uploadedByRole || 'system',
+    source: clip.source || 'manual_upload',
+  });
+
+  // Mirror onto the legacy fields: first clip's URL, aggregate duration/size.
+  const ordered = [...recording.clips].sort(
+    (a, b) => (Number(a.order) || 0) - (Number(b.order) || 0)
+  );
+  recording.videoUrl = ordered[0].videoUrl || '';
+  recording.cloudinaryPublicId = ordered[0].cloudinaryPublicId || '';
+  recording.duration = ordered.reduce((sum, c) => sum + (Number(c.duration) || 0), 0);
+  recording.fileSize = ordered.reduce((sum, c) => sum + (Number(c.fileSize) || 0), 0);
+
+  return recording.clips[recording.clips.length - 1];
 };
 
 // ─── Get Recording by Session ──────────────────────────────────────────────
@@ -178,6 +337,19 @@ exports.getRecordingBySession = async (req, res) => {
             fileSize: 0,
             createdAt: booking.updatedAt || booking.createdAt,
             videoUrl: safeBookingRecordingUrl,
+            clips: [
+              {
+                _id: null,
+                title: 'Session recording',
+                videoUrl: safeBookingRecordingUrl,
+                duration: 0,
+                fileSize: 0,
+                order: 0,
+                uploadedByRole: 'system',
+                source: 'zoom',
+                createdAt: booking.updatedAt || booking.createdAt,
+              },
+            ],
           },
           message: 'Serving recording from booking fallback URL',
         });
@@ -218,6 +390,19 @@ exports.getRecordingBySession = async (req, res) => {
             fileSize: recording.fileSize || 0,
             createdAt: recording.createdAt,
             videoUrl: safeBookingRecordingUrl,
+            clips: [
+              {
+                _id: null,
+                title: 'Session recording',
+                videoUrl: safeBookingRecordingUrl,
+                duration: Number(recording.duration) || 0,
+                fileSize: Number(recording.fileSize) || 0,
+                order: 0,
+                uploadedByRole: 'system',
+                source: 'zoom',
+                createdAt: recording.createdAt,
+              },
+            ],
           },
           message: 'Serving booking recording URL fallback while processing metadata',
         });
@@ -234,6 +419,7 @@ exports.getRecordingBySession = async (req, res) => {
           processingStatus: recording.processingStatus,
           createdAt: recording.createdAt,
           videoUrl: null, // Not ready yet
+          clips: [],
         },
         message:
           recording.processingStatus === 'failed'
@@ -243,28 +429,12 @@ exports.getRecordingBySession = async (req, res) => {
     }
 
     // ──────────────────────────────────────────────────────────────────
-    // 4. Generate a signed URL for secure playback (2-hour expiry)
+    // 4. Build the clip timeline with fresh signed URLs (2-hour expiry)
     // ──────────────────────────────────────────────────────────────────
-    // For videos uploaded with 'upload' type, we use the direct secure_url
-    // and append a signature. Cloudinary signed URLs for upload-type resources
-    // use the URL signing approach.
-    let signedVideoUrl = recording.videoUrl;
-
-    if (recording.cloudinaryPublicId) {
-      try {
-        const cloudinaryVersion = extractCloudinaryVersionFromUrl(recording.videoUrl);
-        // Generate a fresh signed URL that expires in 2 hours
-        signedVideoUrl = generateSignedDeliveryUrl(recording.cloudinaryPublicId, {
-          expiresInSeconds: 7200,
-          version: cloudinaryVersion,
-        });
-      } catch (signErr) {
-        console.warn(
-          `[Recording Controller] Failed to sign Cloudinary URL for ${recording.cloudinaryPublicId}:`,
-          signErr.message
-        );
-      }
-    }
+    // Every part of the session is returned in playback order. Legacy
+    // single-video documents come back as a one-clip timeline so the client
+    // only ever deals with one shape.
+    const clips = normalizeRecordingClips(recording).map(toClientClip);
 
     return res.status(200).json({
       success: true,
@@ -272,12 +442,15 @@ exports.getRecordingBySession = async (req, res) => {
         _id: recording._id,
         sessionId: recording.sessionId,
         meetingId: recording.meetingId,
-        duration: recording.duration,
+        // Aggregate across every clip so the UI can show total watch time.
+        duration: clips.reduce((total, clip) => total + clip.duration, 0),
         recordingType: recording.recordingType,
         processingStatus: recording.processingStatus,
-        fileSize: recording.fileSize,
+        fileSize: clips.reduce((total, clip) => total + clip.fileSize, 0),
         createdAt: recording.createdAt,
-        videoUrl: signedVideoUrl,
+        // Kept for older clients that only understand a single video.
+        videoUrl: clips[0]?.videoUrl || null,
+        clips,
       },
     });
   } catch (error) {
@@ -310,11 +483,39 @@ exports.getMyRecordings = async (req, res) => {
       .populate('studentId', 'name email profileImage')
       .lean();
 
+    // A session can hold several videos. Surface the part count and a light
+    // per-clip summary so list views can show "3 parts" without a second
+    // request. Signed playback URLs are deliberately left out — those are
+    // minted per-session by getRecordingBySession when a video is actually
+    // watched, and signing every clip here would be wasted work.
+    const withClipSummary = recordings.map((recording) => {
+      const clips = normalizeRecordingClips(recording);
+
+      return {
+        ...recording,
+        clipCount: clips.length,
+        // Aggregate so the card totals match what the player will report.
+        duration: clips.reduce((sum, clip) => sum + (Number(clip.duration) || 0), 0),
+        fileSize: clips.reduce((sum, clip) => sum + (Number(clip.fileSize) || 0), 0),
+        clips: clips.map((clip, index) => ({
+          _id: clip._id ? String(clip._id) : null,
+          title: clip.title || `Part ${index + 1}`,
+          duration: Number(clip.duration) || 0,
+          fileSize: Number(clip.fileSize) || 0,
+          order: Number(clip.order) || index,
+          uploadedByRole: clip.uploadedByRole || 'system',
+          source: clip.source || 'manual_upload',
+          createdAt: clip.createdAt || null,
+        })),
+      };
+    });
+
     return res.status(200).json({
       success: true,
-      data: { recordings },
-      count: recordings.length,
+      data: { recordings: withClipSummary },
+      count: withClipSummary.length,
     });
+
   } catch (error) {
     console.error('[Recording Controller] Error:', error.message);
     return res.status(500).json({
@@ -337,8 +538,8 @@ exports.createRecordingUploadSignature = async (req, res) => {
     const userId = String(req.user._id);
     const role = String(req.user.role || '').toLowerCase();
 
-    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
-    const existingRecording = await Recording.findOne({ sessionId }).select('meetingId').lean();
+    const { booking, participantRole } = await getAuthorizedSessionBooking(sessionId, userId, role);
+    const existingRecording = await Recording.findOne({ sessionId }).select('meetingId clips videoUrl duration fileSize recordingType').lean();
     const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
       booking,
       existingRecording,
@@ -396,16 +597,17 @@ exports.finalizeRecordingUpload = async (req, res) => {
       });
     }
 
-    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
+    const { booking, participantRole } = await getAuthorizedSessionBooking(sessionId, userId, role);
     let recording = await Recording.findOne({ sessionId });
-    const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
+    const { meetingId, folder } = getManualRecordingIdentifiers(
       booking,
       recording,
       sessionId
     );
-    const expectedPrefix = `${folder}/${publicId}`;
 
-    if (String(uploadedPublicId) !== expectedPrefix) {
+    // The asset must live in this session's folder. An exact public id match
+    // is no longer possible because each clip gets its own suffixed id.
+    if (!String(uploadedPublicId).startsWith(`${folder}/`)) {
       return res.status(400).json({
         success: false,
         message: 'Uploaded asset does not match this recording session',
@@ -421,10 +623,17 @@ exports.finalizeRecordingUpload = async (req, res) => {
       });
     }
 
-    recording.videoUrl = String(secureUrl);
-    recording.cloudinaryPublicId = String(uploadedPublicId);
-    recording.duration = Number(duration) || recording.duration || 0;
-    recording.fileSize = Number(bytes) || recording.fileSize || 0;
+    appendClipToRecording(recording, {
+      title: req.body?.title,
+      videoUrl: String(secureUrl),
+      cloudinaryPublicId: String(uploadedPublicId),
+      duration: Number(duration) || 0,
+      fileSize: Number(bytes) || 0,
+      uploadedBy: req.user._id,
+      uploadedByRole: participantRole,
+      source: participantRole === 'student' ? 'student_upload' : 'manual_upload',
+    });
+
     recording.recordingType = 'manual_upload';
     recording.processingStatus = 'completed';
     recording.zoomDownloadUrl = '';
@@ -432,7 +641,7 @@ exports.finalizeRecordingUpload = async (req, res) => {
     await recording.save();
 
     await Booking.findByIdAndUpdate(booking._id, {
-      recordingUrl: String(secureUrl),
+      recordingUrl: recording.videoUrl,
     });
 
     emitRecordingReadyEvent(booking, recording, String(secureUrl));
@@ -450,6 +659,7 @@ exports.finalizeRecordingUpload = async (req, res) => {
         processingStatus: recording.processingStatus,
         videoUrl: recording.videoUrl,
         cloudinaryPublicId: recording.cloudinaryPublicId,
+        clipCount: recording.clips.length,
       },
     });
   } catch (error) {
@@ -493,7 +703,7 @@ exports.uploadRecordingForSession = async (req, res) => {
     uploadedFilePath = req.file.path;
     const originalSize = req.file.size;
 
-    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
+    const { booking, participantRole } = await getAuthorizedSessionBooking(sessionId, userId, role);
     let recording = await Recording.findOne({ sessionId });
     const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
       booking,
@@ -521,10 +731,18 @@ exports.uploadRecordingForSession = async (req, res) => {
       });
     }
 
-    recording.videoUrl = cloudinaryResult.secure_url;
-    recording.cloudinaryPublicId = cloudinaryResult.public_id;
-    recording.duration = cloudinaryResult.duration || recording.duration || 0;
-    recording.fileSize = cloudinaryResult.bytes || 0;
+    // Append as a new part instead of replacing — a session can have many.
+    appendClipToRecording(recording, {
+      title: req.body?.title,
+      videoUrl: cloudinaryResult.secure_url,
+      cloudinaryPublicId: cloudinaryResult.public_id,
+      duration: cloudinaryResult.duration || 0,
+      fileSize: cloudinaryResult.bytes || 0,
+      uploadedBy: req.user._id,
+      uploadedByRole: participantRole,
+      source: participantRole === 'student' ? 'student_upload' : 'manual_upload',
+    });
+
     recording.recordingType = 'manual_upload';
     recording.processingStatus = 'completed';
     recording.zoomDownloadUrl = '';
@@ -532,7 +750,7 @@ exports.uploadRecordingForSession = async (req, res) => {
     await recording.save();
 
     await Booking.findByIdAndUpdate(booking._id, {
-      recordingUrl: cloudinaryResult.secure_url,
+      recordingUrl: recording.videoUrl,
     });
 
     emitRecordingReadyEvent(booking, recording, cloudinaryResult.secure_url);
@@ -608,7 +826,7 @@ exports.compressAndUploadRecording = async (req, res) => {
     uploadedFilePath = req.file.path;
     const originalSize = req.file.size;
 
-    const booking = await getAuthorizedManualUploadBooking(sessionId, userId, role);
+    const { booking, participantRole } = await getAuthorizedSessionBooking(sessionId, userId, role);
     let recording = await Recording.findOne({ sessionId });
     const { meetingId, folder, publicId } = getManualRecordingIdentifiers(
       booking,
@@ -637,10 +855,18 @@ exports.compressAndUploadRecording = async (req, res) => {
       });
     }
 
-    recording.videoUrl = cloudinaryResult.secure_url;
-    recording.cloudinaryPublicId = cloudinaryResult.public_id;
-    recording.duration = cloudinaryResult.duration || recording.duration || 0;
-    recording.fileSize = cloudinaryResult.bytes || 0;
+    // Append as a new part so earlier videos in this session are preserved.
+    appendClipToRecording(recording, {
+      title: req.body?.title,
+      videoUrl: cloudinaryResult.secure_url,
+      cloudinaryPublicId: cloudinaryResult.public_id,
+      duration: cloudinaryResult.duration || 0,
+      fileSize: cloudinaryResult.bytes || 0,
+      uploadedBy: req.user._id,
+      uploadedByRole: participantRole,
+      source: participantRole === 'student' ? 'student_upload' : 'manual_upload',
+    });
+
     recording.recordingType = 'manual_upload';
     recording.processingStatus = 'completed';
     recording.zoomDownloadUrl = '';
@@ -648,7 +874,7 @@ exports.compressAndUploadRecording = async (req, res) => {
     await recording.save();
 
     await Booking.findByIdAndUpdate(booking._id, {
-      recordingUrl: cloudinaryResult.secure_url,
+      recordingUrl: recording.videoUrl,
     });
 
     emitRecordingReadyEvent(booking, recording, cloudinaryResult.secure_url);
@@ -675,6 +901,7 @@ exports.compressAndUploadRecording = async (req, res) => {
         processingStatus: recording.processingStatus,
         videoUrl: recording.videoUrl,
         cloudinaryPublicId: recording.cloudinaryPublicId,
+        clipCount: recording.clips.length,
         compression: stats || null,
       },
     });
@@ -695,11 +922,109 @@ exports.compressAndUploadRecording = async (req, res) => {
   }
 };
 
+// ─── Delete a Single Clip ──────────────────────────────────────────────────
+/**
+ * DELETE /api/v1/recordings/:sessionId/clips/:clipId
+ *
+ * Removes one part from the session timeline. Uploaders can remove their own
+ * clip (e.g. a student who uploaded the wrong file); the session mentor and
+ * admins can remove any clip.
+ */
+exports.deleteRecordingClip = async (req, res) => {
+  try {
+    const { sessionId, clipId } = req.params;
+    const userId = String(req.user._id);
+    const role = String(req.user.role || '').toLowerCase();
+
+    const { booking } = await getAuthorizedSessionBooking(sessionId, userId, role);
+    const recording = await Recording.findOne({ sessionId: booking._id });
+
+    if (!recording) {
+      return res.status(404).json({
+        success: false,
+        message: 'Recording not found',
+      });
+    }
+
+    const clip = recording.clips?.id(clipId);
+    if (!clip) {
+      return res.status(404).json({
+        success: false,
+        message: 'Clip not found',
+      });
+    }
+
+    const isUploader = String(clip.uploadedBy || '') === userId;
+    const isMentorOrAdmin = role === 'admin' || String(recording.mentorId) === userId;
+
+    if (!isUploader && !isMentorOrAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'You can only delete clips you uploaded',
+      });
+    }
+
+    if (clip.cloudinaryPublicId) {
+      try {
+        await deleteVideo(clip.cloudinaryPublicId);
+      } catch (cloudErr) {
+        // Keep going: a dangling Cloudinary asset is better than a broken timeline.
+        console.warn('[Clip Delete] Cloudinary deletion failed:', cloudErr.message);
+      }
+    }
+
+    clip.deleteOne();
+
+    // Re-number the remaining parts so the timeline stays contiguous.
+    recording.clips
+      .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0))
+      .forEach((remaining, index) => {
+        remaining.order = index;
+      });
+
+    if (recording.clips.length === 0) {
+      recording.videoUrl = '';
+      recording.cloudinaryPublicId = '';
+      recording.duration = 0;
+      recording.fileSize = 0;
+      await Booking.findByIdAndUpdate(booking._id, { $unset: { recordingUrl: 1 } });
+    } else {
+      const ordered = recording.clips;
+      recording.videoUrl = ordered[0].videoUrl || '';
+      recording.cloudinaryPublicId = ordered[0].cloudinaryPublicId || '';
+      recording.duration = ordered.reduce((sum, c) => sum + (Number(c.duration) || 0), 0);
+      recording.fileSize = ordered.reduce((sum, c) => sum + (Number(c.fileSize) || 0), 0);
+      await Booking.findByIdAndUpdate(booking._id, { recordingUrl: recording.videoUrl });
+    }
+
+    await recording.save();
+
+    return res.status(200).json({
+      success: true,
+      message: 'Clip deleted successfully',
+      data: {
+        _id: recording._id,
+        sessionId: recording.sessionId,
+        clipCount: recording.clips.length,
+        duration: recording.duration,
+        fileSize: recording.fileSize,
+      },
+    });
+  } catch (error) {
+    const statusCode = Number.isInteger(error.statusCode) ? error.statusCode : 500;
+    console.error('[Clip Delete] Error:', error.message);
+    return res.status(statusCode).json({
+      success: false,
+      message: statusCode === 500 ? 'Failed to delete clip' : error.message,
+    });
+  }
+};
+
 // ─── Delete Recording ──────────────────────────────────────────────────────
 /**
  * DELETE /api/v1/recordings/:recordingId
  *
- * Deletes a recording from Cloudinary and MongoDB.
+ * Deletes an entire recording (every clip) from Cloudinary and MongoDB.
  * Only the mentor who owns the session or an admin can delete.
  */
 exports.deleteRecording = async (req, res) => {
@@ -725,10 +1050,16 @@ exports.deleteRecording = async (req, res) => {
       });
     }
 
-    // Delete from Cloudinary if we have a public ID
-    if (recording.cloudinaryPublicId) {
+    // Remove every clip's asset, plus the legacy single asset if distinct.
+    const publicIds = new Set();
+    (recording.clips || []).forEach((clip) => {
+      if (clip.cloudinaryPublicId) publicIds.add(clip.cloudinaryPublicId);
+    });
+    if (recording.cloudinaryPublicId) publicIds.add(recording.cloudinaryPublicId);
+
+    for (const publicId of publicIds) {
       try {
-        await deleteVideo(recording.cloudinaryPublicId);
+        await deleteVideo(publicId);
       } catch (cloudErr) {
         console.warn('[Recording Delete] Cloudinary deletion failed:', cloudErr.message);
         // Continue with DB cleanup even if Cloudinary fails

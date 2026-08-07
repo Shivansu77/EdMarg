@@ -37,7 +37,9 @@ interface RecordingItem {
   fileSize: number;
   createdAt: string;
   videoUrl?: string;
+  clipCount?: number;
 }
+
 
 const formatDate = (dateStr: string) =>
   new Intl.DateTimeFormat('en-US', {
@@ -208,7 +210,14 @@ function RecordingsContent() {
                           {formatFileSize(recording.fileSize)}
                         </div>
                       )}
+                      {recording.clipCount && recording.clipCount > 1 && (
+                        <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                          <Film className="w-4 h-4 text-emerald-500" />
+                          {recording.clipCount} parts
+                        </div>
+                      )}
                     </div>
+
 
                     {/* Watch button */}
                     <Link

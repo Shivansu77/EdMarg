@@ -1,8 +1,29 @@
 import { resolveApiBaseUrl } from '@/utils/api-base';
 import { getAuthToken } from '@/utils/auth-session';
 import { dedupeInFlight } from '@/utils/request-dedupe';
+import {
+  ensureBackendAwake,
+  invalidateBackendReadiness,
+  isBackendUnavailableStatus,
+} from '@/utils/backend-ready';
 
 const API_BASE_URL = resolveApiBaseUrl();
+
+/**
+ * Total attempts for a request that fails in a way the backend platform is
+ * expected to recover from on its own (cold start, proxy 502, rolling restart).
+ */
+const MAX_ATTEMPTS = 3;
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Requests that can be replayed without risking a duplicate side effect.
+ * A retried POST could create two bookings, so unsafe methods are only retried
+ * when the failure happened before the request could have been processed.
+ */
+const IDEMPOTENT_METHODS = new Set(['GET', 'HEAD', 'OPTIONS', 'PUT', 'DELETE']);
+
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
@@ -68,16 +89,68 @@ class ApiClient {
     // so side effects are never dropped when two callers overlap (e.g. React
     // StrictMode's double-invoked effects in development).
     if (method === 'GET') {
-      return dedupeInFlight(`GET:${url}`, () => this.execute<T>(url, fetchOptions));
+      return dedupeInFlight(`GET:${url}`, () =>
+        this.executeWithRetry<T>(url, fetchOptions, method)
+      );
     }
 
-    return this.execute<T>(url, fetchOptions);
+    return this.executeWithRetry<T>(url, fetchOptions, method);
+  }
+
+  /**
+   * Run a request, retrying transient backend-unavailable failures.
+   *
+   * The API runs on a platform that hibernates idle instances; the first
+   * request after that can be rejected by the edge proxy with a 502/503 that
+   * carries no CORS headers, which the browser surfaces as an opaque network
+   * error. Retrying here keeps a cold start from looking like a real failure.
+   */
+  private async executeWithRetry<T>(
+    url: string,
+    fetchOptions: RequestInit,
+    method: string
+  ): Promise<ApiResponse<T>> {
+    let lastResponse: ApiResponse<T> | null = null;
+
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+      const response = await this.execute<T>(url, fetchOptions);
+      lastResponse = response;
+
+      const status = response.status ?? 0;
+      if (response.success || !isBackendUnavailableStatus(status)) {
+        return response;
+      }
+
+      // A status of 0 means the request never got a usable response, so
+      // replaying it cannot duplicate a side effect. Any other transient status
+      // came from the server, so only idempotent methods are safe to repeat.
+      const canRetry = status === 0 || IDEMPOTENT_METHODS.has(method);
+      if (!canRetry || attempt === MAX_ATTEMPTS) {
+        return response;
+      }
+
+      invalidateBackendReadiness();
+
+      // Honour the server's own Retry-After hint when it sent one.
+      const serverDelayMs = (response.retryAfterSeconds ?? 0) * 1000;
+      await sleep(Math.max(serverDelayMs, 1000 * attempt));
+      await ensureBackendAwake(30_000);
+    }
+
+    return (
+      lastResponse ?? {
+        success: false,
+        error: 'Request failed',
+        message: 'Request failed',
+      }
+    );
   }
 
   private async execute<T>(
     url: string,
     fetchOptions: RequestInit
   ): Promise<ApiResponse<T>> {
+
     try {
       const headers = new Headers(fetchOptions.headers);
       const token = await getAuthToken();

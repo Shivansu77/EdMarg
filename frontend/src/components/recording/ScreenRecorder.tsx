@@ -458,16 +458,21 @@ export default function ScreenRecorder({ sessionId, onComplete, onClose }: Scree
                   </div>
                   <p style={{ fontSize: 12, color: '#94a3b8', fontWeight: 500, margin: 0 }}>
                     {blobSize > 0 ? `${(blobSize / 1024 / 1024).toFixed(1)} MB · ` : ''}
-                    {uploadStage === 'preparing'
-                      ? 'Preparing secure upload...'
-                      : uploadStage === 'compressing'
-                        ? '🎬 Sending video to server for compression... Please keep this window open.'
-                        : uploadStage === 'uploading'
-                          ? '⚡ Compressing & uploading to cloud storage... This may take a few minutes.'
-                          : uploadStage === 'finalizing'
-                            ? 'Saving recording details...'
-                            : 'Processing... Please keep this window open.'}
+                    {uploadStage === 'waking'
+                      ? '⏳ Waking up the server... This can take up to a minute. Your recording is safe.'
+                      : uploadStage === 'retrying'
+                        ? '🔄 Server was unavailable. Retrying automatically... Your recording is safe.'
+                        : uploadStage === 'preparing'
+                          ? 'Preparing secure upload...'
+                          : uploadStage === 'compressing'
+                            ? '🎬 Sending video to server for compression... Please keep this window open.'
+                            : uploadStage === 'uploading'
+                              ? '⚡ Compressing & uploading to cloud storage... This may take a few minutes.'
+                              : uploadStage === 'finalizing'
+                                ? 'Saving recording details...'
+                                : 'Processing... Please keep this window open.'}
                   </p>
+
                 </div>
               )}
 
