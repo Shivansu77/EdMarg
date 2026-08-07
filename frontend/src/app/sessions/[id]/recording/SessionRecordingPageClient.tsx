@@ -174,7 +174,7 @@ export default function SessionRecordingPageClient() {
 
       setState('loading');
       const res = await apiClient.get<RecordingData>(
-        `/api/v1/recordings/session/${sessionId}`
+        `/api/v1/recordings/${sessionId}`
       );
 
       if (!res.success || !res.data) {
