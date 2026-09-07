@@ -63,6 +63,7 @@ const Navbar = () => {
           <Link href="/pricing" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Pricing</Link>
           <Link href="/about" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">About</Link>
           <Link href="/blogs" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Blog</Link>
+          <Link href="/student/careers" className="rounded-full px-3 py-1 hover:bg-emerald-50 hover:text-emerald-700 transition-colors">Become a Mentor</Link>
           {isLoggedIn && userRole === 'student' && (
             <Link href="/student/wishlist" className="rounded-full px-3 py-1 hover:bg-slate-100 hover:text-slate-900 transition-colors">Wishlist</Link>
           )}
@@ -138,6 +139,7 @@ const Navbar = () => {
               <Link href="/pricing" onClick={() => setIsOpen(false)}>Pricing</Link>
               <Link href="/about" onClick={() => setIsOpen(false)}>About</Link>
               <Link href="/blogs" onClick={() => setIsOpen(false)}>Blog</Link>
+              <Link href="/student/careers" onClick={() => setIsOpen(false)}>Become a Mentor</Link>
               {isLoggedIn && userRole === 'student' && (
                 <Link href="/student/wishlist" onClick={() => setIsOpen(false)}>Wishlist</Link>
               )}

@@ -15,7 +15,6 @@ import {
   Settings,
   ChevronLeft,
   LogOut,
-  Briefcase,
 } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
@@ -42,7 +41,6 @@ const studentNavGroups = [
     group: 'Mentorship',
     items: [
       { name: 'Find Mentors', href: '/student/mentors', icon: Users },
-      { name: 'Become a Mentor', href: '/student/careers', icon: Briefcase },
       { name: 'Book Session', href: '/student/booking', icon: CalendarCheck },
       { name: 'Schedule', href: '/student/schedule', icon: CalendarDays },
     ]
